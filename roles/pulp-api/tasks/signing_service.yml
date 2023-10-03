@@ -1,0 +1,80 @@
+---
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-API-Ready"
+        message: Copying public GPG key for signing service
+        reason: CopyingPublicGPG
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Set GPG initContainer image
+  set_fact:
+    gpg_init_container_image: >-
+      {{ lookup('env', 'RELATED_IMAGE_PULP_INIT_GPG_CONTAINER') |
+         default(__gpg_init_container_image,true) }}
+
+- name: Check for signing keys
+  k8s_info:
+    kind: Secret
+    namespace: '{{ ansible_operator_meta.namespace }}'
+    name: '{{ signing_secret }}'
+  register: _signing_keys
+  no_log: "{{ no_log }}"
+
+- name: Get signing keys
+  set_fact:
+    signing_service_gpg_content: "{{ _signing_keys['resources'][0]['data']['signing_service.gpg'] | b64decode }}"
+  no_log: "{{ no_log }}"
+
+- name: Copying public GPG key
+  copy:
+    dest: "/tmp/signing_service.gpg"
+    content: "{{ signing_service_gpg_content }}"
+
+- name: Get GPG key ID
+  block:
+  - name: Inspect galaxy signing service GPG key file
+    shell: >
+      {{ __pulp_gpg_inspect_command }}
+      /tmp/signing_service.gpg | grep -m1 -o -E
+      '[A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4}  [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4}'
+      | tr -d " "
+    register: signing_key
+    changed_when: false
+    failed_when: signing_key.stdout | length != 40
+    check_mode: false
+
+  - k8s_status:
+      api_version: "{{ api_version }}"
+      kind: "{{ kind }}"
+      name: "{{ ansible_operator_meta.name }}"
+      namespace: "{{ ansible_operator_meta.namespace }}"
+      conditions:
+        - type: "{{ deployment_type|capitalize }}-API-Ready"
+          message: Importing galaxy signing service GPG key file
+          reason: ImportingGalaxyGPGKey
+          status: "False"
+          lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+  - k8s_status:
+      api_version: "{{ api_version }}"
+      kind: "{{ kind }}"
+      name: "{{ ansible_operator_meta.name }}"
+      namespace: "{{ ansible_operator_meta.namespace }}"
+      conditions:
+        - type: "{{ deployment_type|capitalize }}-API-Ready"
+          message: Updating Ownertrust trust level
+          reason: UpdatingOwnertrustTrustLevel
+          status: "False"
+          lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+  - name: Set environment variable for the GPG key ID
+    set_fact:
+        signing_key_fingerprint: "{{ signing_key.stdout }}"
+        cacheable: yes
+
+  when: signing_key_fingerprint is undefined
