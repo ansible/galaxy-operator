@@ -45,3 +45,7 @@
     set_fact:
       web_url: "https://{{ route_host }}"
   when: ingress_type | lower == 'route'
+
+- name: Set Bundle Certificate Authority
+  include_tasks: set_bundle_cacert.yml
+  when: bundle_cacert_secret | length
