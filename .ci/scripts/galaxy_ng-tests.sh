@@ -25,6 +25,7 @@ REPO_RESULTS=()
 echo "Waiting ..."
 sleep 10
 
+
 TOKEN=$(curl --location --request POST "$BASE_ADDR/api/galaxy/v3/auth/token/" --header 'Authorization: Basic YWRtaW46cGFzc3dvcmQ=' --silent | python3 -c "import sys, json; print(json.load(sys.stdin)['token'])")
 echo $TOKEN
 
@@ -53,10 +54,10 @@ done
 
 podman pull quay.io/ansible/galaxy-operator:main
 podman login --tls-verify=false -u admin -p password localhost:24880
-podman tag quay.io/ansible/galaxy-operator:main localhost:24880/pulp/pulp-operator:devel
-podman push --tls-verify=false localhost:24880/pulp/pulp-operator:devel
+podman tag quay.io/ansible/galaxy-operator:main localhost:24880/ansible/galaxy-operator:main
+podman push --tls-verify=false localhost:24880/ansible/galaxy-operator:main
 
-
+echo "See https://github.com/pulp/pulp-operator/commit/d4117698d46539e8073040a395d8d4a42c2cc1d4 for context if the following curl fails."
 curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/_ui/v1/execution-environments/repositories/ | jq
 
 cat >> ansible.cfg << ANSIBLECFG
