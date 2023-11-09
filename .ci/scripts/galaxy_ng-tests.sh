@@ -51,9 +51,9 @@ do
     fi
 done
 
-podman pull quay.io/pulp/pulp-operator:devel
+podman pull quay.io/ansible/galaxy-operator:main
 podman login --tls-verify=false -u admin -p password localhost:24880
-podman tag quay.io/pulp/pulp-operator:devel localhost:24880/pulp/pulp-operator:devel
+podman tag quay.io/ansible/galaxy-operator:main localhost:24880/pulp/pulp-operator:devel
 podman push --tls-verify=false localhost:24880/pulp/pulp-operator:devel
 
 

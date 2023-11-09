@@ -242,7 +242,7 @@ metadata:
       ]
     capabilities: Seamless Upgrades
     categories: Integration & Delivery
-    containerImage: quay.io/pulp/pulp-operator:devel
+    containerImage: quay.io/ansible/galaxy-operator:main
     createdAt: "2021-03-26 16:57:40"
     description: Pulp is a platform for managing repositories of software packages
       and making them available to a large number of consumers.
@@ -1092,7 +1092,7 @@ spec:
                   value: postgres:13
                 - name: RELATED_IMAGE_PULP_INIT_GPG_CONTAINER
                   value: quay.io/centos/centos:stream9
-                image: quay.io/pulp/pulp-operator:v0.15.0.dev
+                image: quay.io/ansible/galaxy-operator:v0.15.0.dev
                 livenessProbe:
                   httpGet:
                     path: /healthz

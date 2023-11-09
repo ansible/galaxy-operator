@@ -67,7 +67,7 @@ Now you need to deploy Pulp Operator into your cluster. Clone this repo and `git
 ```
 $ export NAMESPACE=my-namespace
 $ make deploy
-cd config/manager && /usr/local/bin/kustomize edit set image controller=quay.io/pulp/pulp-operator:v0.5.0.dev
+cd config/manager && /usr/local/bin/kustomize edit set image controller=quay.io/ansible/galaxy-operator:v0.5.0.dev
 cd config/default && /usr/local/bin/kustomize edit set namespace pulp-operator-system
 /usr/local/bin/kustomize build config/default | kubectl apply -f -
 namespace/pulp-operator-system created

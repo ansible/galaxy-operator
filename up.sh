@@ -17,7 +17,7 @@ else
 fi
 
 KUBE_ASSETS_DIR=${KUBE_ASSETS_DIR:-".ci/assets/kubernetes"}
-OPERATOR_IMAGE=${OPERATOR_IMAGE:-"quay.io/pulp/pulp-operator:devel"}
+OPERATOR_IMAGE=${OPERATOR_IMAGE:-"quay.io/ansible/galaxy-operator:main"}
 
 echo "Make Deploy"
 make deploy IMG=$OPERATOR_IMAGE

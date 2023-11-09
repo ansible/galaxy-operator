@@ -115,7 +115,7 @@ fi
 if [ "$BRANCH" != "main" ] && [ "$KUBE" == "minikube" ]; then
   echo "=================================== Build Operator ==================================="
   eval $(minikube -p minikube docker-env) || failure_message
-  sudo -E make docker-build IMG=quay.io/pulp/pulp-operator:devel || failure_message
+  sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main || failure_message
   sudo -E docker images || failure_message
 fi
 echo "=================================== Operator Up ==================================="
