@@ -34,7 +34,7 @@ jobs:
           sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
           echo ::endgroup::
           echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
-          echo "IMG=quay.io/pulp/pulp-operator:devel" >> $GITHUB_ENV
+          echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
           echo "CI_TEST=true" >> $GITHUB_ENV
           echo "CI_TEST_IMAGE=minimal" >> $GITHUB_ENV
         shell: bash
@@ -57,7 +57,7 @@ jobs:
         shell: bash
       - name: Build Operator
         run: |
-          sudo -E make docker-build IMG=quay.io/pulp/pulp-operator:devel
+          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
           sudo -E docker images
         shell: bash
       - name: Test insta-demo
@@ -114,7 +114,7 @@ jobs:
           sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
           echo ::endgroup::
           echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
-          echo "IMG=quay.io/pulp/pulp-operator:devel" >> $GITHUB_ENV
+          echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
           echo "CI_TEST=true" >> $GITHUB_ENV
           echo "CI_TEST_STORAGE=${{ matrix.STORAGE }}" >> $GITHUB_ENV
           echo "CI_TEST_IMAGE=${{ matrix.IMAGE }}" >> $GITHUB_ENV
@@ -139,7 +139,7 @@ jobs:
         shell: bash
       - name: Build Operator
         run: |
-          sudo -E make docker-build IMG=quay.io/pulp/pulp-operator:devel
+          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
           sudo -E docker images
         shell: bash
       - name: Prepare Object Storage
