@@ -8,6 +8,9 @@ RELEASE_NAME=$(echo "${RELEASE_INFO}" | jq --raw-output ".name")
 LOCATION=$(echo "${RELEASE_INFO}" \
   | jq --raw-output ".assets[].browser_download_url" \
   | grep --fixed-strings kube-linter-linux.tar.gz)
+
+# Remove trailing whitespace
+RELEASE_NAME="${RELEASE_NAME%"${RELEASE_NAME##*[![:space:]]}"}"
 TARGET=kube-linter-linux-${RELEASE_NAME}.tar.gz
 # Skip downloading release if downloaded already, e.g. when the action is used multiple times.
 if [ ! -e $TARGET ]; then

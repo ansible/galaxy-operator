@@ -1,10 +1,10 @@
-name: Pulp CI
+name: Galaxy Operator CI
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - '*'
+  # push:
+  #   branches:
+  #     - '*'
+  #   tags:
+  #     - '*'
   workflow_dispatch:
   schedule:
     # * is a special character in YAML so you have to quote this string
@@ -250,13 +250,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "Galaxy Operator CI ${{ job.status }}\nhttps://github.com/pulp/pulp-operator/actions/runs/${{ github.run_id }}",
+              "text": "Galaxy Operator CI ${{ job.status }}\nhttps://github.com/ansible/galaxy-operator/actions/runs/${{ github.run_id }}",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Galaxy Operator CI ${{ job.status }}\nhttps://github.com/pulp/pulp-operator/actions/runs/${{ github.run_id }}"
+                    "text": "Galaxy Operator CI ${{ job.status }}\nhttps://github.com/ansible/galaxy-operator/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]

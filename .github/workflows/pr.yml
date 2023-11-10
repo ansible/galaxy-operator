@@ -1,88 +1,10 @@
-name: Pulp PR
+name: Galaxy-Operator PR
 on:
   pull_request:
-    branches:
-      - '*'
 env:
   COLORTERM: 'yes'
   TERM: 'xterm-256color'
 jobs:
-  insta:
-    runs-on: ubuntu-latest
-    steps:
-      - name: PR head repo
-        id: head_repo_name
-        run: |
-          HEAD_REPO_NAME=$(jq -r '.pull_request.head.repo.full_name' "$GITHUB_EVENT_PATH")
-          echo "PR head repo: $HEAD_REPO_NAME"
-          echo "::set-output name=repo::$HEAD_REPO_NAME"
-      - uses: actions/checkout@v2
-        with:
-          # by default, it uses a depth of 1
-          # this fetches all history so that we can read each commit
-          fetch-depth: 0
-          repository: ${{ steps.head_repo_name.outputs.repo }}
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-      - name: Install httpie
-        run: |
-          echo ::group::HTTPIE
-          sudo apt-get update -yq
-          sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
-          echo ::endgroup::
-          echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
-          echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
-          echo "CI_TEST=true" >> $GITHUB_ENV
-          echo "CI_TEST_IMAGE=minimal" >> $GITHUB_ENV
-        shell: bash
-      - name: Start minikube
-        run: |
-          minikube start --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000
-          minikube addons enable metrics-server
-        # now you can run kubectl to see the pods in the cluster
-      - name: Try the cluster !
-        run: kubectl get pods -A
-      - name: Setup a minikube docker env
-        run: minikube -p minikube docker-env | grep "export" | sed 's/export //' | sed 's/"//g' >> $GITHUB_ENV
-      - name: Uninstalling GHA kustomize
-        run: |
-          # hack for uninstalling kustomize from GHA
-          mv /usr/local/bin/kustomize /usr/local/bin/ghakustomize
-          make kustomize
-          mv ./bin/kustomize /usr/local/bin/kustomize
-          kustomize version
-        shell: bash
-      - name: Build Operator
-        run: |
-          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
-          sudo -E docker images
-        shell: bash
-      - name: Test insta-demo
-        env:
-          FORKED_REPOSITORY: ${{ steps.head_repo_name.outputs.repo }}
-        run: sudo -E insta-demo/pulp-insta-demo.sh -m
-        shell: bash
-      - name: KubeLinter
-        run: .ci/scripts/kubelinter.sh
-        shell: bash
-      - name: Popeye
-        run: |
-          echo ::group::POPEYE
-          sudo wget https://github.com/derailed/popeye/releases/download/v0.9.7/popeye_Linux_x86_64.tar.gz
-          sudo tar -xvzf popeye_Linux_x86_64.tar.gz
-          sudo mv popeye /usr/local/bin/
-          sudo chmod +x /usr/local/bin/popeye
-          echo ::endgroup::
-          sudo popeye --kubeconfig ~/.kube/config || true
-      - name: Logs
-        if: always()
-        run: .github/workflows/scripts/show_logs.sh
-      # - name: Debugging example (uncomment when needed)
-      #   if: failure()
-      #   uses: mxschmitt/action-tmate@v3
   galaxy:
     runs-on: ubuntu-latest
     strategy:
@@ -91,18 +13,27 @@ jobs:
         include:
           - STORAGE: filesystem
             IMAGE: minimal
-          - STORAGE: filesystem
-            IMAGE: s6
-          - STORAGE: azure
-            IMAGE: minimal
-          - STORAGE: s3
-            IMAGE: minimal
+          # - STORAGE: filesystem
+          #   IMAGE: s6
+          # - STORAGE: azure
+          #   IMAGE: minimal
+          # - STORAGE: s3
+          #   IMAGE: minimal
     steps:
-      - uses: actions/checkout@v2
+      - name: PR head repo
+        id: head_repo_name
+        run: |
+          HEAD_REPO_NAME=$(jq -r '.pull_request.head.repo.full_name' "$GITHUB_EVENT_PATH")
+          echo "PR head repo: $HEAD_REPO_NAME"
+          echo "::set-output name=repo::$HEAD_REPO_NAME"
+      - uses: actions/checkout@v3
         with:
           # by default, it uses a depth of 1
           # this fetches all history so that we can read each commit
           fetch-depth: 0
+          # Could be used to checkout the PR head repo when public
+          # repository: ${{ steps.head_repo_name.outputs.repo }}
+          # ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python 3.8
         uses: actions/setup-python@v1
         with:
@@ -146,7 +77,7 @@ jobs:
         run: |
           .ci/scripts/prepare-object-storage.sh
         shell: bash
-      - name: Deploy pulp-operator to K8s
+      - name: Deploy galaxy-operator to K8s
         run: sudo -E CI_TEST=galaxy ./up.sh
         shell: bash
       - name: Check and wait pulp-operator deploy
