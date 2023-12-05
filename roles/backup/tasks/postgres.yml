@@ -98,7 +98,28 @@
   k8s_exec:
     namespace: "{{ backup_pvc_namespace }}"
     pod: "{{ ansible_operator_meta.name }}-backup-manager"
-    command: >-
-      bash -c "PGPASSWORD={{ postgres_pass }} {{ pgdump }} > {{ _backup_dir }}/pulp.db"
+    command: |
+      bash -c "
+      function end_keepalive {
+        rc=$?
+        rm -f \"$1\"
+        kill $(cat /proc/$2/task/$2/children 2>/dev/null) 2>/dev/null || true
+        wait $2 || true
+        exit $rc
+      }
+      keepalive_file=\"$(mktemp)\"
+      while [[ -f \"$keepalive_file\" ]]; do
+        echo 'Dumping data from database...'
+        sleep 60
+      done &
+      keepalive_pid=$!
+      trap 'end_keepalive \"$keepalive_file\" \"$keepalive_pid\"' EXIT SIGINT SIGTERM
+      echo keepalive_pid: $keepalive_pid
+      set -e -o pipefail
+      PGPASSWORD='{{ postgres_pass }}' {{ pgdump }} > {{ _backup_dir }}/tower.db
+      set +e +o pipefail
+      echo 'Successful'
+      "
   register: data_migration
   no_log: "{{ no_log }}"
+  failed_when: "'Successful' not in data_migration.stdout"
