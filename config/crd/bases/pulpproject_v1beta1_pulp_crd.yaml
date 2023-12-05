@@ -866,6 +866,10 @@ spec:
                         type: object
                     type: object
                 type: object
+              force_drop_db:
+                description: Force drop the database before restoring. USE WITH CAUTION!
+                type: boolean
+                default: false
             type: object
           status:
             properties:
