@@ -94,7 +94,7 @@
         - "postgres_pod['resources'][0]['status']['containerStatuses'][0]['ready'] == true"
       delay: 5
       retries: 60
-- rescue:
+  rescue:
     - name: Set error message
       set_fact:
         error_msg: "A Postgres {{ postgres_version }} Pod with the {{ postgres_label_selector }} label \
