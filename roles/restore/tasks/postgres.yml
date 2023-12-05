@@ -68,15 +68,49 @@
     - "{{ deployment_name }}-worker"
     - "{{ deployment_name }}-web"
 
+- name: Set full resolvable host name for postgres pod
+  set_fact:
+    resolvable_db_host: '{{ (postgres_type == "managed") | ternary(postgres_host + "." + ansible_operator_meta.namespace + ".svc." + cluster_name, postgres_host) }}'  # yamllint disable-line rule:line-length
+  no_log: "{{ no_log }}"
+
 - name: Set pg_restore command
   set_fact:
     pg_restore: >-
       psql -U {{ postgres_user }}
-      -h {{ postgres_host }}
+      -h {{ resolvable_db_host }}
       -U {{ postgres_user }}
       -d {{ postgres_database }}
       -p {{ postgres_port }}
   no_log: "{{ no_log }}"
+
+- name: Force drop and create database if force_drop_db is true
+  block:
+    - name: Set drop db command
+      set_fact:
+        pg_drop_db: >-
+          echo 'DROP DATABASE {{ postgres_database }} WITH (FORCE);' | PGPASSWORD='{{ postgres_pass }}' psql
+          -U {{ postgres_user }}
+          -h {{ resolvable_db_host }}
+          -d postgres
+          -p {{ postgres_port }} ;
+      no_log: "{{ no_log }}"
+
+    - name: Set create db command
+      set_fact:
+        pg_create_db: >-
+          echo 'CREATE DATABASE {{ postgres_database }} WITH OWNER = {{ postgres_user }};' | PGPASSWORD='{{ postgres_pass }}' psql
+          -U {{ postgres_user }}
+          -h {{ resolvable_db_host }}
+          -d postgres
+          -p {{ postgres_port }} ;
+      no_log: "{{ no_log }}"
+
+    - name: Set complete pg restore command
+      set_fact:
+        pg_drop_create: >-
+          {{ pg_drop_db }}
+          {{ pg_create_db }}
+  when: force_drop_db
 
 - name: Restore database dump to the new postgresql container
   k8s_exec:
@@ -100,9 +134,11 @@
       trap 'end_keepalive \"$keepalive_file\" \"$keepalive_pid\"' EXIT SIGINT SIGTERM
       echo keepalive_pid: $keepalive_pid
       set -e -o pipefail
+      {{ pg_drop_create }}
       cat {{ backup_dir }}/tower.db | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
+      PG_RC=$?
       set +e +o pipefail
-      echo 'Successful'
+      exit $PG_RC
       "
   register: data_migration
   no_log: "{{ no_log }}"

@@ -16,3 +16,6 @@ signing_secret: ''
 container_token_secret: ''
 db_fields_encryption_secret: ''
 sso_secret: ''
+
+# Default cluster name
+cluster_name: 'cluster.local'

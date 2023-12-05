@@ -857,6 +857,11 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:io.kubernetes:Secret
+      - displayName: Force drop database before restore
+        path: force_drop_db
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       statusDescriptors:
       - displayName: Conditions
         path: conditions
