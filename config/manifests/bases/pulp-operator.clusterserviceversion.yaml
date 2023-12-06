@@ -331,12 +331,11 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
-        - urn:alm:descriptor:io.kubernetes:StorageClass
       - displayName: API server configuration
         path: api
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
-      - description: The number of API replicas.
+      - description: The number of API replicas
         displayName: Replicas
         path: api.replicas
         x-descriptors:
@@ -671,7 +670,7 @@ spec:
       kind: PulpRestore
       name: pulprestores.pulp.pulpproject.org
       specDescriptors:
-      - displayName: Backup source to restore ?
+      - displayName: Backup source to restore from
         path: backup_source
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:select:CR
@@ -681,11 +680,10 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
         - urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup_source:CR
-      - displayName: Deployment name
+      - displayName: New Deployment Name
         path: deployment_name
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup_source:PVC
       - displayName: Backup persistent volume claim
         path: backup_pvc
         x-descriptors:

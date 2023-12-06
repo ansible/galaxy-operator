@@ -699,12 +699,11 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
-        - urn:alm:descriptor:com.tectonic.ui:text
       - displayName: API server configuration
         path: api
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
-      - description: The number of API replicas.
+      - description: The number of API replicas
         displayName: Replicas
         path: api.replicas
         x-descriptors:
