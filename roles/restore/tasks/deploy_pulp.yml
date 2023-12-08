@@ -81,9 +81,6 @@
     state: present
     definition: "{{ lookup('template', 'pulp_object.yaml.j2') }}"
     wait: true
-    wait_condition:
-      type: "{{ deployment_type|capitalize }}-Web-Ready"
-      status: "True"
 
 - name: Remove ownerReferences to prevent garbage collection of new CR
   k8s:
