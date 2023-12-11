@@ -92,6 +92,7 @@
       -U {{ postgres_user }}
       -d {{ postgres_database }}
       -p {{ postgres_port }}
+      -F custom
   no_log: "{{ no_log }}"
 
 - name: Write pg_dump to backup on PVC
@@ -116,7 +117,7 @@
       trap 'end_keepalive \"$keepalive_file\" \"$keepalive_pid\"' EXIT SIGINT SIGTERM
       echo keepalive_pid: $keepalive_pid
       set -e -o pipefail
-      PGPASSWORD='{{ postgres_pass }}' {{ pgdump }} > {{ _backup_dir }}/tower.db
+      PGPASSWORD='{{ postgres_pass }}' {{ pgdump }} > {{ _backup_dir }}/pulp.db
       set +e +o pipefail
       echo 'Successful'
       "

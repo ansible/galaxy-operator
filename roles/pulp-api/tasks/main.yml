@@ -1,19 +1,5 @@
 ---
 
-- name: Wait for {{ deployment_type }}restore to complete
-  kubernetes.core.k8s_info:
-    api_version: "{{ api_version }}"
-    kind: "{{ deployment_type }}restore"
-    namespace: "{{ ansible_operator_meta.namespace }}"
-  register: restore_status_check
-  until:
-    # yamllint disable-line rule:line-length
-    - (restore_status_check.resources | length == 0) or (restore_status_check.resources | selectattr('spec.deployment_name', 'equalto', ansible_operator_meta.name) | map(attribute='status') | selectattr('restoreComplete', 'defined') | map(attribute='restoreComplete') | list | length > 0)
-  delay: 10
-  retries: 8640
-  ignore_errors: yes
-  changed_when: false
-
 - set_fact:
     object_storage_secret: "{{ object_storage_s3_secret }}"
   when:
@@ -23,58 +9,6 @@
     object_storage_secret: "{{ object_storage_azure_secret }}"
   when:
     - object_storage_azure_secret is defined
-
-- set_fact:
-    is_file_storage: false
-  when:
-    - object_storage_secret is defined
-
-- name: pulp-file-storage
-  block:
-    - name: "Creating {{ deployment_type|capitalize }}-api PVC resource"
-      k8s_status:
-        api_version: "{{ api_version }}"
-        kind: "{{ kind }}"
-        name: "{{ ansible_operator_meta.name }}"
-        namespace: "{{ ansible_operator_meta.namespace }}"
-        conditions:
-          - type: "{{ deployment_type|capitalize }}-API-Ready"
-            message: "Creating {{ deployment_type|capitalize }}-api PVC resource"
-            reason: CreatingPVC
-            status: "False"
-            lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
-
-    - name: pulp-file-storage persistent volume claim
-      k8s:
-        state: "{{ deployment_state }}"
-        definition: "{{ lookup('template', 'templates/' + item + '.pvc.yaml.j2') | from_yaml }}"
-      with_items:
-        - pulp-file-storage
-
-    - name: "Removing ownerReferences from {{ ansible_operator_meta.name}}-file-storage PVC"
-      k8s_status:
-        api_version: "{{ api_version }}"
-        kind: "{{ kind }}"
-        name: "{{ ansible_operator_meta.name }}"
-        namespace: "{{ ansible_operator_meta.namespace }}"
-        conditions:
-          - type: "{{ deployment_type|capitalize }}-API-Ready"
-            message: "Removing ownerReferences from {{ ansible_operator_meta.name}}-file-storage PVC"
-            reason: RemovingPVCOwnerReferences
-            status: "False"
-            lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
-
-    - name: Remove ownerReferences from pulp-file-storage pvc to avoid garbage collection
-      k8s:
-        definition:
-          apiVersion: v1
-          kind: PersistentVolumeClaim
-          metadata:
-            name: '{{ ansible_operator_meta.name }}-file-storage'
-            namespace: '{{ ansible_operator_meta.namespace }}'
-            ownerReferences: null
-
-  when: is_file_storage
 
 - include_tasks:
     file: s3-storage-configuration.yml
@@ -182,45 +116,6 @@
     definition: "{{ lookup('template', 'templates/' + item + '.service.yaml.j2') | from_yaml }}"
   with_items:
     - pulp-api
-
-- name: Get information about the cluster
-  set_fact:
-    api_groups: "{{ lookup('k8s', cluster_info='api_groups') }}"
-  when:
-  - not is_openshift
-  - not is_k8s
-
-- name: Determine the cluster type
-  set_fact:
-    is_openshift: "{{ True if 'route.openshift.io' in api_groups else False }}"
-    is_k8s: "{{ False if 'route.openshift.io' in api_groups else True }}"
-  when:
-  - not is_openshift
-  - not is_k8s
-
-# Indicate what kind of cluster we are in (OpenShift or Kubernetes).
-- debug:
-    msg: "CLUSTER TYPE: is_openshift={{ is_openshift }}; is_k8s={{ is_k8s }}"
-
-- block:
-  - k8s_status:
-      api_version: "{{ api_version }}"
-      kind: "{{ kind }}"
-      name: "{{ ansible_operator_meta.name }}"
-      namespace: "{{ ansible_operator_meta.namespace }}"
-      conditions:
-        - type: "{{ deployment_type|capitalize }}-API-Ready"
-          message: Cannot determine what type of cluster we are in
-          reason: FailedToIdentifyClusterType
-          status: "False"
-          lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
-
-  - fail:
-      msg: "Cannot determine what type of cluster we are in"
-
-  when:
-  - not is_openshift
-  - not is_k8s
 
 - name: Set default pulp-api image
   set_fact:

@@ -1,8 +1,4 @@
 ---
-- name: Set apiVersion and kind variables
-  set_fact:
-    api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
-    kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
 
 - k8s_status:
     api_version: "{{ api_version }}"
@@ -134,6 +130,17 @@
     postgres_port: "{{ pg_config['resources'][0]['data']['port'] | b64decode }}"
     postgres_host: "{{ pg_config['resources'][0]['data']['host'] | b64decode }}"
     postgres_sslmode: "{{ pg_config['resources'][0]['data']['sslmode'] | default('prefer'|b64encode) | b64decode }}"
+  no_log: "{{ no_log }}"
+
+- name: Getting raw pulp_settings
+  set_fact:
+    raw_pulp_settings: "{{ raw_spec['pulp_settings'] | default({}) }}"
+  no_log: "{{ no_log }}"
+  when: pulp_settings is defined
+
+- name: Combining pulp_settings
+  set_fact:
+    pulp_combined_settings: "{{ default_settings|combine(raw_pulp_settings, recursive=True) if pulp_settings is defined and pulp_settings is not none else default_settings }}"
   no_log: "{{ no_log }}"
 
 - name: Set database as managed

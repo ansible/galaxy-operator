@@ -1,4 +1,8 @@
 ---
+- name: Set apiVersion and kind variables
+  set_fact:
+    api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
+    kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
 
 - name: Fail execution if image_pull_secret or image_pull_secrets are defined but as NoneType ('image_pull_secret[s]:')
   fail:
@@ -49,3 +53,6 @@
 - name: Set Bundle Certificate Authority
   include_tasks: set_bundle_cacert.yml
   when: bundle_cacert_secret | length
+
+- name: Check if k8s or Openshift
+  include_tasks: check_k8s_or_openshift.yml
