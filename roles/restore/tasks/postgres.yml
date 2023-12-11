@@ -41,6 +41,10 @@
   when: postgres_label_selector is not defined
 
 - block:
+    - name: Set the resource pod name as a variable.
+      set_fact:
+        storage_claim: "{{ deployment_name }}-file-storage"
+
     - name: Get the postgres pod information
       k8s_info:
         kind: Pod
@@ -60,11 +64,29 @@
         postgres_pod_name: "{{ postgres_pod['resources'][0]['metadata']['name'] }}"
   when: postgres_type == 'managed'
 
+- block:
+    - name: Wait for PVC to be created if file-storage is used
+      k8s_info:
+        api_version: v1
+        kind: PersistentVolumeClaim
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        name: "{{ storage_claim }}"
+      register: pvc_status
+      until: pvc_status.resources | length > 0
+      retries: 60
+      delay: 10
+      ignore_errors: yes
+
+    - name: Fail with custom message if PVC not found
+      fail:
+        msg: "PVC '{{ storage_claim }}' not found in namespace '{{ ansible_operator_meta.namespace }}' after 10 minutes."
+      when: pvc_status.resources | length == 0
+  when: storage_type | lower == 'file'
+
 - include: scale_down.yml deploy_name={{ item }}
   with_items:
     - "{{ deployment_name}}-api"
     - "{{ deployment_name }}-content"
-    - "{{ deployment_name }}-resource-manager"
     - "{{ deployment_name }}-worker"
     - "{{ deployment_name }}-web"
 
@@ -76,7 +98,7 @@
 - name: Set pg_restore command
   set_fact:
     pg_restore: >-
-      psql -U {{ postgres_user }}
+      pg_restore --clean --if-exists
       -h {{ resolvable_db_host }}
       -U {{ postgres_user }}
       -d {{ postgres_database }}
@@ -135,11 +157,10 @@
       echo keepalive_pid: $keepalive_pid
       set -e -o pipefail
       {{ pg_drop_create }}
-      cat {{ backup_dir }}/tower.db | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
+      cat {{ backup_dir }}/pulp.db | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
       PG_RC=$?
       set +e +o pipefail
       exit $PG_RC
       "
   register: data_migration
   no_log: "{{ no_log }}"
-  failed_when: "'Successful' not in data_migration.stdout"

@@ -1,9 +1,5 @@
 ---
 
-- name: Set the resource pod name as a variable.
-  set_fact:
-    storage_claim: "{{ deployment_name }}-file-storage"
-
 - name: Delete any existing management pod
   k8s:
     name: "{{ ansible_operator_meta.name }}-backup-manager"

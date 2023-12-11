@@ -38,6 +38,9 @@
     _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"
   when: affinity is defined and affinity.node_affinity is defined
 
+- name: Create Content PVC if file-storage is enabled
+  include_tasks: create-content-pvc.yml
+
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"

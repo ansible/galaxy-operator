@@ -1,0 +1,38 @@
+- name: Get information about the cluster
+  set_fact:
+    api_groups: "{{ lookup('k8s', cluster_info='api_groups') }}"
+  when:
+  - not is_openshift
+  - not is_k8s
+
+- name: Determine the cluster type
+  set_fact:
+    is_openshift: "{{ True if 'route.openshift.io' in api_groups else False }}"
+    is_k8s: "{{ False if 'route.openshift.io' in api_groups else True }}"
+  when:
+  - not is_openshift
+  - not is_k8s
+
+# Indicate what kind of cluster we are in (OpenShift or Kubernetes).
+- debug:
+    msg: "CLUSTER TYPE: is_openshift={{ is_openshift }}; is_k8s={{ is_k8s }}"
+
+- block:
+  - k8s_status:
+      api_version: "{{ api_version }}"
+      kind: "{{ kind }}"
+      name: "{{ ansible_operator_meta.name }}"
+      namespace: "{{ ansible_operator_meta.namespace }}"
+      conditions:
+        - type: "{{ deployment_type|capitalize }}-API-Ready"
+          message: Cannot determine what type of cluster we are in
+          reason: FailedToIdentifyClusterType
+          status: "False"
+          lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+  - fail:
+      msg: "Cannot determine what type of cluster we are in"
+
+  when:
+  - not is_openshift
+  - not is_k8s
