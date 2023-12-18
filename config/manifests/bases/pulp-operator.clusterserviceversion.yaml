@@ -464,7 +464,7 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
-      - displayName: Certificate authorirty trust bundle
+      - displayName: Certificate authority trust bundle
         path: ca_trust_bundle
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
