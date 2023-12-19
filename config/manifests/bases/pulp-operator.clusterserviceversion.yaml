@@ -480,6 +480,7 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
+        - urn:alm:descriptor:io.kubernetes:Secret
       - displayName: Container token configuration
         path: container_token_secret
         x-descriptors:
