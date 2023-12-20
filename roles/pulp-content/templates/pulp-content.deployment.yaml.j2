@@ -85,8 +85,6 @@ spec:
             items:
               - path: signing_service.gpg
                 key: signing_service.gpg
-              - path: signing_service.asc
-                key: signing_service.asc
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: "ca-trust-extracted"
@@ -194,10 +192,6 @@ spec:
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
-              subPath: signing_service.asc
               readOnly: true
 {% endif %}
 {% if bundle_ca_crt is defined %}
