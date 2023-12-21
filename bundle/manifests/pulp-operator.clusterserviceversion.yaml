@@ -841,18 +841,17 @@ spec:
         path: signing_scripts_configmap
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
         - urn:alm:descriptor:io.kubernetes:ConfigMap
       - displayName: Signing secret
         path: signing_secret
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
+        - urn:alm:descriptor:io.kubernetes:Secret
       - displayName: Container token configuration
         path: container_token_secret
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
+        - urn:alm:descriptor:io.kubernetes:Secret
       - displayName: DB fields encryption
         path: db_fields_encryption_secret
         x-descriptors:
