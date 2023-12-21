@@ -4,8 +4,7 @@ ENV ANSIBLE_FORCE_COLOR=true
 ENV ANSIBLE_SHOW_TASK_PATH_ON_FAILURE=true
 
 USER root
-RUN dnf update --security --bugfix -y && \
-    dnf install -y openssl
+RUN dnf update --security --bugfix -y
 
 USER ${USER_UID}
 

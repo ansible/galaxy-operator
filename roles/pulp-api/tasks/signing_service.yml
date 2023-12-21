@@ -25,29 +25,8 @@
   register: _signing_keys
   no_log: "{{ no_log }}"
 
-- name: Get signing keys
-  set_fact:
-    signing_service_gpg_content: "{{ _signing_keys['resources'][0]['data']['signing_service.gpg'] | b64decode }}"
-  no_log: "{{ no_log }}"
-
-- name: Copying public GPG key
-  copy:
-    dest: "/tmp/signing_service.gpg"
-    content: "{{ signing_service_gpg_content }}"
-
 - name: Get GPG key ID
   block:
-  - name: Inspect galaxy signing service GPG key file
-    shell: >
-      {{ __pulp_gpg_inspect_command }}
-      /tmp/signing_service.gpg | grep -m1 -o -E
-      '[A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4}  [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4} [A-F0-9]{4}'
-      | tr -d " "
-    register: signing_key
-    changed_when: false
-    failed_when: signing_key.stdout | length != 40
-    check_mode: false
-
   - k8s_status:
       api_version: "{{ api_version }}"
       kind: "{{ kind }}"
@@ -72,9 +51,17 @@
           status: "False"
           lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
+  - name: Ensure gnupg directory exists
+    ansible.builtin.file:
+      path: '{{ lookup("env", "HOME") }}/.gnupg'
+      state: directory
+      mode: '0700'
+
   - name: Set environment variable for the GPG key ID
     set_fact:
-        signing_key_fingerprint: "{{ signing_key.stdout }}"
-        cacheable: yes
+      signing_key_fingerprint: "{{ signing_service_gpg_content | community.crypto.gpg_fingerprint }}"
+      cacheable: yes
+    vars:
+      signing_service_gpg_content: "{{ _signing_keys['resources'][0]['data']['signing_service.gpg'] | b64decode }}"
 
   when: signing_key_fingerprint is undefined
