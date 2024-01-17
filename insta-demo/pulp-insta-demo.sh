@@ -60,8 +60,8 @@ if [[ $(getenforce 2> /dev/null) = "Enforcing" ]]; then
 fi
 
 # The behavior of this block is as follows:
-# 1. If the user downloads this script directly, grab the pulp/pulp-operator
-#    repo's master branch in a tarball from github. Few commands required.
+# 1. If the user downloads this script directly, grab the ansible/galaxy-operator
+#    repo's main branch in a tarball from github.
 # 2. If a developer is testing this on his machine or VM, use git to determine
 #    the github user, repo and branch, and test the tarball download process
 #    to simulate #1. This requires the developer to commit & push 1st.
@@ -94,7 +94,7 @@ if command -v git > /dev/null && [[ "$(basename `git rev-parse --show-toplevel`)
     USER_REPO=$(echo $REMOTE | grep -oP '([\w\-]+)\/([\w\-]+)(?=.git)')
   fi
 else
-  USER_REPO="pulp/pulp-operator"
+  USER_REPO="ansible/galaxy-operator"
   BRANCH="main"
   set -x
 fi
