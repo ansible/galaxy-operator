@@ -7,3 +7,13 @@ bundle_cacert_secret: ''
 
 is_k8s: false
 is_openshift: false
+
+
+# Secret to lookup that provide the admin password
+#
+admin_password_secret: ''
+
+admin_password_name: '{{ ansible_operator_meta.name }}-admin-password'
+
+# signing_service.yml
+__gpg_init_container_image: "quay.io/centos/centos:stream9"

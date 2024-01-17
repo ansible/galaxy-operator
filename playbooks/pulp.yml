@@ -64,12 +64,14 @@
     - common
     - postgres
     - { role: "pulp-web", when: [ ingress_type | lower != 'route' ] }
-    - pulp-content  # If file storage is used, this role will create the PVC which is needed by the restore management pod
 
   tasks:
 
-    # Hack to import variables ahead of time since we not longer statically include all roles
-    # Eventually, these roles should be re-written, but this is safer for now
+    # If file storage is used, this role will create the PVC,
+    # which is needed by the restore management pod
+    - include_role:
+        name: pulp-content
+
     - name: Pre-load role variables for all roles
       include_vars: "{{ item }}"
       loop:
