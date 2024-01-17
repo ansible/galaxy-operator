@@ -89,15 +89,6 @@
     - pulp-server
   no_log: "{{ no_log }}"
 
-- include_tasks:
-    file: admin_password_configuration.yml
-
-- include_tasks:
-    file: db_fields_encryption_configuration.yml
-
-- include_tasks: signing_service.yml
-  when: signing_secret is defined
-
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"

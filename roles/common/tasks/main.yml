@@ -56,3 +56,15 @@
 
 - name: Check if k8s or Openshift
   include_tasks: check_k8s_or_openshift.yml
+
+- name: Configure Admin Password from secret
+  include_tasks:
+    file: admin_password_configuration.yml
+
+- name: Configure DB fields encryption key from secret
+  include_tasks:
+    file: db_fields_encryption_configuration.yml
+
+- name: Configure Signing Service
+  include_tasks: signing_service.yml
+  when: signing_secret is defined

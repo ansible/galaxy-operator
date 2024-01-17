@@ -14,12 +14,6 @@ api:
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
 raw_spec: "{{ vars['_pulp_pulpproject_org_pulp']['spec'] }}"
 
-# Secret to lookup that provide the admin password
-#
-admin_password_secret: ''
-
-admin_password_name: '{{ ansible_operator_meta.name }}-admin-password'
-
 # Set content host
 content_host: '{{ ansible_operator_meta.name }}-content-svc'
 content_port: '24816'
@@ -90,8 +84,6 @@ keycloak_host_available: false
 keycloak_protocol_available: false
 keycloak_port_available: false
 keycloak_realm_available: false
-
-__gpg_init_container_image: "quay.io/centos/centos:stream9"
 
 gunicorn_timeout: 90
 gunicorn_api_workers: 2
