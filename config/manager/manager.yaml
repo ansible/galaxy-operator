@@ -43,6 +43,7 @@ spec:
         - --leader-elect
         - --leader-election-id=pulp-operator
         image: controller:latest
+        imagePullPolicy: Always
         name: pulp-manager
         env:
           # Watch one namespace (namespace-scoped).
