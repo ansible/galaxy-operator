@@ -126,7 +126,7 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["pulp-worker"]
+          args: ["start-worker"]
           env:
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"

@@ -135,7 +135,7 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["pulp-api"]
+          args: ["start-api"]
           lifecycle:
             postStart:
               exec:
@@ -248,8 +248,27 @@ spec:
               subPath: container_auth_public_key.pem
               readOnly: true
 {% endif %}
-{% if signing_secret is defined or bundle_ca_crt is defined %}
       initContainers:
+        - name: run-migrations
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command: ['pulpcore-manager', 'migrate']
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              value: "{{ postgres_host }}"
+            - name: POSTGRES_SERVICE_PORT
+              value: "{{ postgres_port }}"
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
 {% if signing_secret is defined %}
         - name: gpg-importer
           image: "{{ gpg_init_container_image }}"
@@ -307,5 +326,4 @@ spec:
               mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
               subPath: bundle-ca.crt
               readOnly: true
-{% endif %}
 {% endif %}

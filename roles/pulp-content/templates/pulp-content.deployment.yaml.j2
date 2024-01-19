@@ -138,7 +138,7 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["pulp-content"]
+          args: ["start-content-app"]
           lifecycle:
             postStart:
               exec:
