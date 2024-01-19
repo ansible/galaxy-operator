@@ -56,9 +56,9 @@ spec:
             - name: ANSIBLE_DEBUG_LOGS
               value: 'false'
             - name: RELATED_IMAGE_PULP
-              value: quay.io/pulp/pulp-minimal:stable
+              value: quay.io/ansible/galaxy-ng:latest
             - name: RELATED_IMAGE_PULP_WEB
-              value: quay.io/pulp/pulp-web:stable
+              value: quay.io/ansible/galaxy-ui:latest
             - name: RELATED_IMAGE_PULP_REDIS
               value: redis:latest
             - name: RELATED_IMAGE_PULP_POSTGRES

@@ -10,8 +10,8 @@ Role Variables
 
 * `worker`: A dictionary of pulp-worker configuration
     * `replicas`: Number of pod replicas.
-* `image`: The image name. Default: quay.io/pulp/pulp
-* `image_version`: The image tag. Default: stable
+* `image`: The image name. Default: quay.io/ansible/galaxy-ng
+* `image_version`: The image tag. Default: latest
 
 Requirements
 ------------

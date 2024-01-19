@@ -4,8 +4,8 @@ metadata:
   name: example-pulp
 #spec:
   # The registry to grab the pulp image from.
-# image: quay.io/pulp/pulp-minimal
-# image_version: stable
+# image: quay.io/ansible/galaxy-ng
+# image_version: latest
 
 # Pulp settings.
 # pulp_settings:
