@@ -14,7 +14,7 @@
         - { name: "{{ ansible_operator_meta.name }}-auth", path: "/auth/login/", targetPort: "api-24817", serviceName: "{{ ansible_operator_meta.name }}-api-svc" }
         - { name: "{{ ansible_operator_meta.name }}", path: "/", targetPort: "api-24817", serviceName: "{{ ansible_operator_meta.name }}-api-svc" }
 
-  - name: Get API pod
+  - name: Get Worker pod
     k8s_info:
       kind: Pod
       namespace: "{{ ansible_operator_meta.namespace }}"
