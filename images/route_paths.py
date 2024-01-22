@@ -33,7 +33,7 @@ for plugin_conf in nginx_configs:
             svc_name = ""
             if key.name.strip("'") == "proxy_pass":
                 if "pulp-api" in key.value:
-                    target_port = "api-24817"
+                    target_port = "api-8000"
                     svc_name = f"{name}-api-svc"
                     break
                 if "pulp-content" in key.value:

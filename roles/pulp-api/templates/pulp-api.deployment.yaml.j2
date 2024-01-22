@@ -167,11 +167,11 @@ spec:
 {% endif %}
           ports:
             - protocol: TCP
-              containerPort: 24817
+              containerPort: 8000
           livenessProbe:
             httpGet:
               path: "{{ pulp_combined_settings.api_root }}api/v3/status/"
-              port: 24817
+              port: 8000
               scheme: HTTP
             failureThreshold: 5
             initialDelaySeconds: 90

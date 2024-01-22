@@ -12,7 +12,7 @@ def is_api_healthy(path):
     Checks if API is healthy
     """
     address = "[::1]" if HAS_IPV6 else "127.0.0.1"
-    url = f"http://{address}:24817{path}"
+    url = f"http://{address}:8000{path}"
     print(f"Readiness probe: checking {url}")
     response = requests.get(url, allow_redirects=True)
     data = response.json()

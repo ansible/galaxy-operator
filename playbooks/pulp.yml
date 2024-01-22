@@ -6,12 +6,13 @@
     - operator_sdk.util
   vars:
     default_settings:
-      api_root: '/pulp/'
+      api_root: '/api/galaxy/pulp/'
       cache_enabled: true
       db_encryption_key: "/etc/pulp/keys/database_fields.symmetric.key"
       galaxy_collection_signing_service: ansible-default
       galaxy_container_signing_service: container-default
       ansible_certs_dir: "/etc/pulp/keys/"
+      csrf_trusted_orgins: []
       databases:
         default:
           HOST: "{{ postgres_host }}"
