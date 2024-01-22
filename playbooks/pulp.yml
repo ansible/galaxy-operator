@@ -64,7 +64,7 @@
   roles:
     - common
     - postgres
-    - { role: "pulp-web", when: [ ingress_type | lower != 'route' ] }
+    - pulp-web
 
   tasks:
 
