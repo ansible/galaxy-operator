@@ -135,11 +135,8 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["start-api"]
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/bash", "-c", "mkdir -p /var/lib/pulp/{assets,media,tmp}"]
+          args:
+          - start-api
           env:
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
