@@ -52,6 +52,10 @@ spec:
       topologySpreadConstraints:
         {{ topology_spread_constraints | indent(width=8) }}
 {% endif %}
+      initContainers:
+      - name: wait-for-content-service
+        image: "{{ _image_web }}"
+        command: ['sh', '-c', 'until curl -s http://{{ ansible_operator_meta.name }}-content-svc:24816; do echo waiting for content service; sleep 2; done;']
       containers:
         - name: web
           image: "{{ _image_web }}"
