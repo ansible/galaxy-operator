@@ -126,8 +126,13 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["start-worker"]
+          args:
+          - /entrypoint.sh
+          - run
+          - worker
           env:
+            - name: WAIT_FOR_MIGRATIONS
+              value: "1"
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
             - name: POSTGRES_SERVICE_PORT
