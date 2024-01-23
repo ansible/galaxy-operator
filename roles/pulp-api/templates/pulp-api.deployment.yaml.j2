@@ -71,12 +71,6 @@ spec:
             items:
               - path: settings.py
                 key: settings.py
-        - name: {{ ansible_operator_meta.name }}-admin-password
-          secret:
-            secretName: {{ admin_password_name }}
-            items:
-              - path: admin-password
-                key: password
         - name: {{ ansible_operator_meta.name }}-db-fields-encryption
           secret:
             secretName: {{ db_fields_encryption_secret }}
@@ -195,10 +189,6 @@ spec:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
               subPath: settings.py
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-admin-password
-              mountPath: "/etc/pulp/pulp-admin-password"
-              subPath: admin-password
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-db-fields-encryption
               mountPath: "/etc/pulp/keys/database_fields.symmetric.key"

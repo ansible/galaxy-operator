@@ -1,0 +1,52 @@
+---
+
+- name: Check for API Pod
+  k8s_info:
+    kind: Pod
+    api_version: v1
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/name={{ deployment_type }}-api"
+      - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
+      - "app.kubernetes.io/instance={{ deployment_type }}-api-{{ ansible_operator_meta.name }}"
+      - "app.kubernetes.io/component=api"
+    field_selectors:
+      - status.phase=Running
+  register: _api_pod
+  until:
+    - "_api_pod['resources'] | length"
+    - "_api_pod['resources'][0]['status']['phase'] == 'Running'"
+    - "_api_pod['resources'][0]['status']['containerStatuses'][0]['ready'] == true"
+  retries: 60
+  delay: 5
+
+- name: Set the resource pod name as a variable.
+  set_fact:
+    _api_pod_name: "{{ _api_pod['resources'][0]['metadata']['name'] | default('') }}"
+
+- name: Check if there are any super users defined.
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ _api_pod_name }}"
+    container: "api"
+    command: >-
+      bash -c "echo 'from django.contrib.auth import get_user_model;
+      User = get_user_model();
+      nsu = User.objects.filter(is_superuser=True, username=\"admin\").count();
+      exit(0 if nsu > 0 else 1)'
+      | pulpcore-manager shell"
+  ignore_errors: true
+  register: users_result
+  changed_when: users_result.return_code > 0
+
+- name: Create super user via Django if it doesn't exist.
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ _api_pod_name }}"
+    container: "api"
+    command: bash -c "pulpcore-manager reset-admin-password --password {{ admin_password }}"
+  register: result
+  changed_when: "'That username is already taken' not in result.stderr"
+  failed_when: "'That username is already taken' not in result.stderr and 'Successfully set password' not in result.stdout"
+  no_log: "{{ no_log }}"
+  when: users_result.return_code > 0
