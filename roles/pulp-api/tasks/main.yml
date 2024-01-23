@@ -28,6 +28,20 @@
     file: get_node_ip.yml
   when: content_origin_temp is not defined
 
+- name: Set CSRF_TRUSTED_ORIGINS list based on content_origin
+  set_fact:
+    _csrf_trusted_origins: "{{ csrf_trusted_origins | default([]) + default_settings.content_origin.split(',') }}"
+  when:
+    - default_settings is defined
+    - default_settings.content_origin is defined
+
+- name: Set default CSRF_TRUSTED_ORIGINS if not set by user
+  set_fact:
+    default_settings: "{{ default_settings | combine({'csrf_trusted_origins': _csrf_trusted_origins}) }}"
+  when:
+    - default_settings is defined
+    - default_settings.content_origin is defined
+
 - name: Combining pulp_settings
   set_fact:
     pulp_combined_settings: "{{ default_settings|combine(raw_pulp_settings, recursive=True) if pulp_settings is defined and pulp_settings is not none else default_settings }}"
