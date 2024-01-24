@@ -96,6 +96,11 @@ spec:
           configMap:
             name: {{ signing_scripts_configmap }}
             defaultMode: 0755
+            items:
+              - path: collection_sign.sh
+                key: collection_sign.sh
+              - path: container_sign.sh
+                key: container_sign.sh            
         - name: {{ ansible_operator_meta.name }}-signing-galaxy
           secret:
             secretName: {{ signing_secret }}
@@ -219,19 +224,19 @@ spec:
 {% endif %}
 {% if signing_secret is defined %}
             - name: {{ ansible_operator_meta.name }}-signing-scripts
-              mountPath: "/var/lib/pulp/scripts/collection_sign.sh"
+              mountPath: /var/lib/pulp/scripts/collection_sign.sh
               subPath: collection_sign.sh
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-scripts
-              mountPath: "/var/lib/pulp/scripts/container_sign.sh"
+              mountPath: /var/lib/pulp/scripts/container_sign.sh
               subPath: container_sign.sh
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.gpg"
+              mountPath: /etc/pulp/keys/signing_service.gpg
               subPath: signing_service.gpg
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
+              mountPath: /etc/pulp/keys/signing_service.asc
               subPath: signing_service.asc
               readOnly: true
 {% endif %}
