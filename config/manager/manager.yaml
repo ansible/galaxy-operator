@@ -30,7 +30,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: pulp-manager
       labels:
         control-plane: controller-manager
         app.kubernetes.io/name: pulp-operator
