@@ -141,8 +141,7 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args:
-          - start-api
+          args: ["pulp-api"]
           lifecycle:
             postStart:
               exec:
