@@ -139,6 +139,10 @@ spec:
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
           args: ["pulp-content"]
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/bash", "-c", "mkdir -p /var/lib/pulp/{assets,media,tmp}"]
 {% if content.resource_requirements is defined %}
           resources: {{ content.resource_requirements }}
 {% endif %}
