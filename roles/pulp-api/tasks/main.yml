@@ -271,6 +271,9 @@
   with_items:
     - pulp-api
 
+- include_tasks:
+    file: resource_configuration.yml
+
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"
