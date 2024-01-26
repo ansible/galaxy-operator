@@ -144,6 +144,8 @@ spec:
           resources: {{ content.resource_requirements }}
 {% endif %}
           env:
+            - name: WAIT_FOR_MIGRATIONS
+              value: "1"
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
             - name: POSTGRES_SERVICE_PORT
