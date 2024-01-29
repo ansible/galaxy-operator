@@ -28,9 +28,17 @@
     file: get_node_ip.yml
   when: content_origin_temp is not defined
 
+- name: Set default CSRF_TRUSTED_ORIGINS to be used if not set by user
+  set_fact:
+    _trusted_origin_1: "http://{{ default_settings.content_origin.split('://')[1] }}"
+    _trusted_origin_2: "https://{{ default_settings.content_origin.split('://')[1] }}"
+  when:
+    - default_settings is defined
+    - default_settings.content_origin is defined
+
 - name: Set CSRF_TRUSTED_ORIGINS list based on content_origin
   set_fact:
-    _csrf_trusted_origins: "{{ csrf_trusted_origins | default([]) + default_settings.content_origin.split(',') }}"
+    _csrf_trusted_origins: "{{ csrf_trusted_origins | default([]) + [_trusted_origin_1, _trusted_origin_2] }}"
   when:
     - default_settings is defined
     - default_settings.content_origin is defined
