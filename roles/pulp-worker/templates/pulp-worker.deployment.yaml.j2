@@ -129,8 +129,6 @@ spec:
           args:
           - start-worker
           env:
-            - name: WAIT_FOR_MIGRATIONS
-              value: "1"
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
             - name: POSTGRES_SERVICE_PORT
@@ -207,8 +205,26 @@ spec:
 {% if worker.resource_requirements is defined %}
           resources: {{ worker.resource_requirements }}
 {% endif %}
-{% if signing_secret is defined or bundle_ca_crt is defined %}
       initContainers:
+        - name: wait-for-migrations
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              wait-for-migrations
+          resources: {{ worker.resource_requirements }}
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if signing_secret is defined or bundle_ca_crt is defined %}
 {% if signing_secret is defined %}
         - name: gpg-importer
           image: "{{ gpg_init_container_image }}"

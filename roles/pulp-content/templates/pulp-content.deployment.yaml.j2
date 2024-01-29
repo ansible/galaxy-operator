@@ -111,8 +111,26 @@ spec:
       topologySpreadConstraints:
         {{ topology_spread_constraints | indent(width=8) }}
 {% endif %}
-{% if bundle_ca_crt is defined %}
       initContainers:
+        - name: wait-for-migrations
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              wait-for-migrations
+          resources: {{ content.resource_requirements }}
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if bundle_ca_crt is defined %}
         - name: configure-bundle-ca-cert
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
@@ -144,8 +162,6 @@ spec:
           resources: {{ content.resource_requirements }}
 {% endif %}
           env:
-            - name: WAIT_FOR_MIGRATIONS
-              value: "1"
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
             - name: POSTGRES_SERVICE_PORT
@@ -156,9 +172,9 @@ spec:
             - name: REDIS_SERVICE_PORT
               value: "{{ pulp_combined_settings.redis_port }}"
 {% endif %}
-            - name: PULP_GUNICORN_TIMEOUT
+            - name: GUNICORN_TIMEOUT
               value: "{{ gunicorn_timeout }}"
-            - name: PULP_CONTENT_WORKERS
+            - name: GUNICORN_WORKERS
               value: "{{ gunicorn_content_workers }}"
 {% if signing_secret is defined %}
             - name: PULP_SIGNING_KEY_FINGERPRINT

@@ -6,6 +6,7 @@
     - operator_sdk.util
   vars:
     default_settings:
+      working_directory: /tmp  # needed for add-signing-service cmd to work with rwx file storage
       api_root: '/api/galaxy/pulp/'
       cache_enabled: true
       db_encryption_key: "/etc/pulp/keys/database_fields.symmetric.key"
@@ -103,7 +104,7 @@
       include_role:
         name: "{{ item }}"
       with_items:
-        - pulp-api
         - pulp-worker
+        - pulp-api
         - pulp-routes
         - pulp-status
