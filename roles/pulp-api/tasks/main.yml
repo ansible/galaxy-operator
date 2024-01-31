@@ -1,29 +1,5 @@
 ---
 
-- set_fact:
-    object_storage_secret: "{{ object_storage_s3_secret }}"
-  when:
-    - object_storage_s3_secret is defined
-
-- set_fact:
-    object_storage_secret: "{{ object_storage_azure_secret }}"
-  when:
-    - object_storage_azure_secret is defined
-
-- include_tasks:
-    file: s3-storage-configuration.yml
-  when:
-    - not is_file_storage
-    - object_storage_s3_secret is defined
-    - object_storage_s3_secret | length
-
-- include_tasks:
-    file: azure-storage-configuration.yml
-  when:
-    - not is_file_storage
-    - object_storage_azure_secret is defined
-    - object_storage_azure_secret | length
-
 # Workaround being unable to do the following, for the subsequent task:
 # when: (pulp_settings is not defined) or
 #   (pulp_settings.content_origin is not defined)

@@ -11,7 +11,6 @@ content:
       memory: 4Gi
 
 ingress_type: none
-is_file_storage: true
 
 # Here we use  _pulp_pulpproject_org_pulp to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
