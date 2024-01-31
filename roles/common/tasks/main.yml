@@ -68,3 +68,6 @@
 - name: Configure Signing Service
   include_tasks: signing_service.yml
   when: signing_secret is defined
+
+- name: Configure Object Storage
+  include_tasks: object_storage_configuration.yml

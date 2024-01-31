@@ -1,9 +1,4 @@
 ---
-- set_fact:
-    is_file_storage: false
-  when:
-    - object_storage_secret is defined
-
 - name: pulp-file-storage
   block:
     - name: "Creating {{ deployment_type|capitalize }}-api PVC resource"
