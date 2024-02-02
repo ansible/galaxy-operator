@@ -295,7 +295,7 @@ spec:
             - name: WORKDIR
               value: "/var/lib/pulp"
             - name: GNUPGHOME
-              value: "/tmp/ansible/.gnupg"
+              value: "/var/lib/pulp/.gnupg"
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
