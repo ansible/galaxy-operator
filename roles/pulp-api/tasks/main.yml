@@ -219,7 +219,7 @@
     k8s_exec:
       namespace: "{{ ansible_operator_meta.namespace }}"
       pod: "{{ __api_pod.resources[0].metadata.name }}"
-      command: sh -c "pulpcore-manager add-signing-service {{ item.service_name }} {{ item.service_script }} {{ item.fingerprint }} {{ item.args }}"
+      command: sh -c "PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service {{ item.service_name }} {{ item.service_script }} {{ item.fingerprint }} {{ item.args }}"
     failed_when: result.rc not in [0,1]
     changed_when: result.stdout is search("Successfully added signing service")
     with_items:
