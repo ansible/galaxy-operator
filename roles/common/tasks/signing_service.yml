@@ -51,11 +51,11 @@
           status: "False"
           lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-  - name: Ensure gnupg directory exists
-    ansible.builtin.file:
-      path: '{{ lookup("env", "HOME") }}/.gnupg'
-      state: directory
-      mode: '0700'
+  # - name: Ensure gnupg directory exists
+  #   ansible.builtin.file:
+  #     path: '{{ lookup("env", "HOME") }}/.gnupg'
+  #     state: directory
+  #     mode: '0700'
 
   - name: Set environment variable for the GPG key ID
     set_fact:
