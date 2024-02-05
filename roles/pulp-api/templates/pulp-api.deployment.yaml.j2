@@ -281,6 +281,8 @@ spec:
             - |
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
+              GNUPGHOME=$(mktemp -d $HOME/tmp/.gnupg) && EXPORT GNUPGHOME
+              echo "Setting GNUPGHOME to $GNUPGHOME for signing scripts"
               PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
               PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
           env:
@@ -295,7 +297,7 @@ spec:
             - name: WORKDIR
               value: "/var/lib/pulp"
             - name: GNUPGHOME
-              value: "/var/lib/pulp/tmp/.gnupg"
+              value: "/var/lib/pulp/.gnupg"
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
