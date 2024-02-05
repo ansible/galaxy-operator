@@ -6,6 +6,7 @@
     - operator_sdk.util
   vars:
     default_settings:
+      working_directory: /var/lib/pulp
       api_root: '/api/galaxy/pulp/'
       cache_enabled: true
       db_encryption_key: "/etc/pulp/keys/database_fields.symmetric.key"
