@@ -13,13 +13,22 @@ data:
       ADMIN_ID="$PULP_SIGNING_KEY_FINGERPRINT"
       PASSWORD="password"
 
+      echo "STATUS: $STATUS"
+      echo "FILE_PATH: $FILE_PATH"
+      echo "SIGNATURE_PATH: $SIGNATURE_PATH"
+      echo "ADMIN_ID: $ADMIN_ID"
+      echo "PASSWORD: $PASSWORD"
+      echo "HOME: $HOME"
+      echo "GNU_HOME: $GNUPGHOME"
+
       # Create a detached signature
       gpg --quiet --batch --pinentry-mode loopback --yes --passphrase \
-          $PASSWORD --homedir ~/.gnupg/ --detach-sign --default-key $ADMIN_ID \
+          $PASSWORD --homedir /tmp/.gnupg/ --detach-sign --default-key $ADMIN_ID \
           --armor --output $SIGNATURE_PATH $FILE_PATH
 
       # Check the exit status
       STATUS=$?
+
       if [ $STATUS -eq 0 ]; then
           echo {\"file\": \"$FILE_PATH\", \"signature\": \"$SIGNATURE_PATH\"}
       else

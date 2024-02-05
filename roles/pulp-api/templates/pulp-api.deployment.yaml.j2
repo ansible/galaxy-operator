@@ -275,12 +275,18 @@ spec:
         - name: gpg-importer
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
+          workdir: /var/lib/pulp
           command:
             - /bin/sh
             - -c
             - |
+              pwd
+              mkdir -p /tmp/.gnupg
+              mkdir -p /tmp/ansible/.gnupg
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
+              echo "PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}"
+              echo "PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService"
               PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
               PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
           env:
