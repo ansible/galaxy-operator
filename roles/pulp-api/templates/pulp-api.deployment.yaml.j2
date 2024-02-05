@@ -91,6 +91,8 @@ spec:
           emptyDir: {}
 {% endif %}
 {% endif %}
+        - name: tmp-emptydir
+          emptyDir: {}
 {% if signing_secret is defined %}
         - name: {{ ansible_operator_meta.name }}-signing-scripts
           configMap:
@@ -200,6 +202,8 @@ spec:
               mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
               subPath: database_fields.symmetric.key
               readOnly: true
+            - name: tmp-emptydir
+              mountPath: "/tmp"
 {% if is_file_storage %}
             - name: file-storage
               readOnly: false
