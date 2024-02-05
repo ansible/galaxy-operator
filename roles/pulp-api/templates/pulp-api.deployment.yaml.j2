@@ -284,8 +284,8 @@ spec:
               GNUPGHOME=$(mktemp -d $HOME/tmp/.gnupgXXXXXX)
               export GNUPGHOME
               echo "Setting GNUPGHOME to $GNUPGHOME for signing scripts"
-              pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
-              pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
+              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
+              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
               rm -rfi $GNUPGHOME
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
@@ -332,7 +332,7 @@ spec:
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: "/etc/pulp/keys/signing_service.asc"
               subPath: signing_service.asc
-              readOnly: true
+              readOnly: false
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: configure-bundle-ca-cert
