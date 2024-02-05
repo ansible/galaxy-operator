@@ -109,8 +109,6 @@ spec:
             items:
               - path: signing_service.gpg
                 key: signing_service.gpg
-              - path: signing_service.asc
-                key: signing_service.asc
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: "ca-trust-extracted"
@@ -236,12 +234,9 @@ spec:
               subPath: container_sign.sh
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: /var/lib/pulp/tmp/signing_service.gpg
+              mountPath: /etc/pulp/keys/signing_service.gpg
               subPath: signing_service.gpg
               readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: /var/lib/pulp/tmp/signing_service.asc
-              subPath: signing_service.asc
 {% endif %}
 {% if container_token_secret is defined %}
             - name: {{ ansible_operator_meta.name }}-container-auth-certs
@@ -282,13 +277,14 @@ spec:
             - /bin/sh
             - -c
             - |
-              gpg --batch --import /var/lib/pulp/tmp/signing_service.gpg
+              gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
               echo "WORKDIR = $WORKDIR, HOME = $HOME, GNUPGHOME = $GNUPGHOME"
               echo "pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}"
               echo "pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService"
-              pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
-              pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
+              set -euxo pipefail
+              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
+              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
@@ -328,12 +324,9 @@ spec:
               subPath: container_sign.sh
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/var/lib/pulp/tmp/signing_service.gpg"
+              mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
               readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/var/lib/pulp/tmp/signing_service.asc"
-              subPath: signing_service.asc
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: configure-bundle-ca-cert
