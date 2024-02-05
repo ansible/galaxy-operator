@@ -279,7 +279,8 @@ spec:
             - /bin/sh
             - -c
             - |
-              GNUPGHOME=$(mktemp -d $HOME/tmp/.gnupgXXXXXX) && export GNUPGHOME
+              GNUPGHOME=$(mktemp -d $HOME/tmp/.gnupgXXXXXX)
+              export GNUPGHOME
               echo "Setting GNUPGHOME to $GNUPGHOME for signing scripts"
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
