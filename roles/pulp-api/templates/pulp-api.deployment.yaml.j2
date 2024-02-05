@@ -238,7 +238,7 @@ spec:
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: /etc/pulp/keys/signing_service.asc
               subPath: signing_service.asc
-              readOnly: true
+              readOnly: false
 {% endif %}
 {% if container_token_secret is defined %}
             - name: {{ ansible_operator_meta.name }}-container-auth-certs
