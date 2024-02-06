@@ -273,6 +273,7 @@ spec:
         - name: gpg-importer
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
+          workingDir: /var/lib/pulp
           command:
             - /bin/sh
             - -c
@@ -281,6 +282,8 @@ spec:
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
               echo "pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}"
               echo "pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService"
+              set -euxo pipefail
+              pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
