@@ -283,6 +283,8 @@ spec:
               echo "pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}"
               echo "pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService"
               set -euxo pipefail
+              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --gnupghome $HOME
+              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService --gnupghome $HOME
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
@@ -294,8 +296,6 @@ spec:
               value: "/var/lib/pulp"
             - name: WORKDIR
               value: "/var/lib/pulp"
-            - name: GNUPGHOME
-              value: "/var/lib/pulp/.gnupg"
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
