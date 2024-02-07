@@ -206,7 +206,7 @@ spec:
 {% if signing_secret is defined or bundle_ca_crt is defined %}
 {% if signing_secret is defined %}
         - name: gpg-importer
-          image: "{{ gpg_init_container_image }}"
+          image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           command:
             - /bin/sh
