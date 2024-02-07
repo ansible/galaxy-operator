@@ -288,8 +288,6 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
             - name: HOME
               value: "/var/lib/pulp"
-            - name: WORKDIR
-              value: "/var/lib/pulp"
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
