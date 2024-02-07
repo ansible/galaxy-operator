@@ -276,9 +276,18 @@ spec:
               mkdir -p /var/lib/pulp/tmp
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
-              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT}
+              output_col=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} 2>&1)
+              echo "${output_col}" # Display the full output
+              echo "${output_col}" | grep "already exists" > /dev/null && export COL_RC=0 || export COL_RC=${PIPESTATUS[0]}
+
               GNUPGHOME=/app/.gnupg gpg --batch --import /etc/pulp/keys/signing_service.gpg
-              PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService
+
+              output_con=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService 2>&1)
+              echo "${output_con}" # Display the full output
+              echo "${output_con}" | grep "already exists" > /dev/null && export CON_RC=0 || export CON_RC=${PIPESTATUS[0]}
+
+              # Exit with the sum of return codes
+              exit $((COL_RC + CON_RC))
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
