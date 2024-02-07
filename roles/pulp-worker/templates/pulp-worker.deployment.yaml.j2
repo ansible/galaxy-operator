@@ -145,13 +145,6 @@ spec:
             - name: HOME
               value: "/var/lib/pulp"
 {% endif %}
-<<<<<<< HEAD
-            failureThreshold: 10
-            initialDelaySeconds: 30
-            periodSeconds: 25
-            timeoutSeconds: 10
-=======
->>>>>>> aca59220785f2422cdeba741a5b3a05f13224e99
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-ansible-tmp
               mountPath: "/.ansible/tmp/"
