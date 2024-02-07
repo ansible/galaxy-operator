@@ -221,6 +221,8 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_collection_signing_service }}"
             - name: CONTAINER_SIGNING_SERVICE
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
+            - name: HOME
+              value: "/var/lib/pulp"
           volumeMounts:
 {% if is_file_storage %}
             - name: file-storage
