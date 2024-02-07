@@ -6,8 +6,8 @@ spec:
   # Temporarily override these images until changes are merged into galaxy-ng
   # image: quay.io/ansible/galaxy-ng
   # image_version: latest
-  image: quay.io/ansible-ci/galaxy_ng
-  image_version: 3ci-dev
+  image: quay.io/ansible-ci/galaxy-ng  #TODO: update this to quay.io/ansible/galaxy-ng
+  image_version: add-galaxy-operator-support  #TODO: update this to latest
   image_web: quay.io/ansible/galaxy-ui
   image_web_version: latest
   no_log: false

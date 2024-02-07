@@ -77,9 +77,21 @@ jobs:
         run: |
           .ci/scripts/prepare-object-storage.sh
         shell: bash
+      - name: Set imagePullPolicy to ifNotPresent
+        run: |
+          sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
+        shell: bash
       - name: Deploy galaxy-operator to K8s
         run: sudo -E CI_TEST=galaxy ./up.sh
         shell: bash
+      - name: Print Pulp CR
+        run: sleep 720 && kubectl -n pulp-operator-system get pulp example-pulp -o yaml
+      - name: Print Pulp CR Status
+        run: kubectl -n pulp-operator-system get pulp example-pulp -o jsonpath={.status} | jq
+      - name: Print Operator Logs after 12 minutes
+        run: kubectl -n pulp-operator-system logs deployment/pulp-operator-controller-manager -c pulp-manager
+      - name: Print resources
+        run: kubectl -n pulp-operator-system get all
       - name: Check and wait pulp-operator deploy
         run: sudo -E time kubectl wait --for condition=Pulp-Operator-Finished-Execution pulp/example-pulp --timeout=-1s
         shell: bash
