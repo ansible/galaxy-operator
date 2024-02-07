@@ -135,8 +135,6 @@ spec:
 {% if signing_secret is defined %}
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
-            - name: HOME
-              value: "/var/lib/pulp"
 {% endif %}
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-ansible-tmp
@@ -210,12 +208,10 @@ spec:
         - name: gpg-importer
           image: "{{ gpg_init_container_image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
-          workingDir: /var/lib/pulp
           command:
             - /bin/sh
             - -c
             - |
-              mkdir -p /var/lib/pulp/tmp
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
           env:
@@ -225,8 +221,6 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_collection_signing_service }}"
             - name: CONTAINER_SIGNING_SERVICE
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
-            - name: HOME
-              value: "/var/lib/pulp"
           volumeMounts:
 {% if is_file_storage %}
             - name: file-storage
