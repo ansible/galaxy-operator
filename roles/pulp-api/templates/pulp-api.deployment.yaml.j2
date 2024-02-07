@@ -273,7 +273,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              mkdir -p /var/lib/pulp/tmp
+              mkdir -p /var/lib/pulp/{tmp,media}
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
               output_col=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} 2>&1)
