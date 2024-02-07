@@ -135,6 +135,8 @@ spec:
 {% if signing_secret is defined %}
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
+            - name: HOME
+              value: "/app"
 {% endif %}
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-ansible-tmp
@@ -221,6 +223,8 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_collection_signing_service }}"
             - name: CONTAINER_SIGNING_SERVICE
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
+            - name: HOME
+              value: "/app"
           volumeMounts:
 {% if is_file_storage %}
             - name: file-storage
