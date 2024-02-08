@@ -50,4 +50,12 @@ default_azure_settings:
   AZURE_OVERWRITE_FILES: "True"
   DEFAULT_FILE_STORAGE: "storages.backends.azure_storage.AzureStorage"
 
+# postgres_configuration.yml
+postgres_version: 13
+_postgres_image: postgres:13
 
+# Secret to lookup that provide the PostgreSQL configuration
+postgres_configuration_secret: '{{ ansible_operator_meta.name }}-postgres-configuration'
+
+# Secret to lookup that provide the PostgreSQL configuration for old database
+postgres_migrant_configuration_secret: ''

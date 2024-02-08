@@ -50,6 +50,9 @@
       web_url: "https://{{ route_host }}"
   when: ingress_type | lower == 'route'
 
+- name: Configure Postgres Configuration Secret
+  include_tasks: postgres_configuration.yml
+
 - name: Set Bundle Certificate Authority
   include_tasks: set_bundle_cacert.yml
   when: bundle_cacert_secret | length
