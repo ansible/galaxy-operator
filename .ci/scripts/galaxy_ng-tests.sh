@@ -52,10 +52,10 @@ do
     fi
 done
 
-podman pull quay.io/ansible/galaxy-operator:main
+podman pull alpine
 podman login --tls-verify=false -u admin -p password localhost:24880
-podman tag quay.io/ansible/galaxy-operator:main localhost:24880/ansible/galaxy-operator:main
-podman push --tls-verify=false localhost:24880/ansible/galaxy-operator:main
+podman tag alpine localhost:24880/ansible/alpine:test
+podman push --tls-verify=false localhost:24880/ansible/alpine:test
 
 echo "See https://github.com/pulp/pulp-operator/commit/d4117698d46539e8073040a395d8d4a42c2cc1d4 for context if the following curl fails."
 curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/_ui/v1/execution-environments/repositories/ | jq
