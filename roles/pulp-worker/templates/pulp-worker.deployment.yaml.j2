@@ -206,7 +206,7 @@ spec:
 {% if signing_secret is defined or bundle_ca_crt is defined %}
 {% if signing_secret is defined %}
         - name: gpg-importer
-          image: "{{ gpg_init_container_image }}"
+          image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           command:
             - /bin/sh
@@ -221,6 +221,8 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_collection_signing_service }}"
             - name: CONTAINER_SIGNING_SERVICE
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
+            - name: HOME
+              value: "/var/lib/pulp"
           volumeMounts:
 {% if is_file_storage %}
             - name: file-storage

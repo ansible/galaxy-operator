@@ -52,10 +52,10 @@ do
     fi
 done
 
-podman pull quay.io/ansible/galaxy-operator:main
+podman pull alpine
 podman login --tls-verify=false -u admin -p password localhost:24880
-podman tag quay.io/ansible/galaxy-operator:main localhost:24880/ansible/galaxy-operator:main
-podman push --tls-verify=false localhost:24880/ansible/galaxy-operator:main
+podman tag alpine localhost:24880/ansible/alpine:test
+podman push --tls-verify=false localhost:24880/ansible/alpine:test
 
 curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/v3/plugin/execution-environments/repositories/ | jq
 
