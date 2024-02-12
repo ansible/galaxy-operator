@@ -68,7 +68,7 @@ local_tmp      = /tmp/ansible
 server_list = community_repo
 
 [galaxy_server.community_repo]
-url=${BASE_ADDR}/api/galaxy/content/inbound-kubernetes/
+url=${BASE_ADDR}/api/galaxy/content/community/
 token=${TOKEN}
 ANSIBLECFG
 
