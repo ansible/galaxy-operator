@@ -52,11 +52,6 @@ spec:
       affinity:
         nodeAffinity: {{ _node_affinity }}
 {% endif %}
-{% if is_k8s %}
-      securityContext:
-        runAsUser: 700
-        fsGroup: 700
-{% endif %}
 {% if node_selector %}
       nodeSelector:
         {{ node_selector | indent(width=8) }}
@@ -93,8 +88,6 @@ spec:
             items:
               - path: signing_service.gpg
                 key: signing_service.gpg
-              - path: signing_service.asc
-                key: signing_service.asc
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: "ca-trust-extracted"
@@ -126,7 +119,8 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["pulp-worker"]
+          args:
+          - start-worker
           env:
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
@@ -141,17 +135,9 @@ spec:
 {% if signing_secret is defined %}
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
-            - name: HOME
-              value: "/var/lib/pulp"
+            - name: GNUPGHOME
+              value: "/var/lib/pulp/.gnupg"
 {% endif %}
-          readinessProbe:
-            exec:
-              command:
-                - /usr/bin/wait_on_postgres.py
-            failureThreshold: 10
-            initialDelaySeconds: 30
-            periodSeconds: 25
-            timeoutSeconds: 10
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-ansible-tmp
               mountPath: "/.ansible/tmp/"
@@ -175,10 +161,6 @@ spec:
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
-              subPath: signing_service.asc
               readOnly: true
 {% endif %}
 {% if bundle_ca_crt is defined %}
@@ -204,11 +186,29 @@ spec:
 {% if worker.resource_requirements is defined %}
           resources: {{ worker.resource_requirements }}
 {% endif %}
-{% if signing_secret is defined or bundle_ca_crt is defined %}
       initContainers:
+        - name: wait-for-migrations
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              wait-for-migrations
+          resources: {{ worker.resource_requirements }}
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if signing_secret is defined or bundle_ca_crt is defined %}
 {% if signing_secret is defined %}
         - name: gpg-importer
-          image: "{{ gpg_init_container_image }}"
+          image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           command:
             - /bin/sh
@@ -225,6 +225,8 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
             - name: HOME
               value: "/var/lib/pulp"
+            - name: GNUPGHOME
+              value: "/var/lib/pulp/.gnupg"
           volumeMounts:
 {% if is_file_storage %}
             - name: file-storage
@@ -237,10 +239,6 @@ spec:
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
-              subPath: signing_service.asc
               readOnly: true
 {% endif %}
 {% if bundle_ca_crt is defined %}

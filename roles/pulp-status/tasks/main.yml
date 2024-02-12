@@ -80,7 +80,7 @@
     (result_route.json.redis_connection.connected or not pulp_combined_settings.cache_enabled) and
     result_route.json.online_workers | map(attribute='name') | select('match', '^[0-9]+@.*$') | list | count > 0
   delay: 5
-  retries: 10
+  retries: 60
   when:
     - ingress_type | lower == 'route'
 

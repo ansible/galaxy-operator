@@ -23,7 +23,7 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- name: Validade API root
+- name: Validate API root
   fail:
     msg: "API root should start and end with '/'"
   when:

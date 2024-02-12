@@ -52,13 +52,12 @@ do
     fi
 done
 
-podman pull quay.io/ansible/galaxy-operator:main
+podman pull registry.access.redhat.com/ubi9/ubi-micro:latest
 podman login --tls-verify=false -u admin -p password localhost:24880
-podman tag quay.io/ansible/galaxy-operator:main localhost:24880/ansible/galaxy-operator:main
-podman push --tls-verify=false localhost:24880/ansible/galaxy-operator:main
+podman tag registry.access.redhat.com/ubi9/ubi-micro:latest localhost:24880/ubi9-micro:latest 
+podman push --tls-verify=false localhost:24880/ubi9-micro:latest
 
-echo "See https://github.com/pulp/pulp-operator/commit/d4117698d46539e8073040a395d8d4a42c2cc1d4 for context if the following curl fails."
-curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/_ui/v1/execution-environments/repositories/ | jq
+curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/v3/plugin/execution-environments/repositories/ | jq
 
 cat >> ansible.cfg << ANSIBLECFG
 [defaults]
@@ -69,7 +68,7 @@ local_tmp      = /tmp/ansible
 server_list = community_repo
 
 [galaxy_server.community_repo]
-url=${BASE_ADDR}/api/galaxy/content/inbound-kubernetes/
+url=${BASE_ADDR}/api/galaxy/content/community/
 token=${TOKEN}
 ANSIBLECFG
 

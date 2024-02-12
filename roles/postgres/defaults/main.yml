@@ -1,6 +1,9 @@
 ---
 deployment_type: pulp
 
+postgres_version: 13
+_postgres_image: postgres:13
+
 postgres_storage_requirements:
   requests:
     storage: 8Gi

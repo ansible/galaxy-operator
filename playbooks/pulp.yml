@@ -6,7 +6,7 @@
     - operator_sdk.util
   vars:
     default_settings:
-      api_root: '/pulp/'
+      api_root: '/api/galaxy/pulp/'
       cache_enabled: true
       db_encryption_key: "/etc/pulp/keys/database_fields.symmetric.key"
       galaxy_collection_signing_service: ansible-default
@@ -23,16 +23,16 @@
           CONN_MAX_AGE: 0
           OPTIONS:
             sslmode: '{{ postgres_sslmode }}'
-      static_root: /var/lib/operator/static/
+      static_root: /app/galaxy_ng/app/static/
       redis_host: "{{ ansible_operator_meta.name }}-redis-svc"
       redis_port: 6379
       redis_password: ""
     deployment_state: present
-    _image: quay.io/pulp/pulp
-    _image_version: stable
-    _image_web: quay.io/pulp/pulp-web
-    _image_web_version: stable
-    image_pull_policy: IfNotPresent
+    _image: quay.io/ansible/galaxy-ng
+    _image_version: latest
+    _image_web: quay.io/ansible/galaxy-ui
+    _image_web_version: latest
+    image_pull_policy: Always
     storage_type: File
     file_storage_access_mode: "ReadWriteMany"
     file_storage_size: "100Gi"
@@ -63,7 +63,7 @@
   roles:
     - common
     - postgres
-    - { role: "pulp-web", when: [ ingress_type | lower != 'route' ] }
+    - pulp-web
 
   tasks:
 
@@ -103,7 +103,7 @@
       include_role:
         name: "{{ item }}"
       with_items:
-        - pulp-api
         - pulp-worker
+        - pulp-api
         - pulp-routes
         - pulp-status

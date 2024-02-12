@@ -5,14 +5,6 @@
     - ingress_type | lower == 'route'
     - route_tls_secret != ''
 
-- name: Gathering routes
-  include_tasks: load_routes.yml
-  vars:
-    max_retries: 30
-    retry_delay: 5
-  when:
-    - ingress_type | lower == 'route'
-
 - name: pulp routes
   k8s:
     state: "{{ deployment_state }}"
@@ -22,17 +14,6 @@
   when:
     - ingress_type is defined
     - ('route' == ingress_type|lower) or ('ingress' == ingress_type|lower)
-
-- name: Remove pulp-web deployment with route
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Deployment
-    name: "{{ ansible_operator_meta.name }}-web"
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    state: absent
-  when:
-    - ingress_type is defined
-    - ingress_type | lower == 'route'
 
 - k8s_status:
     api_version: "{{ api_version }}"

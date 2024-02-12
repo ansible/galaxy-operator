@@ -15,9 +15,6 @@ admin_password_secret: ''
 
 admin_password_name: '{{ ansible_operator_meta.name }}-admin-password'
 
-# signing_service.yml
-__gpg_init_container_image: "quay.io/centos/centos:stream9"
-
 # object_storage_configuration.yml
 is_file_storage: true
 
@@ -59,3 +56,30 @@ postgres_configuration_secret: '{{ ansible_operator_meta.name }}-postgres-config
 
 # Secret to lookup that provide the PostgreSQL configuration for old database
 postgres_migrant_configuration_secret: ''
+
+# Add a topologySpreadConstraints for the Pulp pods.
+# Specify as literal block. E.g.:
+# topology_spread_constraints: |
+#   - maxSkew: 100
+#     topologyKey: "topology.kubernetes.io/zone"
+#     whenUnsatisfiable: "ScheduleAnyway"
+#     labelSelector:
+#       matchLabels:
+#         app.kubernetes.io/name: "<resourcename>"
+topology_spread_constraints: ''
+
+# Add a nodeSelector for the Pulp pods. It must match a node's labels for the pod
+# to be scheduled on that node. Specify as literal block. E.g.:
+# node_selector: |
+#   disktype: ssd
+#   kubernetes.io/arch: amd64
+#   kubernetes.io/os: linux
+node_selector: ''
+
+# Add node tolerations for the Pulp pods. Specify as literal block. E.g.:
+# tolerations: |
+#   - key: "dedicated"
+#     operator: "Equal"
+#     value: "Pulp"
+#     effect: "NoSchedule"
+tolerations: ''
