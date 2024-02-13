@@ -7,8 +7,9 @@ This is an ansible operator which used to be maintained out of the [pulp-operato
 
 With Galaxy you can:
 
-* Locally mirror all or part of a repository
-* Host your own content in a new repository
+* Host your Ansible Collections
+* Host execution environment (EE) and decision environments (DE)
+* Locally mirror all of, or a subset of your collections, execution environments, and decision environments
 * Manage content from multiple sources in one place
 * Promote content through different repos in an organized way
 
@@ -71,3 +72,10 @@ Documentation: [https:/github.com/ansible/galaxy-operator](https:/github.com/ans
 Issue Tracker: [https:/github.com/ansible/galaxy-operator/issues](https:/github.com/ansible/galaxy-operator/issues)
 
 Forum: [https://forum.ansible.com](https://forum.ansible.com/) - Create a topic with the `galaxy-ng` tag.
+
+## Maintainers Docs
+
+Maintainers of this repo need to carry out releases, triage issues, etc. There are docs for those types of administrative tasks in the `docs/maintainer/` directory.
+
+To release the EDA Server Operator, see these docs:
+* [Release Operator](./docs/maintainers/release.md)

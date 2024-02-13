@@ -4,6 +4,7 @@
   collections:
     - kubernetes.core
     - operator_sdk.util
+    - community.crypto
   vars:
     default_settings:
       api_root: '/api/galaxy/pulp/'
@@ -29,9 +30,9 @@
       redis_password: ""
     deployment_state: present
     _image: quay.io/ansible/galaxy-ng
-    _image_version: latest
+    _image_version: "{{ lookup('env', 'DEFAULT_GALAXY_VERSION') or 'latest' }}"
     _image_web: quay.io/ansible/galaxy-ui
-    _image_web_version: latest
+    _image_web_version: "{{ lookup('env', 'DEFAULT_GALAXY_UI_VERSION') or 'latest' }}"
     image_pull_policy: Always
     storage_type: File
     file_storage_access_mode: "ReadWriteMany"
