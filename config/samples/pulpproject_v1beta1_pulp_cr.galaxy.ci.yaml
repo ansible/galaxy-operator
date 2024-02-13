@@ -3,10 +3,10 @@ kind: Pulp
 metadata:
   name: example-pulp
 spec:
-  image: quay.io/pulp/galaxy-minimal
-  image_version: 4.6.3
-  image_web: quay.io/pulp/galaxy-web
-  image_web_version: 4.6.3
+  image: quay.io/ansible/galaxy-ng
+  image_version: latest
+  image_web: quay.io/ansible/galaxy-ui
+  image_web_version: latest
   no_log: false
   admin_password_secret: "example-pulp-admin-password"
   signing_secret: "signing-galaxy"

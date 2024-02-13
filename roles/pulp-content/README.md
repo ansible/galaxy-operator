@@ -12,8 +12,8 @@ Role Variables
 * `content`: A dictionary of pulp-content configuration
     * `replicas`: Number of pod replicas.
     * `log_level`: The desired log level.
-* `image`: The image name. Default: quay.io/pulp/pulp
-* `image_version`: The image tag. Default: stable
+* `image`: The image name. Default: quay.io/ansible/galaxy-ng
+* `image_version`: The image tag. Default: latest
 * `gunicorn_timeout`: The timeout for the gunicorn process. Default: 90
 
 Requirements

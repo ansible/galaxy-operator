@@ -3,8 +3,10 @@ kind: Pulp
 metadata:
   name: ocp-example
 spec:
-  image: quay.io/pulp/galaxy-minimal
-  image_web: quay.io/pulp/galaxy-web
+  image: quay.io/ansible/galaxy-ng
+  image_version: latest
+  image_web: quay.io/ansible/galaxy-ui
+  image_web_version: latest
   no_log: false
   admin_password_secret: "example-pulp-admin-password"
   storage_type: File

@@ -51,11 +51,6 @@ spec:
       affinity:
         nodeAffinity: {{ _node_affinity }}
 {% endif %}
-{% if is_k8s %}
-      securityContext:
-        runAsUser: 700
-        fsGroup: 700
-{% endif %}
 {% if node_selector %}
       nodeSelector:
         {{ node_selector | indent(width=8) }}
@@ -91,19 +86,24 @@ spec:
           emptyDir: {}
 {% endif %}
 {% endif %}
+        - name: tmp-emptydir
+          emptyDir: {}
 {% if signing_secret is defined %}
         - name: {{ ansible_operator_meta.name }}-signing-scripts
           configMap:
             name: {{ signing_scripts_configmap }}
             defaultMode: 0755
+            items:
+              - path: collection_sign.sh
+                key: collection_sign.sh
+              - path: container_sign.sh
+                key: container_sign.sh            
         - name: {{ ansible_operator_meta.name }}-signing-galaxy
           secret:
             secretName: {{ signing_secret }}
             items:
               - path: signing_service.gpg
                 key: signing_service.gpg
-              - path: signing_service.asc
-                key: signing_service.asc
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: "ca-trust-extracted"
@@ -135,11 +135,8 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["pulp-api"]
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/bash", "-c", "mkdir -p /var/lib/pulp/{assets,media,tmp}"]
+          args:
+          - start-api
           env:
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
@@ -151,9 +148,9 @@ spec:
             - name: REDIS_SERVICE_PORT
               value: "{{ pulp_combined_settings.redis_port }}"
 {% endif %}
-            - name: PULP_GUNICORN_TIMEOUT
+            - name: GUNICORN_TIMEOUT
               value: "{{ gunicorn_timeout }}"
-            - name: PULP_API_WORKERS
+            - name: GUNICORN_WORKERS
               value: "{{ gunicorn_api_workers }}"
 {% if signing_secret is defined %}
             - name: PULP_SIGNING_KEY_FINGERPRINT
@@ -164,14 +161,16 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
             - name: HOME
               value: "/var/lib/pulp"
+            - name: GNUPGHOME
+              value: "/var/lib/pulp/.gnupg"
 {% endif %}
           ports:
             - protocol: TCP
-              containerPort: 24817
+              containerPort: 8000
           livenessProbe:
             httpGet:
               path: "{{ pulp_combined_settings.api_root }}api/v3/status/"
-              port: 24817
+              port: 8000
               scheme: HTTP
             failureThreshold: 5
             initialDelaySeconds: 90
@@ -198,6 +197,8 @@ spec:
               mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
               subPath: database_fields.symmetric.key
               readOnly: true
+            - name: tmp-emptydir
+              mountPath: "/tmp"
 {% if is_file_storage %}
             - name: file-storage
               readOnly: false
@@ -222,20 +223,16 @@ spec:
 {% endif %}
 {% if signing_secret is defined %}
             - name: {{ ansible_operator_meta.name }}-signing-scripts
-              mountPath: "/var/lib/pulp/scripts/collection_sign.sh"
+              mountPath: /var/lib/pulp/scripts/collection_sign.sh
               subPath: collection_sign.sh
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-scripts
-              mountPath: "/var/lib/pulp/scripts/container_sign.sh"
+              mountPath: /var/lib/pulp/scripts/container_sign.sh
               subPath: container_sign.sh
               readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.gpg"
+              mountPath: /etc/pulp/keys/signing_service.gpg
               subPath: signing_service.gpg
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
-              subPath: signing_service.asc
               readOnly: true
 {% endif %}
 {% if container_token_secret is defined %}
@@ -248,18 +245,52 @@ spec:
               subPath: container_auth_public_key.pem
               readOnly: true
 {% endif %}
-{% if signing_secret is defined or bundle_ca_crt is defined %}
       initContainers:
+        - name: run-migrations
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command: ['pulpcore-manager', 'migrate']
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              value: "{{ postgres_host }}"
+            - name: POSTGRES_SERVICE_PORT
+              value: "{{ postgres_port }}"
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
 {% if signing_secret is defined %}
         - name: gpg-importer
-          image: "{{ gpg_init_container_image }}"
+          image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
+          workingDir: /var/lib/pulp
           command:
             - /bin/sh
             - -c
             - |
+              cd /var/lib/pulp
+              mkdir -p /var/lib/pulp/{tmp,media}
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
+              output_col=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} 2>&1)
+              echo "${output_col}" # Display the full output
+              echo "${output_col}" | grep "already exists" > /dev/null && export COL_RC=0 || export COL_RC=${PIPESTATUS[0]}
+
+              GNUPGHOME=/app/.gnupg gpg --batch --import /etc/pulp/keys/signing_service.gpg
+
+              output_con=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService 2>&1)
+              echo "${output_con}" # Display the full output
+              echo "${output_con}" | grep "already exists" > /dev/null && export CON_RC=0 || export CON_RC=${PIPESTATUS[0]}
+
+              # Exit with the sum of return codes
+              exit $((COL_RC + CON_RC))
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
@@ -269,7 +300,17 @@ spec:
               value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
             - name: HOME
               value: "/var/lib/pulp"
+            - name: GNUPGHOME
+              value: "/var/lib/pulp/.gnupg"
           volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
 {% if is_file_storage %}
             - name: file-storage
               readOnly: false
@@ -278,13 +319,17 @@ spec:
             - name: gpg-file-storage
               mountPath: "/var/lib/pulp/.gnupg"
 {% endif %}
+            - name: {{ ansible_operator_meta.name }}-signing-scripts
+              mountPath: /var/lib/pulp/scripts/collection_sign.sh
+              subPath: collection_sign.sh
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-signing-scripts
+              mountPath: /var/lib/pulp/scripts/container_sign.sh
+              subPath: container_sign.sh
+              readOnly: true
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
-              subPath: signing_service.asc
               readOnly: true
 {% endif %}
 {% if bundle_ca_crt is defined %}
@@ -307,5 +352,4 @@ spec:
               mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
               subPath: bundle-ca.crt
               readOnly: true
-{% endif %}
 {% endif %}

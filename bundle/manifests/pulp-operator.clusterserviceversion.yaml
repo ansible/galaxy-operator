@@ -13,10 +13,10 @@ metadata:
           "spec": {
             "file_storage_access_mode": "ReadWriteMany",
             "file_storage_size": "375Gi",
-            "image": "quay.io/pulp/pulp-minimal",
-            "image_version": "stable",
-            "image_web": "quay.io/pulp/pulp-web",
-            "image_web_version": "stable",
+            "image": "quay.io/ansible/galaxy-ng",
+            "image_version": "latest",
+            "image_web": "quay.io/ansible/galaxy-ui",
+            "image_web_version": "latest",
             "storage_type": "File"
           }
         },
@@ -40,10 +40,10 @@ metadata:
             },
             "file_storage_access_mode": "ReadWriteMany",
             "file_storage_size": "10Gi",
-            "image": "quay.io/pulp/galaxy-minimal",
-            "image_version": "stable",
-            "image_web": "quay.io/pulp/galaxy-web",
-            "image_web_version": "stable",
+            "image": "quay.io/ansible/galaxy-ng",
+            "image_version": "latest",
+            "image_web": "quay.io/ansible/galaxy-ui",
+            "image_web_version": "latest",
             "ingress_type": "Ingress",
             "storage_type": "File",
             "web": {
@@ -1091,9 +1091,9 @@ spec:
                 - name: ANSIBLE_DEBUG_LOGS
                   value: "false"
                 - name: RELATED_IMAGE_PULP
-                  value: quay.io/pulp/pulp-minimal:stable
+                  value: quay.io/ansible/galaxy-ng:latest
                 - name: RELATED_IMAGE_PULP_WEB
-                  value: quay.io/pulp/pulp-web:stable
+                  value: quay.io/ansible/galaxy-ui:latest
                 - name: RELATED_IMAGE_PULP_REDIS
                   value: redis:latest
                 - name: RELATED_IMAGE_PULP_POSTGRES
@@ -1310,9 +1310,9 @@ spec:
     name: Pulp Community
     url: https://github.com/pulp/pulp-operator
   relatedImages:
-  - image: quay.io/pulp/pulp-minimal:stable
+  - image: quay.io/ansible/galaxy-ng:latest
     name: pulp
-  - image: quay.io/pulp/pulp-web:stable
+  - image: quay.io/ansible/galaxy-ui:latest
     name: pulp-web
   - image: redis:latest
     name: pulp-redis

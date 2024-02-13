@@ -132,7 +132,7 @@ example-pulp-worker-c5b8f8948-ccsrq     1/1     Running   0             3m10s
 
 $ kubectl get svc -l "app.kubernetes.io/managed-by=pulp-operator"
 NAME                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-example-pulp-api-svc       ClusterIP   10.101.91.163    <none>        24817/TCP         5m31s
+example-pulp-api-svc       ClusterIP   10.101.91.163    <none>        8000/TCP         5m31s
 example-pulp-content-svc   ClusterIP   10.108.116.169   <none>        24816/TCP         5m12s
 example-pulp-postgres      ClusterIP   None             <none>        5432/TCP          6m13s
 example-pulp-redis         ClusterIP   10.105.207.239   <none>        6379/TCP          6m10s

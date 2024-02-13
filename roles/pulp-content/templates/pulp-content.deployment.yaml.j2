@@ -85,8 +85,6 @@ spec:
             items:
               - path: signing_service.gpg
                 key: signing_service.gpg
-              - path: signing_service.asc
-                key: signing_service.asc
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: "ca-trust-extracted"
@@ -111,8 +109,26 @@ spec:
       topologySpreadConstraints:
         {{ topology_spread_constraints | indent(width=8) }}
 {% endif %}
-{% if bundle_ca_crt is defined %}
       initContainers:
+        - name: wait-for-migrations
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              wait-for-migrations
+          resources: {{ content.resource_requirements }}
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if bundle_ca_crt is defined %}
         - name: configure-bundle-ca-cert
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
@@ -138,11 +154,8 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           # We set args, not command, so as to not override the entrypoint script
-          args: ["pulp-content"]
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/bash", "-c", "mkdir -p /var/lib/pulp/{assets,media,tmp}"]
+          args:
+          - start-content-app
 {% if content.resource_requirements is defined %}
           resources: {{ content.resource_requirements }}
 {% endif %}
@@ -157,9 +170,9 @@ spec:
             - name: REDIS_SERVICE_PORT
               value: "{{ pulp_combined_settings.redis_port }}"
 {% endif %}
-            - name: PULP_GUNICORN_TIMEOUT
+            - name: GUNICORN_TIMEOUT
               value: "{{ gunicorn_timeout }}"
-            - name: PULP_CONTENT_WORKERS
+            - name: GUNICORN_WORKERS
               value: "{{ gunicorn_content_workers }}"
 {% if signing_secret is defined %}
             - name: PULP_SIGNING_KEY_FINGERPRINT
@@ -198,10 +211,6 @@ spec:
             - name: {{ ansible_operator_meta.name }}-signing-galaxy
               mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
-              readOnly: true
-            - name: {{ ansible_operator_meta.name }}-signing-galaxy
-              mountPath: "/etc/pulp/keys/signing_service.asc"
-              subPath: signing_service.asc
               readOnly: true
 {% endif %}
 {% if bundle_ca_crt is defined %}
