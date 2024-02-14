@@ -96,11 +96,6 @@
   debug:
     var: installed_plugins
 
-- name: Include resource manager role
-  include_role:
-    name: pulp-resource-manager
-  when: installed_plugins.pulpcore is defined or installed_plugins.core is version('3.16.0', '<')
-
 - name: Remove resource manager deployment
   kubernetes.core.k8s:
     api_version: v1
