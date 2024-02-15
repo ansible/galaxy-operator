@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to stage'
-        required: true
+        description: 'Version to stage. If not set, a cal-version will be generated'
+        required: false
       default_galaxy_version:
         description: 'Will be injected as the DEFAULT_GALAXY_VERSION build arg.'
         required: true
@@ -34,8 +34,7 @@ jobs:
           fi
 
           if [[ ${{ github.event.inputs.version }} == "" ]]; then
-            >&2 echo "Set version to continue."
-            exit 1
+            >&2 echo "No version specified. A cal-version will be generated."
           fi
 
           exit 0
@@ -46,9 +45,40 @@ jobs:
           repository: ${{ github.repository_owner }}/galaxy-operator
           path: galaxy-operator
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
       - name: Install playbook dependencies
         run: |
           python3 -m pip install docker
+
+      - name: Generate CalVer and create release
+        id: generate_version
+        run: |
+          import requests
+          import datetime
+          import os
+
+          version = os.getenv('INPUT_VERSION')
+          if not version:
+              date = datetime.datetime.now().strftime('%Y.%m.%d')
+              version = date
+              response = requests.get('https://api.github.com/repos/${{ github.repository }}/releases')
+              releases = [release['tag_name'] for release in response.json()]
+              suffix = 2
+              while version in releases:
+                  version = f'{date}-{suffix}'
+                  suffix += 1
+
+          echo "::set-output name=version::${version}"
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log into registry ghcr.io
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d    # v3.0.0
@@ -61,8 +91,8 @@ jobs:
         run: |
           BUILD_ARGS="--build-arg DEFAULT_GALAXY_VERSION=${{ github.event.inputs.default_galaxy_version }} \
               --build-arg DEFAULT_GALAXY_UI_VERSION=${{ github.event.inputs.default_galaxy_ui_version }} \
-              --build-arg OPERATOR_VERSION=${{ github.event.inputs.version }}" \
-          IMG=ghcr.io/${{ github.repository }}:${{ github.event.inputs.version }} \
+              --build-arg OPERATOR_VERSION=${{ steps.generate_version.outputs.version }}" \
+          IMG=ghcr.io/${{ github.repository }}:${{ steps.generate_version.outputs.version }} \
           make docker-buildx
         working-directory: galaxy-operator
 
@@ -79,9 +109,8 @@ jobs:
       #     GALAXY_TEST_VERSION: ${{ github.event.inputs.default_galaxy_version }}
 
       - name: Generate operator.yaml
-        run: make generate-operator-yaml VERSION=${{ github.event.inputs.version }}
+        run: make generate-operator-yaml VERSION=${{ steps.generate_version.outputs.version }}
         working-directory: galaxy-operator
-
 
       - name: Create Draft Release
         id: create_release
@@ -89,8 +118,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
+          tag_name: ${{ steps.generate_version.outputs.version }}
+          release_name: Release ${{ steps.generate_version.outputs.version }}
           draft: true
 
       - name: Upload Release Artifact
