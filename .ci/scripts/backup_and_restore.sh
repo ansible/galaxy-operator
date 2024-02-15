@@ -10,7 +10,7 @@ else
 fi
 
 echo "Set context"
-$KUBECTL config set-context --current --namespace=pulp-operator-system
+$KUBECTL config set-context --current --namespace=galaxy-operator-system
 
 BACKUP_RESOURCE=pulpproject_v1beta1_pulpbackup_cr.ci.yaml
 RESTORE_RESOURCE=pulpproject_v1beta1_pulprestore_cr.ci.yaml

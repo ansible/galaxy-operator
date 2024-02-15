@@ -52,7 +52,7 @@ endif
 
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
-NAMESPACE ?= pulp-operator-system
+NAMESPACE ?= gateway-operator-system
 
 .PHONY: all
 all: docker-build

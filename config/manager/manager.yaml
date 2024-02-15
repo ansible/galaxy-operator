@@ -30,7 +30,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: pulp-manager
+        kubectl.kubernetes.io/default-container: galaxy-operator
       labels:
         control-plane: controller-manager
         app.kubernetes.io/name: pulp-operator
@@ -44,7 +44,7 @@ spec:
         - --leader-election-id=pulp-operator
         image: controller:latest
         imagePullPolicy: IfNotPresent
-        name: pulp-manager
+        name: galaxy-operator
         env:
           # Watch one namespace (namespace-scoped).
             - name: WATCH_NAMESPACE

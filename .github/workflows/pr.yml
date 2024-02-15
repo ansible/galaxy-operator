@@ -84,10 +84,10 @@ jobs:
       - name: Deploy galaxy-operator to K8s
         run: sudo -E CI_TEST=galaxy ./up.sh
         shell: bash
-      - name: Print Pulp CR
-        run: kubectl -n pulp-operator-system get pulp example-pulp -o yaml
-      - name: Check and wait pulp-operator deploy
-        run: sudo -E time kubectl wait --for condition=Pulp-Operator-Finished-Execution pulp/example-pulp --timeout=-1s
+      - name: Print Galaxy CR
+        run: kubectl -n galaxy-operator-system get pulp example-pulp -o yaml
+      - name: Check and wait galaxy-operator deploy
+        run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution pulp/example-pulp --timeout=-1s
         shell: bash
       - name: KubeLinter
         run: .ci/scripts/kubelinter.sh

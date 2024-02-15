@@ -1,19 +1,19 @@
 # Adds namespace to all resources.
-namespace: pulp-operator-system
+namespace: galaxy-operator-system
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: pulp-operator-
+namePrefix: galaxy-operator-
 
 # Labels to add to all resources and selectors.
 #- includeSelectors: true
 #  pairs:
 #    someName: someValue
 
-bases:
+resources:
 - ../crd
 - ../rbac
 - ../manager

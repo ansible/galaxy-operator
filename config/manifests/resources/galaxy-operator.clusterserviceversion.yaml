@@ -954,7 +954,7 @@ spec:
                 - name: RELATED_IMAGE_PULP_INIT_GPG_CONTAINER
                   value: quay.io/centos/centos:stream9
                 image: quay.io/ansible/galaxy-operator:main
-                name: pulp-manager
+                name: galaxy-operator
                 resources: {}
               terminationGracePeriodSeconds: 10
       permissions:
