@@ -1,5 +1,5 @@
 ---
-deployment_type: pulp
+deployment_type: galaxy
 
 postgres_version: 13
 _postgres_image: postgres:13

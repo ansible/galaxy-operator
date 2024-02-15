@@ -24,7 +24,7 @@ make deploy IMG=$OPERATOR_IMAGE
 echo "Namespaces"
 $KUBECTL get namespace
 echo "Set context"
-$KUBECTL config set-context --current --namespace=pulp-operator-system
+$KUBECTL config set-context --current --namespace=galaxy
 echo "Get Deployment"
 $KUBECTL get deployment
 
