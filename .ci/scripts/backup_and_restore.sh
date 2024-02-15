@@ -10,7 +10,7 @@ else
 fi
 
 echo "Set context"
-$KUBECTL config set-context --current --namespace=pulp-operator-system
+$KUBECTL config set-context --current --namespace=galaxy
 
 BACKUP_RESOURCE=pulpproject_v1beta1_pulpbackup_cr.ci.yaml
 RESTORE_RESOURCE=pulpproject_v1beta1_pulprestore_cr.ci.yaml
@@ -26,14 +26,14 @@ elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "s3" ]]; then
 fi
 
 echo ::group::PRE_BACKUP_LOGS
-$KUBECTL logs -l app.kubernetes.io/name=pulp-operator -c pulp-manager --tail=10000
+$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
 echo ::endgroup::
 
 $KUBECTL apply -f config/samples/$BACKUP_RESOURCE
 time $KUBECTL wait --for condition=BackupComplete --timeout=-1s -f config/samples/$BACKUP_RESOURCE
 
 echo ::group::AFTER_BACKUP_LOGS
-$KUBECTL logs -l app.kubernetes.io/name=pulp-operator -c pulp-manager --tail=10000
+$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
 echo ::endgroup::
 
 $KUBECTL delete --cascade=foreground -f config/samples/$CUSTOM_RESOURCE
@@ -43,11 +43,11 @@ $KUBECTL apply -f config/samples/$RESTORE_RESOURCE
 time $KUBECTL wait --for condition=RestoreComplete --timeout=-1s -f config/samples/$RESTORE_RESOURCE
 
 echo ::group::AFTER_RESTORE_LOGS
-$KUBECTL logs -l app.kubernetes.io/name=pulp-operator -c pulp-manager --tail=10000
+$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
 echo ::endgroup::
 
 sudo pkill -f "port-forward" || true
-time $KUBECTL wait --for condition=Pulp-Operator-Finished-Execution pulp/example-pulp --timeout=-1s
+time $KUBECTL wait --for condition=Galaxy-Operator-Finished-Execution pulp/example-pulp --timeout=-1s
 
 KUBE="k3s"
 SERVER=$(hostname)

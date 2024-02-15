@@ -8,5 +8,5 @@ spec:
   template:
     spec:
       containers:
-        - name: pulp-manager
+        - name: galaxy-operator
           imagePullPolicy: IfNotPresent

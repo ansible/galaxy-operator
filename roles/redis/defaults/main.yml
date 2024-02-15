@@ -8,9 +8,6 @@ redis:
     requests:
       cpu: 200m
       memory: 512Mi
-    limits:
-      cpu: 800m
-      memory: 4Gi
 
 redis_storage_size: 1Gi
 # Here we use  _pulp_pulpproject_org_pulp to get un-modified cr

@@ -13,4 +13,4 @@ data:
       resourceName: 811c9dc5.pulpproject.org
 kind: ConfigMap
 metadata:
-  name: pulp-operator-pulp-manager-config
+  name: galaxy-operator-galaxy-manager-config
