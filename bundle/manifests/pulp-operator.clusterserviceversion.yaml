@@ -1100,7 +1100,7 @@ spec:
                   value: postgres:13
                 - name: RELATED_IMAGE_PULP_INIT_GPG_CONTAINER
                   value: quay.io/centos/centos:stream9
-                image: quay.io/ansible/galaxy-operator:v0.15.0.dev
+                image: quay.io/ansible/galaxy-operator:main
                 livenessProbe:
                   httpGet:
                     path: /healthz

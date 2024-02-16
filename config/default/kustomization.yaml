@@ -13,7 +13,7 @@ namePrefix: pulp-operator-
 #  pairs:
 #    someName: someValue
 
-bases:
+resources:
 - ../crd
 - ../rbac
 - ../manager

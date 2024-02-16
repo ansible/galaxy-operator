@@ -2,7 +2,7 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/pulpproject_v1beta1_pulp_crd.yaml
-- bases/pulpproject_v1beta1_pulpbackup_crd.yaml
-- bases/pulpproject_v1beta1_pulprestore_crd.yaml
+- resources/pulpproject_v1beta1_pulp_crd.yaml
+- resources/pulpproject_v1beta1_pulpbackup_crd.yaml
+- resources/pulpproject_v1beta1_pulprestore_crd.yaml
 #+kubebuilder:scaffold:crdkustomizeresource

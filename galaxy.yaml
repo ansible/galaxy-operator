@@ -1,0 +1,13 @@
+---
+apiVersion: pulp.pulpproject.org/v1beta1
+kind: Pulp
+metadata:
+  name: galaxy
+  namespace: galaxy
+spec:
+  hostname: localhost
+  ingress_type: ingress
+  storage_type: File
+  file_storage_access_mode: ReadWriteOnce
+  file_storage_size: 8Gi
+  no_log: false
