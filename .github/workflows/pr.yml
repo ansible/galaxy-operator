@@ -13,12 +13,12 @@ jobs:
         include:
           - STORAGE: filesystem
             IMAGE: minimal
-          # - STORAGE: filesystem
-          #   IMAGE: s6
-          # - STORAGE: azure
-          #   IMAGE: minimal
-          # - STORAGE: s3
-          #   IMAGE: minimal
+          - STORAGE: filesystem
+            IMAGE: s6
+          - STORAGE: azure
+            IMAGE: minimal
+          - STORAGE: s3
+            IMAGE: minimal
     steps:
       - name: PR head repo
         id: head_repo_name
@@ -26,6 +26,7 @@ jobs:
           HEAD_REPO_NAME=$(jq -r '.pull_request.head.repo.full_name' "$GITHUB_EVENT_PATH")
           echo "PR head repo: $HEAD_REPO_NAME"
           echo "::set-output name=repo::$HEAD_REPO_NAME"
+
       - uses: actions/checkout@v3
         with:
           # by default, it uses a depth of 1
@@ -34,10 +35,12 @@ jobs:
           # Could be used to checkout the PR head repo when public
           # repository: ${{ steps.head_repo_name.outputs.repo }}
           # ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Set up Python 3.8
         uses: actions/setup-python@v1
         with:
           python-version: '3.8'
+
       - name: Install httpie
         run: |
           echo ::group::HTTPIE
@@ -51,15 +54,19 @@ jobs:
           echo "CI_TEST_IMAGE=${{ matrix.IMAGE }}" >> $GITHUB_ENV
           echo "API_ROOT=/api/galaxy/pulp/" >> $GITHUB_ENV
         shell: bash
+
       - name: Start minikube
         run: |
           minikube start --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000
           minikube addons enable metrics-server
         # now you can run kubectl to see the pods in the cluster
+
       - name: Try the cluster !
         run: kubectl get pods -A
+
       - name: Setup a minikube docker env
         run: minikube -p minikube docker-env | grep "export" | sed 's/export //' | sed 's/"//g' >> $GITHUB_ENV
+
       - name: Uninstalling GHA kustomize
         run: |
           # hack for uninstalling kustomize from GHA
@@ -68,47 +75,58 @@ jobs:
           mv ./bin/kustomize /usr/local/bin/kustomize
           kustomize version
         shell: bash
+
       - name: Build Operator
         run: |
           sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
           sudo -E docker images
         shell: bash
+
       - name: Prepare Object Storage
         run: |
           .ci/scripts/prepare-object-storage.sh
         shell: bash
+
       - name: Set imagePullPolicy to ifNotPresent
         run: |
           sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
         shell: bash
+
       - name: Deploy galaxy-operator to K8s
         run: sudo -E CI_TEST=galaxy ./up.sh
         shell: bash
+
       - name: Print Galaxy CR
         run: kubectl -n galaxy get galaxy example-galaxy -o yaml
+
       - name: Check and wait galaxy-operator deploy
         run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
         shell: bash
+
       - name: KubeLinter
         run: .ci/scripts/kubelinter.sh
         shell: bash
+
       - name: Popeye
         run: |
           echo ::group::POPEYE
-          sudo wget https://github.com/derailed/popeye/releases/download/v0.9.7/popeye_Linux_x86_64.tar.gz
+          sudo wget https://github.com/derailed/popeye/releases/download/v0.10.0/popeye_Linux_x86_64.tar.gz
           sudo tar -xvzf popeye_Linux_x86_64.tar.gz
           sudo mv popeye /usr/local/bin/
           sudo chmod +x /usr/local/bin/popeye
           echo ::endgroup::
           sudo popeye --kubeconfig ~/.kube/config || true
+
       - name: Test
         run: sudo -E .ci/scripts/galaxy_ng-tests.sh -m
         shell: bash
+
       - name: Backup & Restore
         run: CI_TEST=galaxy .ci/scripts/backup_and_restore.sh -m
         shell: bash
         env:
           PY_COLORS: '1'
+
       - name: Logs
         if: always()
         run: .github/workflows/scripts/show_logs.sh
