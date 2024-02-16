@@ -57,6 +57,7 @@ podman login --tls-verify=false -u admin -p password localhost:24880
 podman tag registry.access.redhat.com/ubi9/ubi-micro:latest localhost:24880/ubi9-micro:latest 
 podman push --tls-verify=false localhost:24880/ubi9-micro:latest
 
+
 curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/v3/plugin/execution-environments/repositories/ | jq
 
 cat >> ansible.cfg << ANSIBLECFG
