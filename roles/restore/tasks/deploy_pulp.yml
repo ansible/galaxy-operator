@@ -79,14 +79,14 @@
 - name: Deploy object
   k8s:
     state: present
-    definition: "{{ lookup('template', 'pulp_object.yaml.j2') }}"
+    definition: "{{ lookup('template', 'galaxy_object.yaml.j2') }}"
     wait: true
 
 - name: Remove ownerReferences to prevent garbage collection of new CR
   k8s:
     definition:
       apiVersion: '{{ api_version }}'
-      kind: Pulp
+      kind: Galaxy
       metadata:
         name: '{{ deployment_name }}'
         namespace: '{{ ansible_operator_meta.namespace }}'
