@@ -36,14 +36,14 @@ Galaxy is completely free and open-source!
 ## Custom Resource Definitions
 Galaxy Operator currently provides three different kinds of [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#custom-resources): Galaxy, Galaxy Backup and Galaxy Restore.
 
-### Galaxy (pulps.pulp.pulpproject.org)
+### Galaxy (galaxies.galaxy.ansible.com)
 Manages the Galaxy application and its deployments, services, etc.
 
-### Galaxy Backup (pulpbackups.pulp.pulpproject.org)
-Manages pulp backup through the following ansible role:
+### Galaxy Backup (galaxybackups.galaxy.ansible.com)
+Manages Galaxy backups through the following ansible role:
 
-### Galaxy Restore (pulprestores.pulp.pulpproject.org)
-Manages the restoration of a pulp backup through the following ansible role:
+### Galaxy Restore (galaxyrestores.galaxy.ansible.com)
+Manages the restoration of a Galaxy backup through the following ansible role:
 
 ## Get Help
 

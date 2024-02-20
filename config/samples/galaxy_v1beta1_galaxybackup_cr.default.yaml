@@ -1,8 +1,8 @@
 ---
-apiVersion: pulp.pulpproject.org/v1beta
-kind: PulpBackup
+apiVersion: galaxy.ansible.com/v1beta
+kind: GalaxyBackup
 metadata:
-  name: example-pulpbackup
+  name: example-galaxybackup
 spec:
   deployment_name: ''
   backup_pvc: ''

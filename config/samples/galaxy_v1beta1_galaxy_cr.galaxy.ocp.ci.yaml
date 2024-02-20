@@ -1,10 +1,14 @@
-apiVersion: pulp.pulpproject.org/v1beta1
-kind: Pulp
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
 metadata:
   name: ocp-example
 spec:
+  image: quay.io/ansible/galaxy-ng
+  image_version: latest
+  image_web: quay.io/ansible/galaxy-ui
+  image_web_version: latest
   no_log: false
-  admin_password_secret: "example-pulp-admin-password"
+  admin_password_secret: "example-galaxy-admin-password"
   storage_type: File
   ingress_type: route
   route_host: route_host_placeholder
@@ -14,6 +18,7 @@ spec:
   # We have a little over 10GB free on GHA VMs/instances
   file_storage_size: "10Gi"
   pulp_settings:
+    api_root: "/api/galaxy/pulp/"
     allowed_export_paths:
       - /tmp
     allowed_import_paths:

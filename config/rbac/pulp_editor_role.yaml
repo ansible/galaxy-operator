@@ -1,15 +1,15 @@
-# permissions for end users to edit pulps.
+# permissions for end users to edit galaxies.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: pulp-editor-role
+  name: galaxy-editor-role
 rules:
 - apiGroups:
-  - pulp.pulpproject.org
+  - galaxy.ansible.com
   resources:
-  - pulps
-  - pulpbackups
-  - pulprestores
+  - galaxies
+  - galaxybackups
+  - galaxyrestores
   verbs:
   - create
   - delete
@@ -19,10 +19,10 @@ rules:
   - update
   - watch
 - apiGroups:
-  - pulp.pulpproject.org
+  - galaxy.ansible.com
   resources:
-  - pulps/status
-  - pulpbackups/status
-  - pulprestores/status
+  - galaxies/status
+  - galaxybackups/status
+  - galaxyrestores/status
   verbs:
   - get

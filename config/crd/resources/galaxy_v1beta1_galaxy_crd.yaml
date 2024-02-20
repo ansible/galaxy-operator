@@ -2,14 +2,14 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: pulps.pulp.pulpproject.org
+  name: galaxies.galaxy.ansible.com
 spec:
-  group: pulp.pulpproject.org
+  group: galaxy.ansible.com
   names:
-    kind: Pulp
-    listKind: PulpList
-    plural: pulps
-    singular: pulp
+    kind: Galaxy
+    listKind: GalaxyList
+    plural: galaxies
+    singular: galaxy
   scope: Namespaced
   versions:
   - name: v1beta1
@@ -21,7 +21,7 @@ spec:
       openAPIV3Schema:
         type: object
         x-kubernetes-preserve-unknown-fields: true
-        description: Schema validation for the Pulp CRD
+        description: Schema validation for the Galaxy CRD
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -41,16 +41,16 @@ spec:
                 description: Name of the deployment type
                 type: string
               image:
-                description: The image name (repo name) for the pulp image.
+                description: The image name (repo name) for the galaxy image.
                 type: string
               image_version:
-                description: The image version for the pulp image.
+                description: The image version for the galaxy image.
                 type: string
               image_web:
-                description: The image name (repo name) for the pulp webserver image.
+                description: The image name (repo name) for the galaxy-ui webserver image.
                 type: string
               image_web_version:
-                description: The image version for the pulp webserver image.
+                description: The image version for the galaxy-ui webserver image.
                 type: string
               redis_image:
                 description: The image name for the redis image.
@@ -266,10 +266,10 @@ spec:
                 description: Secret where the TLS related credentials are stored
                 type: string
               node_selector:
-                description: nodeSelector for the Pulp pods
+                description: nodeSelector for the Galaxy pods
                 type: string
               tolerations:
-                description: node tolerations for the Pulp pods
+                description: node tolerations for the Galaxy pods
                 type: string
               postgres_selector:
                 description: nodeSelector for the Postgres pods
@@ -323,7 +323,7 @@ spec:
                     type: object
                 type: object
               redis:
-                description: The pulp redis deployment.
+                description: The galaxy redis deployment.
                 properties:
                   log_level:
                     default: INFO
@@ -341,7 +341,7 @@ spec:
                     format: int32
                     type: integer
                   resource_requirements:
-                    description: Resource requirements for the pulp redis container
+                    description: Resource requirements for the galaxy redis container
                     properties:
                       limits:
                         properties:
@@ -437,7 +437,7 @@ spec:
                     type: object
                 type: object
               web:
-                description: The pulp web deployment.
+                description: The galaxy web deployment.
                 properties:
                   replicas:
                     description: The number of replicas for the deployment.
@@ -496,7 +496,7 @@ spec:
                         type: string
                     type: object
                   resource_requirements:
-                    description: Resource requirements for the pulp web container
+                    description: Resource requirements for the galaxy web container
                     properties:
                       requests:
                         properties:
@@ -519,7 +519,7 @@ spec:
                     type: object
                 type: object
               api:
-                description: The pulp api deployment.
+                description: The galaxy api deployment.
                 properties:
                   replicas:
                     description: The number of replicas for the deployment.
@@ -588,7 +588,7 @@ spec:
                         type: string
                     type: object
                   resource_requirements:
-                    description: Resource requirements for the pulp api container
+                    description: Resource requirements for the galaxy api container
                     properties:
                       requests:
                         properties:
@@ -611,7 +611,7 @@ spec:
                     type: object
                 type: object
               content:
-                description: The pulp content deployment.
+                description: The galaxy content deployment.
                 properties:
                   replicas:
                     description: The number of replicas for the deployment.
@@ -680,7 +680,7 @@ spec:
                         type: string
                     type: object
                   resource_requirements:
-                    description: Resource requirements for the pulp content container
+                    description: Resource requirements for the galaxy content container
                     properties:
                       requests:
                         properties:
@@ -703,7 +703,7 @@ spec:
                     type: object
                 type: object
               worker:
-                description: The pulp worker deployment.
+                description: The galaxy worker deployment.
                 properties:
                   replicas:
                     description: The number of replicas for the deployment.
@@ -762,7 +762,7 @@ spec:
                         type: string
                     type: object
                   resource_requirements:
-                    description: Resource requirements for the pulp worker container
+                    description: Resource requirements for the galaxy worker container
                     properties:
                       requests:
                         properties:
@@ -785,7 +785,7 @@ spec:
                     type: object
                 type: object
               resource_manager:
-                description: The pulp resource manager deployment.
+                description: The galaxy resource manager deployment.
                 properties:
                   replicas:
                     description: The number of replicas for the deployment.
@@ -844,7 +844,7 @@ spec:
                         type: string
                     type: object
                   resource_requirements:
-                    description: Resource requirements for the pulp resource manager container
+                    description: Resource requirements for the galaxy resource manager container
                     properties:
                       requests:
                         properties:

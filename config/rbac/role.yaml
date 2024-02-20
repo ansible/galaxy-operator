@@ -85,27 +85,27 @@ rules:
   - apiGroups:
       - ""
     resourceNames:
-      - pulp-operator-sa
+      - galaxy-operator-sa
     resources:
       - serviceaccounts
     verbs:
       - patch
       - get
   ##
-  ## Rules for pulp.pulpproject.org/v1beta1, Kind: Pulp
+  ## Rules for galaxy.ansible.com/v1beta1, Kind: Galaxy
   ##
   - apiGroups:
-      - pulp.pulpproject.org
+      - galaxy.ansible.com
     resources:
-      - pulps
-      - pulps/status
-      - pulps/finalizers
-      - pulpbackups
-      - pulpbackups/status
-      - pulpbackups/finalizers
-      - pulprestores
-      - pulprestores/status
-      - pulprestores/finalizers
+      - galaxies
+      - galaxies/status
+      - galaxies/finalizers
+      - galaxybackups
+      - galaxybackups/status
+      - galaxybackups/finalizers
+      - galaxyrestores
+      - galaxyrestores/status
+      - galaxyrestores/finalizers
     verbs:
       - create
       - delete

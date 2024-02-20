@@ -11,15 +11,15 @@ metadata:
   name: controller-manager
   namespace: system
   annotations: # About kube-linter checks: https://docs.kubelinter.io/#/generated/checks
-    email: pulp-dev@redhat.com
+#    email: pulp-dev@redhat.com # TODO - update this
     ignore-check.kube-linter.io/minimum-three-replicas: "Operator should be unique"
     ignore-check.kube-linter.io/no-read-only-root-fs: "Operator needs to generate files"
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
   labels:
     control-plane: controller-manager
-    app.kubernetes.io/name: pulp-operator
+    app.kubernetes.io/name: galaxy-operator
     app.kubernetes.io/component: operator
-    owner: pulp-dev
+    owner: galaxy-dev
 spec:
   selector:
     matchLabels:
@@ -33,7 +33,7 @@ spec:
         kubectl.kubernetes.io/default-container: galaxy-operator
       labels:
         control-plane: controller-manager
-        app.kubernetes.io/name: pulp-operator
+        app.kubernetes.io/name: galaxy-operator
         app.kubernetes.io/component: operator
     spec:
       securityContext:
@@ -41,7 +41,7 @@ spec:
       containers:
       - args:
         - --leader-elect
-        - --leader-election-id=pulp-operator
+        - --leader-election-id=galaxy-operator
         image: controller:latest
         imagePullPolicy: IfNotPresent
         name: galaxy-operator
