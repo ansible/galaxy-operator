@@ -8,7 +8,7 @@ if [[ "${1-null}" == "--minikube" ]] || [[ "${1-null}" == "-m" ]]; then
   KUBE="minikube"
   SERVER="localhost"
   if [[ "$CI_TEST" == "true" ]]; then
-    SVC_NAME="example-pulp-web-svc"
+    SVC_NAME="example-galaxy-web-svc"
     WEB_PORT="24880"
     kubectl port-forward service/$SVC_NAME $WEB_PORT:$WEB_PORT &
   fi
@@ -72,7 +72,7 @@ url=${BASE_ADDR}/api/galaxy/content/community/
 token=${TOKEN}
 ANSIBLECFG
 
-# Poll a Pulp task until it is finished.
+# Poll a Galaxy task until it is finished.
 wait_until_task_finished() {
     echo "Polling the task until it has reached a final state."
     local task_url=$1

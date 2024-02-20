@@ -9,13 +9,13 @@ if [[ "${1-}" == "--minikube" ]] || [[ "${1-}" == "-m" ]]; then
   KUBE="minikube"
   SERVER="localhost"
   if [[ "$CI_TEST" == "true" ]]; then
-    SVC_NAME="example-pulp-web-svc"
+    SVC_NAME="example-galaxy-web-svc"
     WEB_PORT="24880"
     kubectl port-forward service/$SVC_NAME $WEB_PORT:$WEB_PORT &
   fi
 fi
 
-# From the pulp-server/pulp-api config-map
+# From the galaxy-server/galaxy-api config-map
 echo "machine $SERVER
 login admin
 password password\

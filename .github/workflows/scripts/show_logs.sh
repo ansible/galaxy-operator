@@ -9,7 +9,7 @@ if [[ "$1" == "--kind" ]] || [[ "$1" == "-k" ]]; then
   echo "Running $KUBE"
   kind export kubeconfig --name osdk-test
   sudo -E kubectl config set-context --current --namespace=osdk-test
-  sudo -E kubectl port-forward service/example-pulp-web-svc 24880:24880 &
+  sudo -E kubectl port-forward service/example-galaxy-web-svc 24880:24880 &
   echo ::group::KIND_LOGS
   mkdir -p logs
   kind export logs --name osdk-test ./logs
@@ -41,22 +41,22 @@ if [[ "$KUBE" == "minikube" ]]; then
 fi
 
 echo ::group::OPERATOR_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
 echo ::endgroup::
 
-echo ::group::PULP_API_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=pulp-api --tail=10000 || true
+echo ::group::GALAXY_API_LOGS
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-api --tail=10000 || true
 echo ::endgroup::
 
-echo ::group::PULP_CONTENT_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=pulp-content --tail=10000 || true
+echo ::group::GALAXY_CONTENT_LOGS
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-content --tail=10000 || true
 echo ::endgroup::
 
-echo ::group::PULP_WORKER_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=pulp-worker --tail=10000 || true
+echo ::group::GALAXY_WORKER_LOGS
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-worker --tail=10000 || true
 echo ::endgroup::
 
-echo ::group::PULP_WEB_LOGS
+echo ::group::GALAXY_WEB_LOGS
 sudo -E kubectl logs -l app.kubernetes.io/name=nginx --tail=10000 || true
 echo ::endgroup::
 
@@ -69,10 +69,10 @@ sudo -E kubectl get events --sort-by='.metadata.creationTimestamp' || true
 echo ::endgroup::
 
 echo ::group::OBJECTS
-sudo -E kubectl get pulp,pulpbackup,pulprestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml
+sudo -E kubectl get galaxy,galaxybackup,galaxyrestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml
 echo ::endgroup::
 
 echo "Content endpoint"
-http HEAD http://localhost:24880/pulp/content/ || true
+http HEAD http://localhost:24880/galaxy/content/ || true
 echo "Status endpoint"
-http --follow --timeout 30 --check-status --pretty format --print hb http://localhost:24880/pulp/api/v3/status/ || true
+http --follow --timeout 30 --check-status --pretty format --print hb http://localhost:24880/galaxy/api/v3/status/ || true

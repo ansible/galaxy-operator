@@ -28,7 +28,7 @@ data:
   container_sign.sh: |-
     #!/usr/bin/env bash
 
-    # pulp_container SigningService will pass the next 4 variables to the script.
+    # galaxy_container SigningService will pass the next 4 variables to the script.
     MANIFEST_PATH=$1
     FINGERPRINT="$PULP_SIGNING_KEY_FINGERPRINT"
     IMAGE_REFERENCE="$REFERENCE"

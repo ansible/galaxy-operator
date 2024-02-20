@@ -12,28 +12,28 @@ fi
 echo "Set context"
 $KUBECTL config set-context --current --namespace=galaxy
 
-BACKUP_RESOURCE=pulpproject_v1beta1_pulpbackup_cr.ci.yaml
-RESTORE_RESOURCE=pulpproject_v1beta1_pulprestore_cr.ci.yaml
+BACKUP_RESOURCE=galaxy_v1beta1_galaxybackup_cr.ci.yaml
+RESTORE_RESOURCE=galaxy_v1beta1_galaxyrestore_cr.ci.yaml
 
 if [[ "$CI_TEST" == "true" ]]; then
-  CUSTOM_RESOURCE=pulpproject_v1beta1_pulp_cr.ci.yaml
+  CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.ci.yaml
 elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "filesystem" ]]; then
-  CUSTOM_RESOURCE=pulpproject_v1beta1_pulp_cr.galaxy.ci.yaml
+  CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.ci.yaml
 elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "azure" ]]; then
-  CUSTOM_RESOURCE=pulpproject_v1beta1_pulp_cr.galaxy.azure.ci.yaml
+  CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.azure.ci.yaml
 elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "s3" ]]; then
-  CUSTOM_RESOURCE=pulpproject_v1beta1_pulp_cr.galaxy.s3.ci.yaml
+  CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.s3.ci.yaml
 fi
 
 echo ::group::PRE_BACKUP_LOGS
-$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
+$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
 echo ::endgroup::
 
 $KUBECTL apply -f config/samples/$BACKUP_RESOURCE
 time $KUBECTL wait --for condition=BackupComplete --timeout=-1s -f config/samples/$BACKUP_RESOURCE
 
 echo ::group::AFTER_BACKUP_LOGS
-$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
+$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
 echo ::endgroup::
 
 $KUBECTL delete --cascade=foreground -f config/samples/$CUSTOM_RESOURCE
@@ -43,11 +43,11 @@ $KUBECTL apply -f config/samples/$RESTORE_RESOURCE
 time $KUBECTL wait --for condition=RestoreComplete --timeout=-1s -f config/samples/$RESTORE_RESOURCE
 
 echo ::group::AFTER_RESTORE_LOGS
-$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-manager --tail=10000
+$KUBECTL logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
 echo ::endgroup::
 
 sudo pkill -f "port-forward" || true
-time $KUBECTL wait --for condition=Galaxy-Operator-Finished-Execution pulp/example-pulp --timeout=-1s
+time $KUBECTL wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
 
 KUBE="k3s"
 SERVER=$(hostname)
@@ -65,7 +65,7 @@ if [[ "$1" == "--minikube" ]] || [[ "$1" == "-m" ]]; then
   fi
 fi
 
-# From the pulp-server/pulp-api config-map
+# From the galaxy-server/galaxy-api config-map
 echo "machine $SERVER
 login admin
 password password\
