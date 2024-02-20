@@ -38,9 +38,9 @@ postgres_tolerations: ''
 # Define postgres configuration arguments to use
 postgres_extra_args: ''
 
-custom_resource_key: '_pulp_pulpproject_org_pulp'
+custom_resource_key: '_galaxy_ansible_com_galaxy'
 database_status_present: false
 
-# Here we use  _pulp_pulpproject_org_pulp to get un-modified cr
+# Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
-raw_spec: "{{ vars['_pulp_pulpproject_org_pulp']['spec'] }}"
+raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"

@@ -1,12 +1,12 @@
 ---
 
-deployment_type: "pulp"
+deployment_type: "galaxy"
 _postgres_image: postgres:13
 
-custom_resource_key: '_pulp_pulpproject_org_pulprestore'
+custom_resource_key: '_galaxy_ansible_com_galaxyrestore'
 
 backup_api_version: 'v1beta1'
-backup_kind: 'PulpBackup'
+backup_kind: 'GalaxyBackup'
 
 # If set to true, the restore process will delete the existing database and create a new one
 force_drop_db: false

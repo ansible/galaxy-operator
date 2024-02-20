@@ -64,59 +64,59 @@
         namespace: '{{ backup_pvc_namespace }}'
         ownerReferences: null
 
-- name: Get Pulp custom resource object
+- name: Get Galaxy custom resource object
   k8s_info:
     version: v1beta1
-    kind: Pulp
+    kind: Galaxy
     namespace: '{{ ansible_operator_meta.namespace }}'
     name: '{{ deployment_name }}'
   register: _custom_resource
 
-- name: Set Pulp object
+- name: Set Galaxy object
   set_fact:
-    _pulp: "{{ _custom_resource['resources'][0] }}"
+    _galaxy: "{{ _custom_resource['resources'][0] }}"
 
 - name: Set apiVersion
   set_fact:
-    api_version: "{{ _pulp['apiVersion'] }}"
+    api_version: "{{ _galaxy['apiVersion'] }}"
 
 - name: Set user specified spec
   set_fact:
-    cr_spec: "{{ _pulp['spec'] }}"
+    cr_spec: "{{ _galaxy['spec'] }}"
 
-- name: Set pulp status
+- name: Set galaxy status
   set_fact:
-    status: "{{ _pulp['status'] }}"
+    status: "{{ _galaxy['status'] }}"
 
-- name: Set pulp admin secret if found
+- name: Set galaxy admin secret if found
   set_fact:
     admin_password_secret: "{{ status['adminPasswordSecret'] }}"
   when:
     - status['adminPasswordSecret'] is defined
     - status['adminPasswordSecret'] | length
 
-- name: Set pulp database configuration secret if found
+- name: Set galaxy database configuration secret if found
   set_fact:
     postgres_configuration_secret: "{{ status['databaseConfigurationSecret'] }}"
   when:
     - status['databaseConfigurationSecret'] is defined
     - status['databaseConfigurationSecret'] | length
 
-- name: Set pulp storage type if found
+- name: Set galaxy storage type if found
   set_fact:
     storage_type: "{{ status['storageType'] }}"
   when:
     - status['storageType'] is defined
     - status['storageType'] | length
 
-- name: Set pulp file storage claim if found
+- name: Set galaxy file storage claim if found
   set_fact:
     storage_claim: "{{ status['storagePersistentVolumeClaim'] }}"
   when:
     - status['storagePersistentVolumeClaim'] is defined
     - status['storagePersistentVolumeClaim'] | length
 
-- name: Set pulp object storage secret if found
+- name: Set galaxy object storage secret if found
   set_fact:
     storage_secret: "{{ status['storageSecret'] }}"
   when:
@@ -176,7 +176,7 @@
 
 - name: Set Postgres image URL
   set_fact:
-    _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_PULP_POSTGRES')) | default(_postgres_image, true) }}"
+    _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_galaxy_POSTGRES')) | default(_postgres_image, true) }}"
 
 - name: Create management pod from templated deployment config
   k8s:
