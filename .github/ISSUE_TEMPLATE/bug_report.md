@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Version**
-Please provide the versions of the pulp-operator and pulp images in use.
+Please provide the versions of the galaxy-operator and galaxy images in use.
 
 **Describe the bug**
 A clear and concise description of what the bug is.

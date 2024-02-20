@@ -1,5 +1,5 @@
 ---
-# Required: specify name of pulp deployment to backup from
+# Required: specify name of galaxy deployment to backup from
 deployment_name: ''
 
 # Specify a pre-created PVC (name) to backup to

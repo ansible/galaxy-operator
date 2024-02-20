@@ -1,6 +1,7 @@
 #!/bin/bash -e
 #!/usr/bin/env bash
 
+# TODO - Update with galaxy bot
 QUAY_BOT_USERNAME=${QUAY_BOT_USERNAME:-pulp+github}
 
 echo "$QUAY_BOT_PASSWORD" | docker login -u "$QUAY_BOT_USERNAME" --password-stdin quay.io
