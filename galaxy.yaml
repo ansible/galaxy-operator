@@ -1,6 +1,6 @@
 ---
-apiVersion: pulp.pulpproject.org/v1beta1
-kind: Pulp
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
 metadata:
   name: galaxy
   namespace: galaxy

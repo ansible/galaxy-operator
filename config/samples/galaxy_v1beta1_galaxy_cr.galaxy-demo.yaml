@@ -1,7 +1,7 @@
-apiVersion: pulp.pulpproject.org/v1beta1
-kind: Pulp
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
 metadata:
-  name: example-pulp
+  name: example-galaxy
 spec:
   storage_type: File
   # This doesn't really matter for minikube. Single node by design,

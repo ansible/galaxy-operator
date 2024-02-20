@@ -1,18 +1,15 @@
-apiVersion: pulp.pulpproject.org/v1beta1
-kind: Pulp
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
 metadata:
-  name: galaxy-demo
+  name: example-galaxy
 spec:
-  ingress_type: Ingress
-  image: quay.io/ansible/galaxy-ng
-  image_version: latest
-  image_web: quay.io/ansible/galaxy-ui
-  image_web_version: latest
-  admin_password_secret: "example-pulp-admin-password"
-  container_token_secret: "container-auth"
+  image_version: nightly
+  image_web_version: nightly
+  admin_password_secret: "example-galaxy-admin-password"
   storage_type: File
+  ingress_type: nodeport
   # k3s local-path requires this
-  file_storage_access_mode: "ReadWriteMany"
+  file_storage_access_mode: "ReadWriteOnce"
   # We have a little over 10GB free on GHA VMs/instances
   file_storage_size: "10Gi"
   content:
@@ -21,15 +18,24 @@ spec:
       requests:
         cpu: 150m
         memory: 256Mi
+      limits:
+        cpu: 800m
+        memory: 1Gi
   worker:
     replicas: 1
     resource_requirements:
       requests:
         cpu: 150m
         memory: 256Mi
+      limits:
+        cpu: 800m
+        memory: 1Gi
   web:
     replicas: 1
     resource_requirements:
       requests:
         cpu: 100m
         memory: 256Mi
+      limits:
+        cpu: 800m
+        memory: 1Gi

@@ -1,20 +1,18 @@
-apiVersion: pulp.pulpproject.org/v1beta1
-kind: Pulp
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
 metadata:
-  name: example-pulp
+  name: example-galaxy
 spec:
   image: quay.io/ansible/galaxy-ng
   image_version: latest
   image_web: quay.io/ansible/galaxy-ui
   image_web_version: latest
   no_log: false
-  admin_password_secret: "example-pulp-admin-password"
-  storage_type: S3
+  admin_password_secret: "example-galaxy-admin-password"
+  signing_secret: "signing-galaxy"
+  signing_scripts_configmap: "signing-scripts"
+  storage_type: File
   ingress_type: nodeport
-  ######## Enable Execution Environments ########
-  container_token_secret: "container-auth"
-  ###############################################
-  object_storage_s3_secret: example-pulp-object-storage
   # k3s local-path requires this
   file_storage_access_mode: "ReadWriteMany"
   # We have a little over 10GB free on GHA VMs/instances
@@ -25,7 +23,6 @@ spec:
       - /tmp
     allowed_import_paths:
       - /tmp
-    aws_s3_endpoint_url: http://pulp_minio:9000
     telemetry: false
   content:
     replicas: 1

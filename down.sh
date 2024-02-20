@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# down.sh: Delete pulp-operator from K8s
+# down.sh: Delete galaxy-operator from K8s
 
 # CentOS 7 /etc/sudoers , and non-interactive shells (vagrant provisions)
 # do not include /usr/local/bin , Which k3s installs to.
@@ -19,11 +19,11 @@ fi
 make undeploy
 
 # It doesn't matter which cr we specify; the metadata up top is the same.
-$KUBECTL delete -f config/samples/pulpproject_v1beta1_pulp_cr.default.yaml
-$KUBECTL delete -f config/crd/bases/pulpproject_v1beta1_pulp_crd.yaml
-$KUBECTL delete -f config/crd/bases/pulpproject_v1beta1_pulpbackup_crd.yaml
-$KUBECTL delete -f config/crd/bases/pulpproject_v1beta1_pulprestore_crd.yaml
+$KUBECTL delete -f config/samples/galaxy_v1beta1_galaxy_cr.default.yaml
+$KUBECTL delete -f config/crd/bases/galaxy_v1beta1_galaxy_crd.yaml
+$KUBECTL delete -f config/crd/bases/galaxy_v1beta1_galaxybackup_crd.yaml
+$KUBECTL delete -f config/crd/bases/galaxy_v1beta1_galaxyrestore_crd.yaml
 
 if [[ "$CI_TEST" == "true" ]]; then
-  $KUBECTL delete -f .ci/assets/kubernetes/pulp-admin-password.secret.yaml
+  $KUBECTL delete -f .ci/assets/kubernetes/galaxy-admin-password.secret.yaml
 fi
