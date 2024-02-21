@@ -1,0 +1,14 @@
+cairosvg
+markdown-exec
+mike
+mkdocs
+mkdocs-ansible
+mkdocs-git-revision-date-plugin
+mkdocs-material
+mkdocs-gen-files
+mkdocs-material-extensions
+mkdocstrings-python
+mkdocstrings
+pillow
+pipdeptree
+pymdown-extensions

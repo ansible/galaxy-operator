@@ -1,7 +1,7 @@
 Postgres
 ========
 
-A role to setup postgres in Pulp 3, yielding the following objects:
+A role to setup postgres in Galaxy, yielding the following objects:
 
 * StatefulSet
 * Service
@@ -20,7 +20,7 @@ Role Variables
 Requirements
 ------------
 
-Requires the `openshift` Python library to interact with Kubernetes: `pip install openshift`.
+Requires the `kubernetes` Python library to interact with Kubernetes: `pip install kubernetes`.
 
 Dependencies
 ------------
@@ -38,4 +38,4 @@ GPLv2+
 Author Information
 ------------------
 
-[Pulp Team](https://pulpproject.org/)
+[Galaxy-Operator Team](https://github.com/ansible/galaxy-operator)

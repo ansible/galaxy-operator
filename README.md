@@ -1,14 +1,12 @@
-![Galaxy-Operator CI](https://github.com/ansible/galaxy-operator/workflows/Galaxy%20Operator%20CI/badge.svg)
-
 # Galaxy-Operator
 This is the official operator for deploying [Galaxy-NG](https://github.com/ansible/galaxy_ng).  This project was formerly maintained under the ansible branch of the [pulp-operator repo](https://github.com/pulp/pulp-operator)
 
-Galaxy-Operator uses the [Ansible Operator](https://www.ansible.com/blog/ansible-operator) SDK.
+Galaxy-Operator uses the [Ansible Operator SDK](https://sdk.operatorframework.io/docs/building-operators/ansible/).
 
 # Images
 Galaxy-Operator images are automatically built by our CI and [hosted on quay.io](https://quay.io/repository/ansible/galaxy-operator).
 
-Note that Galaxy Operator requires three separate images (the operator, the main galaxy server, and the web interface):
+Note that Galaxy-Operator requires three separate images (the operator, the main galaxy server, and the web interface):
 
 |           | Operator | Main | Web |
 | --------- | -------- | ---- | --- |
@@ -31,10 +29,10 @@ Galaxy is completely free and open-source!
 * Documentation is currently in markdown files in this repo, but eventually we will have a docsite.
 * Source: [https://github.com/ansible/galaxy_ng](https://github.com/ansible/galaxy_ng)
 * Galaxy Bugs: [https://github.com/ansible/galaxy_ng/issues](https://github.com/ansible/galaxy_ng/issues)
-* Galaxy Operator Bugs: [https://github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
+* Galaxy-Operator Bugs: [https://github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
 
 ## Custom Resource Definitions
-Galaxy Operator currently provides three different kinds of [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#custom-resources): Galaxy, Galaxy Backup and Galaxy Restore.
+Galaxy-Operator currently provides three different kinds of [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#custom-resources): Galaxy, Galaxy Backup and Galaxy Restore.
 
 ### Galaxy (galaxies.galaxy.ansible.com)
 Manages the Galaxy application and its deployments, services, etc.
@@ -54,10 +52,3 @@ Forum: [https://forum.ansible.com](https://forum.ansible.com/) - Create a topic 
 Issue Tracker: [https://github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
 
 Wiki: [https://github.com/ansible/galaxy-operator/wiki](https://github.com/ansible/galaxy-operator/wiki)
-
-## Maintainers Docs
-
-Maintainers of this repo need to carry out releases, triage issues, etc. There are docs for those types of administrative tasks in the `docs/maintainer/` directory.
-
-To release the EDA Server Operator, see these docs:
-* [Release Operator](./docs/maintainers/release.md)

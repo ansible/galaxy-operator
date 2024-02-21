@@ -1,26 +1,12 @@
 ---
 galaxy_info:
-  author: Pulp Team
-  description: A role to setup Pulp 3 redis service
-  issue_tracker_url: https://github.com/pulp/pulp-operator/issues/new
+  author: Galaxy-Operator Team
+  description: A role to setup Galaxy redis service
+  issue_tracker_url: https://github.com/ansible/galaxy-operator/issues/new
   license: GPL-2.0-or-later
   company: Red Hat
-  min_ansible_version: 2.9
-  platforms:
-    - name: Debian
-      versions:
-        - buster
-    - name: Fedora
-      versions:
-        - 30
-        - 31
-        - 32
-        - 33
-    - name: EL
-      versions:
-        - 7
-        - 8
   galaxy_tags:
+    - galaxy
     - pulp
     - pulpcore
 dependencies: []

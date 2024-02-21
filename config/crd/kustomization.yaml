@@ -2,6 +2,7 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- resources/galaxy_v1beta1_galaxy_crd.yaml
-- resources/galaxy_v1beta1_galaxybackup_crd.yaml
-- resources/galaxy_v1beta1_galaxyrestore_crd.yaml
+- bases/galaxy_v1beta1_galaxy_crd.yaml
+- bases/galaxy_v1beta1_galaxybackup_crd.yaml
+- bases/galaxy_v1beta1_galaxyrestore_crd.yaml
+#+kubebuilder:scaffold:crdkustomizeresource

@@ -1,5 +1,4 @@
 ---
-
 deployment_type: "galaxy"
 _postgres_image: postgres:13
 

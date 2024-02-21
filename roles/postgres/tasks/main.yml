@@ -68,7 +68,7 @@
     kind: "{{ kind }}"
     name: "{{ ansible_operator_meta.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
-  register: this_pulp
+  register: this_galaxy
 
 - name: Check if postgres pod is running and version 12
   block:
@@ -92,7 +92,7 @@
         - _old_pg_version.stdout | default('0') | trim == '12'
   when:
     - managed_database
-    - this_pulp['resources'][0]['status']['upgradedPostgresVersion'] | default('none') != '12'
+    - this_galaxy['resources'][0]['status']['upgradedPostgresVersion'] | default('none') != '12'
     - old_postgres_pod['resources'] | length  # upgrade is complete and old pg pod has been removed
 
 - name: Migrate data from old Openshift instance

@@ -1,0 +1,110 @@
+---
+- hosts: localhost
+  gather_facts: no
+  collections:
+    - kubernetes.core
+    - operator_sdk.util
+    - community.crypto
+  vars:
+    default_settings:
+      api_root: '/api/galaxy/pulp/'
+      cache_enabled: true
+      db_encryption_key: "/etc/pulp/keys/database_fields.symmetric.key"
+      galaxy_collection_signing_service: ansible-default
+      galaxy_container_signing_service: container-default
+      ansible_certs_dir: "/etc/pulp/keys/"
+      databases:
+        default:
+          HOST: "{{ postgres_host }}"
+          ENGINE: django.db.backends.postgresql_psycopg2
+          NAME: "{{ postgres_database }}"
+          USER: "{{ postgres_user }}"
+          PASSWORD: "{{ postgres_pass }}"
+          PORT: "{{ postgres_port }}"
+          CONN_MAX_AGE: 0
+          OPTIONS:
+            sslmode: '{{ postgres_sslmode }}'
+      static_root: /app/galaxy_ng/app/static/
+      redis_host: "{{ ansible_operator_meta.name }}-redis-svc"
+      redis_port: 6379
+      redis_password: ""
+    deployment_state: present
+    _image: quay.io/ansible/galaxy-ng
+    _image_version: "{{ lookup('env', 'DEFAULT_GALAXY_VERSION') or 'latest' }}"
+    _image_web: quay.io/ansible/galaxy-ui
+    _image_web_version: "{{ lookup('env', 'DEFAULT_GALAXY_UI_VERSION') or 'latest' }}"
+    image_pull_policy: Always
+    storage_type: File
+    file_storage_access_mode: "ReadWriteMany"
+    file_storage_size: "100Gi"
+    raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
+    no_log: true
+  pre_tasks:
+    - name: Verify imagePullSecrets
+      k8s_info:
+        kind: Secret
+        namespace: '{{ ansible_operator_meta.namespace }}'
+        name: redhat-operators-pull-secret
+      register: _rh_ops_secret
+      no_log: "{{ no_log }}"
+    - name: Create imagePullSecret
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: redhat-operators-pull-secret
+            namespace: '{{ ansible_operator_meta.namespace }}'
+          stringData:
+            operator: galaxy
+      when:
+        - (_rh_ops_secret is not defined) or not (_rh_ops_secret['resources'] | length)
+
+  roles:
+    - common
+    - postgres
+    - galaxy-web
+
+  tasks:
+
+    # If file storage is used, this role will create the PVC,
+    # which is needed by the restore management pod
+    - include_role:
+        name: galaxy-content
+
+    - name: Pre-load role variables for all roles
+      include_vars: "{{ item }}"
+      loop:
+        - /opt/ansible/roles/galaxy-api/defaults/main.yml
+        - /opt/ansible/roles/galaxy-content/defaults/main.yml
+        - /opt/ansible/roles/galaxy-worker/defaults/main.yml
+
+    - name: Wait for {{ kind }}Restore to complete check
+      kubernetes.core.k8s_info:
+        api_version: "{{ api_version }}"
+        kind: "{{ kind }}Restore"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+
+    - name: Wait for {{ kind }}Restore to complete
+      kubernetes.core.k8s_info:
+        api_version: "{{ api_version }}"
+        kind: "{{ kind }}Restore"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+      register: restore_status_check
+      until:
+        # yamllint disable-line rule:line-length
+        - (restore_status_check.resources | length == 0) or (restore_status_check.resources | selectattr('spec.deployment_name', 'equalto', ansible_operator_meta.name) | map(attribute='status') | selectattr('restoreComplete', 'defined') | map(attribute='restoreComplete') | list | length > 0)
+      delay: 10
+      retries: 8640
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Include roles
+      include_role:
+        name: "{{ item }}"
+      with_items:
+        - galaxy-worker
+        - galaxy-api
+        - galaxy-route
+        - galaxy-status

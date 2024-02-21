@@ -1,7 +1,7 @@
 Common
 ========
 
-A role to setup shared tasks in Pulp 3.
+A role to setup shared tasks in Galaxy.
 
 In order to pull the images from a private registry (in a disconnected installation, for example) it is
 possible to configure the `image_pull_secrets` with the names of the secrets that have the credentials to
@@ -24,7 +24,7 @@ Role Variables
 Requirements
 ------------
 
-Requires the `openshift` Python library to interact with Kubernetes: `pip install openshift`.
+Requires the `kubernetes` Python library to interact with Kubernetes: `pip install kubernetes`.
 
 Dependencies
 ------------
@@ -42,4 +42,4 @@ GPLv2+
 Author Information
 ------------------
 
-[Pulp Team](https://pulpproject.org/)
+[Galaxy-Operator Team](https://github.com/ansible/galaxy-operator)

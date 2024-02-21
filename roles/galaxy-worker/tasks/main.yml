@@ -1,0 +1,63 @@
+---
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-Worker-Ready"
+        message: "Starting {{ deployment_type|capitalize }}-worker tasks"
+        reason: StartingTasksExecution
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Set default galaxy-worker image
+  set_fact:
+    _default_image: "{{ _image }}:{{ _image_version }}"
+
+- name: Set user provided galaxy-worker image
+  set_fact:
+    _custom_image: "{{ image }}:{{ image_version }}"
+  when:
+    - image is defined and image != ''
+    - image_version is defined and image_version != ''
+
+- name: Set galaxy-worker image URL
+  set_fact:
+    _image: "{{ _custom_image | default(lookup('env', 'RELATED_IMAGE_GALAXY')) | default(_default_image, true) }}"
+
+- name: Set node affinity
+  set_fact:
+    _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"
+  when: affinity is defined and affinity.node_affinity is defined
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-Worker-Ready"
+        message: "Creating {{ deployment_type|capitalize }}-worker Deployment resource"
+        reason: CreatingDeployment
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: galaxy-worker deployment
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'templates/' + item + '.deployment.yaml.j2') | from_yaml }}"
+  with_items:
+    - galaxy-worker
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-Worker-Ready"
+        message: "All {{ deployment_type|capitalize }}-worker tasks ran successfully"
+        reason: WorkerTasksFinished
+        status: "True"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"

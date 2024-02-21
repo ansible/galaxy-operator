@@ -1,20 +1,20 @@
 Restore
 ========
 
-The purpose of this role is to restore your Pulp deployment from a backup.  This includes:
+The purpose of this role is to restore your Galaxy deployment from a backup.  This includes:
   - backup of the PostgreSQL database
   - custom user config file
 
 Role Variables
 --------------
 
-* `backup_name`: The name of the pulp backup custom resource to restore from
+* `backup_name`: The name of the galaxy backup custom resource to restore from
 * `postgres_label_selector`: The label selector for an external container based database
 
 Requirements
 ------------
 
-Requires the `openshift` Python library to interact with Kubernetes: `pip install openshift`.
+Requires the `kubernetes` Python library to interact with Kubernetes: `pip install kubernetes`.
 
 Dependencies
 ------------
@@ -32,4 +32,4 @@ GPLv2+
 Author Information
 ------------------
 
-[Pulp Team](https://pulpproject.org/)
+[Galaxy-Operator Team](https://github.com/ansible/galaxy-operator)

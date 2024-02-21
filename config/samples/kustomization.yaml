@@ -9,3 +9,4 @@ resources:
 - galaxy_v1beta1_galaxy_cr.galaxy.yaml
 - galaxy_v1beta1_galaxy_cr.object_storage.aws.yaml
 - galaxy_v1beta1_galaxy_cr.object_storage.azure.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
