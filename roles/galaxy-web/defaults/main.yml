@@ -32,7 +32,7 @@ route_tls_secret: ''
 ca_trust_bundle: "/etc/pki/tls/certs/ca-bundle.crt"
 
 galaxy_webserver_static_dir: "/opt/app-root/src"
-galaxy_nginx_conf_dir: "/opt/app-root/etc/nginx.default.d"
+galaxy_nginx_conf_dir: "/app/galaxy_ng/app/webserver_snippets"
 
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
