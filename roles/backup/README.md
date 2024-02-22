@@ -8,7 +8,7 @@ The purpose of this role is to create a backup of your Pulp deployment.  This in
 Role Variables
 --------------
 
-* `deployment_name`: The name of the pulp custom resource to backup
+* `deployment_name`: The name of the galaxy custom resource to backup
 * `backup_pvc`: The name of the PVC to uses for backup
 * `backup_storage_requirements`: The size of storage for the PVC created by operator if one is not supplied
 * `backup_storage_class`: The storage class to be used for the backup PVC
@@ -35,4 +35,4 @@ GPLv2+
 Author Information
 ------------------
 
-[Pulp Team](https://pulpproject.org/)
+[Galaxy-Operator Team](https://github.com/ansible/galaxy-operator)

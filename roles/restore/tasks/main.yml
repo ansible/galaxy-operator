@@ -1,5 +1,4 @@
 ---
-
 - name: Obtain custom resource information
   set_fact:
     custom_resource: "{{ hostvars[inventory_hostname][custom_resource_key] }}"
@@ -10,7 +9,7 @@
 
     - include_tasks: secrets.yml
 
-    - include_tasks: deploy_pulp.yml
+    - include_tasks: deploy_galaxy.yml
 
     - include_tasks: postgres.yml
 

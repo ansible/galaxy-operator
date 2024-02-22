@@ -1,0 +1,29 @@
+---
+- name: Load Route TLS certificate
+  include_tasks: load_route_tls_secret.yml
+  when:
+    - ingress_type | lower == 'route'
+    - route_tls_secret != ''
+
+- name: galaxy routes
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'templates/' + item + '.ingress.yaml.j2') }}"
+  with_items:
+    - galaxy
+  when:
+    - ingress_type is defined
+    - ('route' == ingress_type|lower) or ('ingress' == ingress_type|lower)
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-Routes-Ready"
+        message: Checking routes
+        reason: CheckingRoutes
+        status: "True"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+

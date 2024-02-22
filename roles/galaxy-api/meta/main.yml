@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Galaxy-Operator Team
+  description: A role to setup Galaxy API service
+  issue_tracker_url: https://github.com/ansible/galaxy-operator/issues/new
+  license: GPL-2.0-or-later
+  company: Red Hat
+  galaxy_tags:
+    - galaxy
+    - pulp
+    - pulpcore
+dependencies: []
+  # List your role dependencies here, one per line. Be sure to remove the '[]' above,
+  # if you add dependencies to this list.
+collections:
+- operator_sdk.util
+- kubernetes.core

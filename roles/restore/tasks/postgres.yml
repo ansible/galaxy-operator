@@ -1,5 +1,4 @@
 ---
-
 - name: Check for specified PostgreSQL configuration
   k8s_info:
     kind: Secret

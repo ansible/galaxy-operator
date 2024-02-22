@@ -38,7 +38,7 @@
             status: "False"
             lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-    - name: Generate Pulp Database Encryption Key
+    - name: Generate Galaxy Database Encryption Key
       shell: |
         from cryptography.fernet import Fernet
         with open("/tmp/fernet", "wb") as key_file:

@@ -1,4 +1,3 @@
-.vscode
 # Ignore pyenv file
 .python-version
 
@@ -6,17 +5,12 @@
 Pipfile
 Pipfile.lock
 
+# Ignore development and testing artifacts
+.vscode
 bin
-
-
-# Ignore generated container files
-containers/images/pulp/Containerfile.core.p*
-containers/images/pulp/Containerfile.core.g*
-containers/images/pulp/Containerfile.web.p*
-containers/images/pulp/Containerfile.web.g*
-
-# Ignore testing directory
+test*
 testing/*
 testbin/*
 
-Containerfile.bundle
+# Ignore mkdocs builds
+site

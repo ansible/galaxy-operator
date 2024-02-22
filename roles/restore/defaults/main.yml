@@ -1,5 +1,5 @@
 ---
-# Required: specify name of pulp backup
+# Required: specify name of Galaxy backup
 backup_name: ''
 
 # Required: specify a pre-created PVC (name) to restore from

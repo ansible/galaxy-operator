@@ -96,7 +96,7 @@
 
 - name: Set Postgres image URL
   set_fact:
-    _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_PULP_POSTGRES')) | default(_postgres_image, true) }}"
+    _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_GALAXY_POSTGRES')) | default(_postgres_image, true) }}"
 
 - name: Store Database Configuration
   set_fact:

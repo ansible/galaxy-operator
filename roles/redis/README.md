@@ -1,7 +1,7 @@
 Redis
 =====
 
-A role to setup Pulp 3 redis, yielding the following objects:
+A role to setup Galaxyredis, yielding the following objects:
 
 * Deployment
 * Service
@@ -15,7 +15,7 @@ Role Variables
 Requirements
 ------------
 
-Requires the `openshift` Python library to interact with Kubernetes: `pip install openshift`.
+Requires the `kubernetes` Python library to interact with Kubernetes: `pip install kubernetes`.
 
 Dependencies
 ------------
@@ -33,4 +33,4 @@ GPLv2+
 Author Information
 ------------------
 
-[Pulp Team](https://pulpproject.org/)
+[Galaxy-Operator Team](https://github.com/ansible/galaxy-operator)

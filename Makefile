@@ -3,9 +3,10 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= $(shell git rev-parse --short HEAD)
+VERSION ?= $(shell git describe --tags)
 
-ENGINE ?= docker
+# Default ENGINE for building galaxy-operator is podman (https://podman.io/).
+ENGINE ?= podman
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -32,7 +33,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# pulpproject.org/pulp-operator-bundle:$VERSION and pulpproject.org/pulp-operator-catalog:$VERSION.
+# quay.io/ansible/galaxy-operator-bundle:$VERSION and quay.io/ansible/galaxy-operator-catalog:$VERSION.
 IMAGE_TAG_BASE ?= quay.io/ansible/galaxy-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
@@ -55,7 +56,7 @@ IMG ?= $(IMAGE_TAG_BASE):$(VERSION)
 NAMESPACE ?= galaxy
 
 .PHONY: all
-all: docker-build
+all: build
 
 ##@ General
 
@@ -80,6 +81,14 @@ help: ## Display this help.
 run: ansible-operator ## Run against the configured Kubernetes cluster in ~/.kube/config
 	ANSIBLE_ROLES_PATH="$(ANSIBLE_ROLES_PATH):$(shell pwd)/roles" $(ANSIBLE_OPERATOR) run
 
+.PHONY: build
+build: ## Build docker image with the manager.
+	$(ENGINE) build -t ${IMG} .
+
+.PHONY: push
+push: ## Push docker image with the manager.
+	$(ENGINE) push ${IMG}
+
 .PHONY: podman-build
 podman-build: ## Build container image with the manager.
 	podman build -t ${IMG} .
@@ -90,11 +99,11 @@ podman-push: ## Push container with the manager.
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(ENGINE) build -t ${IMG} .
+	docker build -t ${IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	$(ENGINE) push ${IMG}
+	docker push ${IMG}
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -183,7 +192,7 @@ bundle-build: ## Build the bundle image.
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(MAKE) $(ENGINE)-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
 OPM = ./bin/opm

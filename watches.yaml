@@ -3,7 +3,7 @@
 - version: v1beta1
   group: galaxy.ansible.com
   kind: Galaxy
-  playbook: playbooks/pulp.yml
+  playbook: playbooks/galaxy.yaml
   manageStatus: false
 
 - version: v1beta1
@@ -15,3 +15,5 @@
   group: galaxy.ansible.com
   kind: GalaxyRestore
   role: restore
+  
+# +kubebuilder:scaffold:watch
