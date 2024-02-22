@@ -124,8 +124,6 @@ data:
                 proxy_pass http://galaxy-api;
             }
 
-            include {{ galaxy_nginx_conf_dir }}/*.conf;
-
             location / {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
@@ -135,6 +133,28 @@ data:
                 proxy_redirect off;
                 proxy_pass http://galaxy-api;
                 # static files are served through whitenoise - http://whitenoise.evans.io/en/stable/
+            }
+
+            location /ui/ {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header Host $http_host;
+                rewrite /ui* /static/galaxy_ng/index.html break;
+                # we don't want nginx trying to do something clever with
+                # redirects, we set the Host: header above already.
+                proxy_redirect off;
+                proxy_pass http://galaxy-api/static/galaxy_ng/index.html;
+            }
+
+            location /api/ {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header Host $http_host;
+                # we don't want nginx trying to do something clever with
+                # redirects, we set the Host: header above already.
+                proxy_redirect off;
+                proxy_pass http://galaxy-api;
+                client_max_body_size 0;
             }
         }
     }
