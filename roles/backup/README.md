@@ -1,7 +1,7 @@
 Backup
 ========
 
-The purpose of this role is to create a backup of your Pulp deployment.  This includes:
+The purpose of this role is to create a backup of your Galaxy deployment.  This includes:
   - backup of the PostgreSQL database
   - custom user config file
 
@@ -17,7 +17,7 @@ Role Variables
 Requirements
 ------------
 
-Requires the `openshift` Python library to interact with Kubernetes: `pip install openshift`.
+Requires the `kubernetes` Python library to interact with Kubernetes: `pip install kubernetes`.
 
 Dependencies
 ------------

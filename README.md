@@ -1,3 +1,5 @@
+![](images/logo_large.svg)
+
 # Galaxy-Operator
 This is the official operator for deploying [Galaxy-NG](https://github.com/ansible/galaxy_ng).  This project was formerly maintained under the ansible branch of the [pulp-operator repo](https://github.com/pulp/pulp-operator)
 

@@ -35,8 +35,10 @@ theme:
         name: Switch to light mode
 
 nav:
-  - index.md
-  - Getting Started: quickstart.md
+  - Home: index.md
+  - Documentation:
+      - Getting Started:
+        - Quickstart: quickstart.md
   - Containers: container.md
   - Custom Resources:
       - Galaxy:
@@ -103,5 +105,5 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - toc:
-      toc_depth: 2
+      toc_depth: 3
       permalink: true
