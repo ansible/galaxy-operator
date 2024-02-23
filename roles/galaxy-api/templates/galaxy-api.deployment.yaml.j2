@@ -247,7 +247,12 @@ spec:
         - name: run-migrations
           image: {{ _image }}
           imagePullPolicy: '{{ image_pull_policy }}'
-          command: ['pulpcore-manager', 'migrate']
+          command:
+            - /bin/bash
+            - -c
+            - |
+              mkdir -p /var/lib/pulp/{tmp,media}
+              pulpcore-manager migrate
           env:
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
@@ -264,6 +269,11 @@ spec:
               mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
               subPath: database_fields.symmetric.key
               readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% endif %}
 {% if signing_secret is defined %}
         - name: gpg-importer
           image: "{{ _image }}"
@@ -274,7 +284,6 @@ spec:
             - -c
             - |
               cd /var/lib/pulp
-              mkdir -p /var/lib/pulp/{tmp,media}
               gpg --batch --import /etc/pulp/keys/signing_service.gpg
               echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
               output_col=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} 2>&1)
