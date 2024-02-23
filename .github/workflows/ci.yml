@@ -148,7 +148,7 @@ jobs:
 # #        env:
 # #          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PULP_CHANNEL }}
 
-  deploy:
+  validate-bundle:
     runs-on: ubuntu-latest
     needs: [galaxy]
     steps:
@@ -157,37 +157,7 @@ jobs:
           # by default, it uses a depth of 1
           # this fetches all history so that we can read each commit
           fetch-depth: 0
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
 
-      - name: Install httpie
-        run: |
-          echo ::group::HTTPIE
-          pip install httpie tweepy
-          echo ::endgroup::
-          echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
-          echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
-          echo "CI_TEST=true" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Set imagePullPolicy to ifNotPresent
-        run: |
-          sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
-        shell: bash
-
-      - name: Build Operator
-        run: |
-          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
-          sudo -E docker images
-        shell: bash
-
-      - name: Setting secrets
-        run: python3 .github/workflows/scripts/secrets.py "$SECRETS_CONTEXT"
-        env:
-          SECRETS_CONTEXT: ${{ toJson(secrets) }}
-
-      - name: Deploy images
-        run: .ci/scripts/deploy.sh
+      - name: Validate OLM Bundle
+        run: .ci/scripts/validate-bundle.sh
         shell: bash
