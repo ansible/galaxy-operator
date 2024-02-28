@@ -14,16 +14,16 @@ metadata:
     app.kubernetes.io/part-of: '{{ deployment_type }}'
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 spec:
-  replicas: {{ content.replicas }}
-{% if content.strategy is defined %}
+  replicas: {{ combined_content.replicas }}
+{% if combined_content.strategy is defined %}
   strategy:
-    type: {{ content.strategy.type }}
-{% if content.strategy.type == "Recreate" %}
+    type: {{ combined_content.strategy.type }}
+{% if combined_content.strategy.type == "Recreate" %}
     rollingUpdate: null
-{% elif content.strategy.type == "RollingUpdate" %}
+{% elif combined_content.strategy.type == "RollingUpdate" %}
     rollingUpdate:
-      maxSurge:  {{ content.strategy.rollingUpdate.maxSurge | default("25%")}}
-      maxUnavailable: {{ content.strategy.rollingUpdate.maxUnavailable | default("25%")}}
+      maxSurge:  {{ combined_content.strategy.rollingUpdate.maxSurge | default("25%")}}
+      maxUnavailable: {{ combined_content.strategy.rollingUpdate.maxUnavailable | default("25%")}}
 {% endif %}
 {% endif %}
   selector:
@@ -116,7 +116,7 @@ spec:
             - -c
             - |
               wait-for-migrations
-          resources: {{ content.resource_requirements }}
+          resources: {{ combined_content.resource_requirements }}
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
@@ -136,8 +136,8 @@ spec:
             - |
               mkdir -p /etc/pki/ca-trust/extracted/{java,pem,openssl,edk2}
               update-ca-trust
-{% if content.resource_requirements is defined %}
-          resources: {{ content.resource_requirements }}
+{% if combined_content.resource_requirements is defined %}
+          resources: {{ combined_content.resource_requirements }}
 {% endif %}
           volumeMounts:
             - name: "ca-trust-extracted"
@@ -154,8 +154,8 @@ spec:
           # We set args, not command, so as to not override the entrypoint script
           args:
           - start-content-app
-{% if content.resource_requirements is defined %}
-          resources: {{ content.resource_requirements }}
+{% if combined_content.resource_requirements is defined %}
+          resources: {{ combined_content.resource_requirements }}
 {% endif %}
           env:
             - name: POSTGRES_SERVICE_HOST

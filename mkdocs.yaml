@@ -39,6 +39,7 @@ nav:
   - Documentation:
       - Getting Started:
         - Quickstart: quickstart.md
+        - Build: build.md
   - Containers: container.md
   - Custom Resources:
       - Galaxy:

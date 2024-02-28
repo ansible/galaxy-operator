@@ -13,16 +13,16 @@ metadata:
     app.kubernetes.io/part-of: '{{ deployment_type }}'
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 spec:
-  replicas: {{ api.replicas }}
-{% if api.strategy is defined %}
+  replicas: {{ combined_api.replicas }}
+{% if combined_api.strategy is defined %}
   strategy:
-    type: {{ api.strategy.type }}
-{% if api.strategy.type == "Recreate" %}
+    type: {{ combined_api.strategy.type }}
+{% if combined_api.strategy.type == "Recreate" %}
     rollingUpdate: null
-{% elif api.strategy.type == "RollingUpdate" %}
+{% elif combined_api.strategy.type == "RollingUpdate" %}
     rollingUpdate:
-      maxSurge:  {{ api.strategy.rollingUpdate.maxSurge | default("25%")}}
-      maxUnavailable: {{ api.strategy.rollingUpdate.maxUnavailable | default("25%")}}
+      maxSurge:  {{ combined_api.strategy.rollingUpdate.maxSurge | default("25%")}}
+      maxUnavailable: {{ combined_api.strategy.rollingUpdate.maxUnavailable | default("25%")}}
 {% endif %}
 {% endif %}
   selector:
@@ -183,8 +183,8 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
-{% if api.resource_requirements is defined %}
-          resources: {{ api.resource_requirements }}
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
 {% endif %}
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
@@ -349,8 +349,8 @@ spec:
             - |
               mkdir -p /etc/pki/ca-trust/extracted/{java,pem,openssl,edk2}
               update-ca-trust
-{% if api.resource_requirements is defined %}
-          resources: {{ api.resource_requirements }}
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
 {% endif %}
           volumeMounts:
             - name: "ca-trust-extracted"

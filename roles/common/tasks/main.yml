@@ -1,6 +1,14 @@
 ---
+- name: Combine default variables for component deployments
+  ansible.builtin.set_fact:
+    combined_api: "{{ _api | combine(api, recursive=True) }}"
+    combined_content: "{{ _content | combine(content, recursive=True) }}"
+    combined_web: "{{ _web | combine(web, recursive=True) }}"
+    combined_worker: "{{ _web | combine(worker, recursive=True) }}"
+    combined_redis: "{{ _redis | combine(redis, recursive=True) }}"  
+
 - name: Set apiVersion and kind variables
-  set_fact:
+  ansible.builtin.set_fact:
     api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
     kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
 

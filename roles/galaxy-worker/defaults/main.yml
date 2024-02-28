@@ -1,13 +1,4 @@
 ---
-deployment_type: galaxy
-
-worker:
-  replicas: 2
-  resource_requirements:
-    requests:
-      cpu: 200m
-      memory: 512Mi
-
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
 raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"

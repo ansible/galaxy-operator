@@ -16,15 +16,15 @@ metadata:
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 spec:
   replicas: 1
-{% if redis.strategy is defined %}
+{% if combined_redis.strategy is defined %}
   strategy:
-    type: {{ redis.strategy.type }}
-{% if redis.strategy.type == "Recreate" %}
+    type: {{ combined_redis.strategy.type }}
+{% if combined_redis.strategy.type == "Recreate" %}
     rollingUpdate: null
-{% elif redis.strategy.type == "RollingUpdate" %}
+{% elif combined_redis.strategy.type == "RollingUpdate" %}
     rollingUpdate:
-      maxSurge:  {{ redis.strategy.rollingUpdate.maxSurge | default("25%")}}
-      maxUnavailable: {{ redis.strategy.rollingUpdate.maxUnavailable | default("25%")}}
+      maxSurge:  {{ combined_redis.strategy.rollingUpdate.maxSurge | default("25%")}}
+      maxUnavailable: {{ combined_redis.strategy.rollingUpdate.maxUnavailable | default("25%")}}
 {% endif %}
 {% endif %}
   selector:
@@ -85,8 +85,8 @@ spec:
                 - -i
                 - -c
                 - redis-cli -h 127.0.0.1 -p 6379
-{% if redis.resource_requirements is defined %}
-          resources: {{ redis.resource_requirements }}
+{% if combined_redis.resource_requirements is defined %}
+          resources: {{ combined_redis.resource_requirements }}
 {% endif %}
 {% if node_selector %}
       nodeSelector:

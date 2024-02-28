@@ -8,6 +8,51 @@ bundle_cacert_secret: ''
 is_k8s: false
 is_openshift: false
 
+deployment_type: galaxy
+
+api: {}
+_api:
+  replicas: 1
+  log_level: INFO
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+content: {}
+_content:
+  replicas: 2
+  log_level: INFO
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+web: {}
+_web:
+  replicas: 1
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+worker: {}
+_worker:
+  replicas: 2
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+redis: {}
+_redis:
+  strategy:
+    type: Recreate
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
 
 # Secret to lookup that provide the admin password
 #

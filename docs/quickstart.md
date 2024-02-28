@@ -13,7 +13,7 @@ To get started stand up a local Kubernetes cluster by creating a minikube cluste
 ```
 minikube start --driver=podman --cpus=4 --memory=8g --addons=ingress
 ```
-## 2. Create Galaxy Operator
+## 2. Create Galaxy-Operator
 Clone the latest galaxy-operator code:
 ```
 git clone https://github.com/ansible/galaxy-operator
