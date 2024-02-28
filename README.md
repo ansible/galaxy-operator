@@ -47,10 +47,8 @@ Manages the restoration of a Galaxy backup through the following ansible role:
 
 ## Get Help
 
-Documentation: [https://github.com/ansible/galaxy-operator](https://github.com/ansible/galaxy-operator)
+Documentation: [https://ansible.readthedocs.io/projects/galaxy-operator](https://ansible.readthedocs.io/projects/galaxy-operator)
 
 Forum: [https://forum.ansible.com](https://forum.ansible.com/) - Create a topic with the `galaxy-ng` tag.
 
 Issue Tracker: [https://github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
-
-Wiki: [https://github.com/ansible/galaxy-operator/wiki](https://github.com/ansible/galaxy-operator/wiki)

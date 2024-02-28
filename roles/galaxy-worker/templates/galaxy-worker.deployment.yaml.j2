@@ -14,16 +14,16 @@ metadata:
     app.kubernetes.io/part-of: '{{ deployment_type }}'
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 spec:
-  replicas: {{ worker.replicas }}
-{% if worker.strategy is defined %}
+  replicas: {{ combined_worker.replicas }}
+{% if combined_worker.strategy is defined %}
   strategy:
-    type: {{ worker.strategy.type }}
-{% if worker.strategy.type == "Recreate" %}
+    type: {{ combined_worker.strategy.type }}
+{% if combined_worker.strategy.type == "Recreate" %}
     rollingUpdate: null
-{% elif worker.strategy.type == "RollingUpdate" %}
+{% elif combined_worker.strategy.type == "RollingUpdate" %}
     rollingUpdate:
-      maxSurge:  {{ worker.strategy.rollingUpdate.maxSurge | default("25%")}}
-      maxUnavailable: {{ worker.strategy.rollingUpdate.maxUnavailable | default("25%")}}
+      maxSurge:  {{ combined_worker.strategy.rollingUpdate.maxSurge | default("25%")}}
+      maxUnavailable: {{ combined_worker.strategy.rollingUpdate.maxUnavailable | default("25%")}}
 {% endif %}
 {% endif %}
   selector:
@@ -181,8 +181,8 @@ spec:
               mountPath: "/var/lib/pulp/.gnupg"
 {% endif %}
 {% endif %}
-{% if worker.resource_requirements is defined %}
-          resources: {{ worker.resource_requirements }}
+{% if combined_worker.resource_requirements is defined %}
+          resources: {{ combined_worker.resource_requirements }}
 {% endif %}
       initContainers:
         - name: wait-for-migrations
@@ -193,7 +193,7 @@ spec:
             - -c
             - |
               wait-for-migrations
-          resources: {{ worker.resource_requirements }}
+          resources: {{ combined_worker.resource_requirements }}
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
@@ -249,8 +249,8 @@ spec:
             - |
               mkdir -p /etc/pki/ca-trust/extracted/{java,pem,openssl,edk2}
               update-ca-trust
-{% if worker.resource_requirements is defined %}
-          resources: {{ worker.resource_requirements }}
+{% if combined_worker.resource_requirements is defined %}
+          resources: {{ combined_worker.resource_requirements }}
 {% endif %}
           volumeMounts:
             - name: "ca-trust-extracted"

@@ -1,12 +1,4 @@
 ---
-content:
-  replicas: 2
-  log_level: INFO
-  resource_requirements:
-    requests:
-      cpu: 200m
-      memory: 512Mi
-
 ingress_type: none
 
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr

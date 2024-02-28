@@ -1,13 +1,5 @@
 ---
-_redis_image: redis:latest
-
-redis:
-  strategy:
-    type: Recreate
-  resource_requirements:
-    requests:
-      cpu: 200m
-      memory: 512Mi
+_redis_image: redis:7
 
 redis_storage_size: 1Gi
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
