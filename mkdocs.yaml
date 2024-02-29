@@ -1,7 +1,7 @@
 site_name: Galaxy-Operator
 site_description: Galaxy-Operator
 site_author: Galaxy-Operator Team
-site_url: https://ansible.readthedocs.io/projects/galaxy-operator
+site_url: https://galaxy-operator.readthedocs.io
 repo_name: ansible/galaxy-operator
 repo_url: https://github.com/ansible/galaxy-operator
 docs_dir: docs
