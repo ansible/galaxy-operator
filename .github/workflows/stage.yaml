@@ -28,12 +28,12 @@ jobs:
         run: |
           set -e
 
-          if [[ ${{ github.event.inputs.confirm }} != "yes" ]]; then
+          if [ "${{ github.event.inputs.confirm }}" != "yes" ]; then
             >&2 echo "Confirm must be 'yes'"
             exit 1
           fi
 
-          if [[ ${{ github.event.inputs.version }} == "" ]]; then
+          if [ "${{ github.event.inputs.version }}" = "" ]; then
             >&2 echo "No version specified. A cal-version will be generated."
           fi
 
