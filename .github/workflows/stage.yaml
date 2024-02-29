@@ -66,6 +66,7 @@ jobs:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: galaxy-operator
 
       - name: Log into registry ghcr.io
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d    # v3.0.0
