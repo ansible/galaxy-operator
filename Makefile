@@ -163,6 +163,22 @@ KUSTOMIZE = $(shell which kustomize)
 endif
 endif
 
+.PHONY: operator-sdk
+OPERATOR_SDK = $(shell pwd)/bin/operator-sdk
+operator-sdk: ## Download operator-sdk locally if necessary, preferring the $(pwd)/bin path over global if both exist.
+ifeq (,$(wildcard $(OPERATOR_SDK)))
+ifeq (,$(shell which operator-sdk 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(OPERATOR_SDK)) ;\
+	curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v1.33.0/operator-sdk_$(OS)_$(ARCHA) ;\
+	chmod +x $(OPERATOR_SDK) ;\
+	}
+else
+OPERATOR_SDK = $(shell which operator-sdk)
+endif
+endif
+
 .PHONY: ansible-operator
 ANSIBLE_OPERATOR = $(shell pwd)/bin/ansible-operator
 ansible-operator: ## Download ansible-operator locally if necessary, preferring the $(pwd)/bin path over global if both exist.
@@ -180,11 +196,11 @@ endif
 endif
 
 .PHONY: bundle
-bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	operator-sdk generate kustomize manifests -q
+bundle: kustomize operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
+	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
-	operator-sdk bundle validate ./bundle
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
+	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.

@@ -133,3 +133,20 @@ jobs:
       # - name: Debugging example (uncomment when needed)
       #   if: failure()
       #   uses: mxschmitt/action-tmate@v3
+
+  validate-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # TODO: remove this step once the operator-sdk is available via the make operator-sdk target
+      - name: Install Operator SDK
+        run: |
+          VERSION=$(curl --silent "https://api.github.com/repos/operator-framework/operator-sdk/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+          curl -o operator-sdk -L https://github.com/operator-framework/operator-sdk/releases/download/${VERSION}/operator-sdk_linux_amd64
+          chmod +x operator-sdk
+          sudo mv operator-sdk /usr/local/bin/
+
+      - name: Validate OLM Bundle
+        run: VERSION=0.0.0 make bundle
+        shell: bash
