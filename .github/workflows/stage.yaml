@@ -59,25 +59,10 @@ jobs:
 
       - name: Generate CalVer and create release
         id: generate_version
-        run: |
-          import requests
-          import datetime
-          import os
-
-          version = os.getenv('INPUT_VERSION')
-          if not version:
-              date = datetime.datetime.now().strftime('%Y.%m.%d')
-              version = date
-              response = requests.get('https://api.github.com/repos/${{ github.repository }}/releases')
-              releases = [release['tag_name'] for release in response.json()]
-              suffix = 2
-              while version in releases:
-                  version = f'{date}-{suffix}'
-                  suffix += 1
-
-          echo "::set-output name=version::${version}"
+        run: python generate_version.py
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log into registry ghcr.io
