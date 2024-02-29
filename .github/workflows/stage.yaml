@@ -60,7 +60,7 @@ jobs:
       - name: Generate CalVer and create release
         id: generate_version
         run: |
-          version=$(python .ci/assets/generate-cal-version.py)
+          version=$(python .ci/scripts/generate-cal-version.py)
           echo "::set-output name=version::${version}"
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
