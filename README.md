@@ -1,18 +1,42 @@
-![](images/logo_large.svg)
+<p align="center">
+  <img src="images/logo_large.svg" style="width: 55%" />
+</p>
 
 # Galaxy-Operator
-This is the official operator for deploying [Galaxy-NG](https://github.com/ansible/galaxy_ng).  This project was formerly maintained under the ansible branch of the [pulp-operator repo](https://github.com/pulp/pulp-operator)
+The official operator for [Galaxy](https://github.com/ansible/galaxy_ng).
+
+Latest Release: [github.com/ansible/galaxy-operator/releases/latest](https://github.com/ansible/galaxy-operator/releases/latest)
 
 Galaxy-Operator uses the [Ansible Operator SDK](https://sdk.operatorframework.io/docs/building-operators/ansible/).
+
+* Documentation: [galaxy-operator.readthedocs.io](https://galaxy-operator.readthedocs.io)
+* Forum: [forum.ansible.com/tag/galaxy-ng](https://forum.ansible.com/tag/galaxy-ng)
+* Issues: [github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
+* Source: [github.com/ansible/galaxy-operator](https://github.com/ansible/galaxy-operator)
+* License: GPLv2+
+
+(This project was formerly maintained under the ansible branch of the [pulp-operator repo](https://github.com/pulp/pulp-operator))
 
 # Images
 Galaxy-Operator images are automatically built by our CI and [hosted on quay.io](https://quay.io/repository/ansible/galaxy-operator).
 
-Note that Galaxy-Operator requires three separate images (the operator, the main galaxy server, and the web interface):
+Note that Galaxy-Operator requires three separate images (the operator, the main galaxy service, and the web interface):
 
-|           | Operator | Main | Web |
-| --------- | -------- | ---- | --- |
-| **Image** | [galaxy-operator](https://quay.io/repository/ansible/galaxy-operator?tab=tags) |[galaxy-ng](https://quay.io/repository/ansible/galaxy-ng?tab=tags) | [galaxy-ui](https://quay.io/repository/ansible/galaxy-ui?tab=tags) |
+| Operator | Service | UI |
+| -------- | ---- | --- |
+| [galaxy-operator](https://quay.io/repository/ansible/galaxy-operator?tab=tags) |[galaxy-ng](https://quay.io/repository/ansible/galaxy-ng?tab=tags) | [galaxy-ui](https://quay.io/repository/ansible/galaxy-ui?tab=tags) |
+
+## Custom Resource Definitions
+Galaxy-Operator currently provides three different kinds of [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#custom-resources): Galaxy, Galaxy Backup and Galaxy Restore.
+
+### Galaxy (galaxies.galaxy.ansible.com)
+Manages the Galaxy application and its deployments, services, etc.
+
+### Galaxy Backup (galaxybackups.galaxy.ansible.com)
+Manages Galaxy backups through the following ansible role
+
+### Galaxy Restore (galaxyrestores.galaxy.ansible.com)
+Manages the restoration of a Galaxy backup through the following ansible role
 
 # Galaxy
 With Galaxy you can:
@@ -27,28 +51,14 @@ If you have dozens, hundreds, or thousands of collections and execution environm
 
 Galaxy is completely free and open-source!
 
-* License: GPLv2+
-* Documentation is currently in markdown files in this repo, but eventually we will have a docsite.
-* Source: [https://github.com/ansible/galaxy_ng](https://github.com/ansible/galaxy_ng)
-* Galaxy Bugs: [https://github.com/ansible/galaxy_ng/issues](https://github.com/ansible/galaxy_ng/issues)
-* Galaxy-Operator Bugs: [https://github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
-
-## Custom Resource Definitions
-Galaxy-Operator currently provides three different kinds of [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#custom-resources): Galaxy, Galaxy Backup and Galaxy Restore.
-
-### Galaxy (galaxies.galaxy.ansible.com)
-Manages the Galaxy application and its deployments, services, etc.
-
-### Galaxy Backup (galaxybackups.galaxy.ansible.com)
-Manages Galaxy backups through the following ansible role:
-
-### Galaxy Restore (galaxyrestores.galaxy.ansible.com)
-Manages the restoration of a Galaxy backup through the following ansible role:
+* Source: [github.com/ansible/galaxy_ng](https://github.com/ansible/galaxy_ng)
+* Source (ui): [github.com/ansible/ansible-hub-ui](https://github.com/ansible/ansible-hub-ui)
+* Galaxy Bugs: [github.com/ansible/galaxy_ng/issues](https://github.com/ansible/galaxy_ng/issues)
 
 ## Get Help
 
-Documentation: [https://ansible.readthedocs.io/projects/galaxy-operator](https://ansible.readthedocs.io/projects/galaxy-operator)
+Documentation: [galaxy-operator.readthedocs.io](https://galaxy-operator.readthedocs.io)
 
-Forum: [https://forum.ansible.com](https://forum.ansible.com/) - Create a topic with the `galaxy-ng` tag.
+Forum: [forum.ansible.com](https://forum.ansible.com/)
 
-Issue Tracker: [https://github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
+Issues: [github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)

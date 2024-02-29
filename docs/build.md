@@ -11,7 +11,7 @@ In our example we will use [minikube](https://minikube.sigs.k8s.io/docs/) with [
 To get started stand up a local Kubernetes cluster by creating a minikube cluster with the ingress addon enabled:
 
 ```
-minikube start --driver=podman --cpus=4 --memory=8g --addons=ingress,ingress-dns
+minikube start --driver=podman --cpus=4 --memory=8g --addons=ingress
 ```
 ## 2. Build Galaxy-Operator
 Clone the latest galaxy-operator code:
@@ -24,11 +24,11 @@ Build the operator image:
 ```
 > (builds the operator image with podman):
 ```
-podman build -t quay.io/ansible/galaxy-operator:0.15.0-26-g9ffb4ac .
+podman build -t quay.io/ansible/galaxy-operator:2024.02.29-5-gce47fd4 .
 ...
-COMMIT quay.io/ansible/galaxy-operator:0.15.0-26-g9ffb4ac
---> bc62ca90d408
-Successfully tagged quay.io/ansible/galaxy-operator:0.15.0-26-g9ffb4ac
+COMMIT quay.io/ansible/galaxy-operator:2024.02.29-5-gce47fd4
+--> ce515d4fddd0
+Successfully tagged quay.io/ansible/galaxy-operator:2024.02.29-5-gce47fd4
 ```
 Confirm that the image is built and tagged:
 ```
@@ -36,14 +36,14 @@ podman images "galaxy-operator"
 ```
 
 ```                                 
-REPOSITORY                          TAG                 IMAGE ID      CREATED        SIZE
-quay.io/ansible/galaxy-operator     0.15.0-26-g9ffb4ac  0e8834256cdd  3 seconds ago  535 MB
+REPOSITORY                          TAG                    IMAGE ID      CREATED             SIZE
+quay.io/ansible/galaxy-operator     2024.02.29-5-gce47fd4  ce515d4fddd0  About a minute ago  535 MB
 ```
 
 ## 2. Push Image to Kubernetes cluster
 Save image:
 ```
-podman image save quay.io/ansible/galaxy-operator:0.15.0-26-g9ffb4ac -o image.tar
+podman image save quay.io/ansible/galaxy-operator:2024.02.29-5-gce47fd4 -o image.tar
 ```
 
 Load image into minikube:
@@ -57,7 +57,7 @@ minikube image list | grep galaxy-operator
 ```
 
 ```
-quay.io/ansible/galaxy-operator:0.15.0-26-g9ffb4ac
+quay.io/ansible/galaxy-operator:2024.02.29-5-gce47fd4
 ```
 
 ## 3. Deploy Galaxy-Operator
