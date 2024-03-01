@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/logo_large.svg" style="width: 55%" />
+  <img src="docs/images/logo_large.svg" style="width: 55%" />
 </p>
 
 # Galaxy-Operator
