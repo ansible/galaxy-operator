@@ -1,4 +1,6 @@
-![](images/logo_large.svg)
+<p align="center">
+  <img src="images/logo_large.svg" style="width: 55%" />
+</p>
 
 # Galaxy-Operator
 The official operator for [Galaxy](https://github.com/ansible/galaxy_ng).
@@ -13,16 +15,16 @@ Galaxy-Operator uses the [Ansible Operator SDK](https://sdk.operatorframework.io
 * Source: [github.com/ansible/galaxy-operator](https://github.com/ansible/galaxy-operator)
 * License: GPLv2+
 
-This project was formerly maintained under the ansible branch of the [pulp-operator repo](https://github.com/pulp/pulp-operator)
+(This project was formerly maintained under the ansible branch of the [pulp-operator repo](https://github.com/pulp/pulp-operator))
 
 # Images
 Galaxy-Operator images are automatically built by our CI and [hosted on quay.io](https://quay.io/repository/ansible/galaxy-operator).
 
 Note that Galaxy-Operator requires three separate images (the operator, the main galaxy service, and the web interface):
 
-|           | Operator | Main | Web |
-| --------- | -------- | ---- | --- |
-| **Image** | [galaxy-operator](https://quay.io/repository/ansible/galaxy-operator?tab=tags) |[galaxy-ng](https://quay.io/repository/ansible/galaxy-ng?tab=tags) | [galaxy-ui](https://quay.io/repository/ansible/galaxy-ui?tab=tags) |
+| Operator | Service | UI |
+| -------- | ---- | --- |
+| [galaxy-operator](https://quay.io/repository/ansible/galaxy-operator?tab=tags) |[galaxy-ng](https://quay.io/repository/ansible/galaxy-ng?tab=tags) | [galaxy-ui](https://quay.io/repository/ansible/galaxy-ui?tab=tags) |
 
 ## Custom Resource Definitions
 Galaxy-Operator currently provides three different kinds of [Custom Resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#custom-resources): Galaxy, Galaxy Backup and Galaxy Restore.
