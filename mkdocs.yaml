@@ -4,6 +4,7 @@ site_author: Galaxy-Operator Team
 site_url: https://galaxy-operator.readthedocs.io
 repo_name: ansible/galaxy-operator
 repo_url: https://github.com/ansible/galaxy-operator
+docs_dir: docs
 
 theme:
   name: "ansible"
