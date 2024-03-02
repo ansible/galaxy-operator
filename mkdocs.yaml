@@ -83,9 +83,9 @@ plugins:
             - url: https://docs.ansible.com/ansible/latest/objects.inv
               domains: [py, std]
   - git-revision-date
-  - search:
+  - material/search:
       lang: en
-      prebuild_index: true
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
 
 markdown_extensions:
   - admonition
