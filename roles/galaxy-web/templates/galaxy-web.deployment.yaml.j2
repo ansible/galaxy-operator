@@ -70,6 +70,18 @@ spec:
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
               readOnly: true
+            - name: {{ ansible_operator_meta.name }}-nginx-conf
+              mountPath: {{ galaxy_nginx_conf_dir }}/galaxy_ng.conf
+              subPath: galaxy_ng.conf
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-nginx-conf
+              mountPath: {{ galaxy_nginx_conf_dir }}/pulp_ansible.conf
+              subPath: pulp_ansible.conf
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-nginx-conf
+              mountPath: {{ galaxy_nginx_conf_dir }}/pulp_container.conf
+              subPath: pulp_container.conf
+              readOnly: true
 {% if ingress_type | lower == 'route' and route_tls_termination_mechanism | lower == 'passthrough' %}
             - name: "{{ ansible_operator_meta.name }}-nginx-certs"
               mountPath: "/etc/nginx/pki"
@@ -124,9 +136,6 @@ spec:
         - name: {{ ansible_operator_meta.name }}-nginx-conf
           configMap:
             name: '{{ ansible_operator_meta.name }}-{{ deployment_type }}-configmap'
-            items:
-              - key: nginx_conf
-                path: nginx.conf
 {% if ingress_type | lower == 'route' and route_tls_termination_mechanism | lower == 'passthrough' %}
         - name: "{{ ansible_operator_meta.name }}-nginx-certs"
           secret:
