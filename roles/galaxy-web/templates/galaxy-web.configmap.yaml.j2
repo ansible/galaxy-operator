@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: '{{ deployment_type }}'
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 data:
-  nginx_conf: |
+  nginx.conf: |
     error_log /dev/stdout info;
     worker_processes 1;
     events {
@@ -30,11 +30,11 @@ data:
         # to build optimal hash types.
         types_hash_max_size 4096;
 
-        upstream galaxy-content {
+        upstream pulp-content {
             server {{ ansible_operator_meta.name }}-content-svc:24816;
         }
 
-        upstream galaxy-api {
+        upstream pulp-api {
             server {{ ansible_operator_meta.name }}-api-svc:8000;
         }
 
@@ -101,7 +101,7 @@ data:
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
                 proxy_redirect off;
-                proxy_pass http://galaxy-content;
+                proxy_pass http://pulp-content;
             }
 
             location {{ pulp_combined_settings.api_root }}api/v3/ {
@@ -111,7 +111,7 @@ data:
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
                 proxy_redirect off;
-                proxy_pass http://galaxy-api;
+                proxy_pass http://pulp-api;
             }
 
             location /auth/login/ {
@@ -121,8 +121,10 @@ data:
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
                 proxy_redirect off;
-                proxy_pass http://galaxy-api;
+                proxy_pass http://pulp-api;
             }
+
+            include {{ galaxy_nginx_conf_dir }}/*.conf;
 
             location / {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -131,51 +133,87 @@ data:
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
                 proxy_redirect off;
-                proxy_pass http://galaxy-api;
+                proxy_pass http://pulp-api;
                 # static files are served through whitenoise - http://whitenoise.evans.io/en/stable/
             }
-
-            location /ui/ {
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header Host $http_host;
-                rewrite /ui* /static/galaxy_ng/index.html break;
-                # we don't want nginx trying to do something clever with
-                # redirects, we set the Host: header above already.
-                proxy_redirect off;
-                proxy_pass http://galaxy-api/static/galaxy_ng/index.html;
-            }
-
-            location /api/ {
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header Host $http_host;
-                # we don't want nginx trying to do something clever with
-                # redirects, we set the Host: header above already.
-                proxy_redirect off;
-                proxy_pass http://galaxy-api;
-                client_max_body_size 0;
-            }
-
-            location /v2/ {
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header Host $http_host;
-                # we don't want nginx trying to do something clever with
-                # redirects, we set the Host: header above already.
-                proxy_redirect off;
-                proxy_pass http://galaxy-api;
-                client_max_body_size 0;
-            }
-
-            location /pulp/container/ {
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header Host $http_host;
-                # we don't want nginx trying to do something clever with
-                # redirects, we set the Host: header above already.
-                proxy_redirect off;
-                proxy_pass http://galaxy-content;
-            }
         }
+    }
+
+  # https://github.com/ansible/galaxy_ng/blob/master/galaxy_ng/app/webserver_snippets/nginx.conf
+  galaxy_ng.conf: |
+    location /ui/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        rewrite /ui* /static/galaxy_ng/index.html break;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api/static/galaxy_ng/index.html;
+    }
+
+    location /api/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+        client_max_body_size 0;
+    }
+
+  # https://github.com/pulp/pulp_ansible/blob/main/pulp_ansible/app/webserver_snippets/nginx.conf
+  pulp_ansible.conf: |
+    location /pulp_ansible/galaxy/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+    }
+
+  # https://github.com/pulp/pulp_container/blob/main/pulp_container/app/webserver_snippets/nginx.conf
+  pulp_container.conf: |
+    location /v2/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+        client_max_body_size 0;
+    }
+
+    location /extensions/v2/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+    }
+
+    location /pulp/container/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-content;
+    }
+
+    location /token/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
     }
