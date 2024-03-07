@@ -9,4 +9,3 @@ spec:
   backup_pvc: ''
   backup_storage_requirements: ''
   backup_storage_class: ''
-  postgres_label_selector: ''
