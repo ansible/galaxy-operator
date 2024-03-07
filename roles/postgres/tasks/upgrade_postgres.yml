@@ -1,10 +1,9 @@
 ---
 
 # Upgrade Postgres (Managed Databases only)
-#  * If postgres version is not 12, and not an external postgres instance (when managed_database is yes),
+#  * If postgres version is not supported_pg_version, and not an external postgres instance (when managed_database is yes),
 #    then run this playbook with include_tasks from database_configuration.yml
-#  * Data will be streamed via a pg_dump from the postgres 12 pod to the postgres 13
-#    pod via a pg_restore.
+# * Data will be streamed via a pg_dump from the postgres 12/13 pod to the postgres supported_pg_version
 
 - k8s_status:
     api_version: "{{ api_version }}"
@@ -37,12 +36,12 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     conditions:
       - type: Database-Ready
-        message: "Creating the new database configuration for postgres-{{ postgres_version }}"
-        reason: "CreatingNewSecretForPostgres{{ postgres_version }}"
+        message: "Creating the new database configuration for postgres-{{ supported_pg_version }}"
+        reason: "CreatingNewSecretForPostgres{{ supported_pg_version }}"
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- name: Create Database configuration with new -postgres-{{ postgres_version }} hostname
+- name: Create Database configuration with new -postgres-{{ supported_pg_version }} hostname
   k8s:
     apply: true
     definition: "{{ lookup('template', 'postgres_upgrade.secret.yaml.j2') }}"
@@ -50,7 +49,7 @@
 
 - name: Set new database var to be used when configuring app credentials (resources_configuration.yml)
   set_fact:
-    postgres_host: "{{ ansible_operator_meta.name }}-postgres-{{ postgres_version }}"
+    postgres_host: "{{ ansible_operator_meta.name }}-postgres-{{ supported_pg_version }}"
   no_log: "{{ no_log }}"
 
 - k8s_status:
@@ -74,7 +73,7 @@
 
 - name: Set postgres label if not defined by user
   set_fact:
-    postgres_label_selector: "app.kubernetes.io/instance=postgres-{{ postgres_version }}-{{ ansible_operator_meta.name }}"
+    postgres_label_selector: "app.kubernetes.io/instance=postgres-{{ ansible_operator_meta.name }}"
   when: postgres_label_selector is not defined
 
 - block:
@@ -84,7 +83,7 @@
         namespace: "{{ ansible_operator_meta.namespace }}"
         label_selectors:
           - "{{ postgres_label_selector }}"
-          - "app.kubernetes.io/version={{ postgres_version }}"
+          - "app.kubernetes.io/version={{ supported_pg_version }}"
         field_selectors:
           - status.phase=Running
       register: postgres_pod
@@ -97,7 +96,7 @@
   rescue:
     - name: Set error message
       set_fact:
-        error_msg: "A Postgres {{ postgres_version }} Pod with the {{ postgres_label_selector }} label \
+        error_msg: "A Postgres {{ supported_pg_version }} Pod with the {{ postgres_label_selector }} label \
               is not available and in the Running state"
 
     - k8s_status:
@@ -123,11 +122,33 @@
   set_fact:
     postgres_pod_name: "{{ postgres_pod['resources'][0]['metadata']['name'] }}"
 
+- name: Get the name of the service for the old postgres pod
+  k8s_info:
+    kind: Service
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/component=database"
+      - "app.kubernetes.io/instance=postgres-{{ ansible_operator_meta.name }}"
+      - "app.kubernetes.io/version={{ supported_pg_version }}"
+      - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
+  register: old_postgres_svc
+
+# TODO: The galaxy-operator labels are different. potential issue here.
+- name: Get the name of the service for the old postgres pod
+  k8s_info:
+    kind: Service
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/component=database"
+      - "app.kubernetes.io/instance={{ old_postgres_pod.metadata.labels['app.kubernetes.io/instance'] }}"
+      - "app.kubernetes.io/version={{ old_postgres_pod.metadata.labels['app.kubernetes.io/version'] }}"  # unique to the galaxy-operator
+      - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
+  register: old_postgres_svc
+
 - name: Set full resolvable host name for old postgres pod
   set_fact:
-    resolvable_db_host: "{{ ansible_operator_meta.name }}-postgres-svc.{{ ansible_operator_meta.namespace }}.svc"  # yamllint disable-line rule:line-length
+    resolvable_db_host: "{{ old_postgres_svc['resources'][0]['metadata']['name'] }}.{{ ansible_operator_meta.namespace }}.svc"  # yamllint disable-line rule:line-length
   no_log: "{{ no_log }}"
-
 
 - k8s_status:
     api_version: "{{ api_version }}"
@@ -199,7 +220,7 @@
       }
       keepalive_file=\"$(mktemp)\"
       while [[ -f \"$keepalive_file\" ]]; do
-        echo 'Migrating data to new PostgreSQL {{ supported_postgres_version }} Database...'
+        echo 'Migrating data to new PostgreSQL {{ supported_pg_version }} Database...'
         sleep 60
       done &
       keepalive_pid=$!
@@ -216,7 +237,7 @@
 
 - name: Set flag signifying that this instance has been migrated
   set_fact:
-    upgraded_postgres_version: '13'
+    upgraded_postgres_version: '{{ supported_pg_version }}'
 
 - k8s_status:
     api_version: "{{ api_version }}"
@@ -236,9 +257,12 @@
     kind: StatefulSet
     api_version: v1
     namespace: "{{ ansible_operator_meta.namespace }}"
-    name: "{{ ansible_operator_meta.name }}-postgres"
+    name: "{{ item }}"
     state: absent
     wait: true
+  loop:
+    - "{{ ansible_operator_meta.name }}-postgres"
+    - "{{ ansible_operator_meta.name }}-postgres-13"
 
 - k8s_status:
     api_version: "{{ api_version }}"
@@ -257,8 +281,11 @@
     kind: Service
     api_version: v1
     namespace: "{{ ansible_operator_meta.namespace }}"
-    name: "{{ ansible_operator_meta.name }}-postgres-svc"
+    name: "{{ item }}"
     state: absent
+  loop:
+    - "{{ ansible_operator_meta.name }}-postgres"
+    - "{{ ansible_operator_meta.name }}-postgres-13"
 
 - k8s_status:
     api_version: "{{ api_version }}"
@@ -277,8 +304,11 @@
     kind: PersistentVolumeClaim
     api_version: v1
     namespace: "{{ ansible_operator_meta.namespace }}"
-    name: "postgres-{{ ansible_operator_meta.name }}-postgres-0"
+    name: "{{ item }}"
     state: absent
+    loop:
+    - "postgres-{{ ansible_operator_meta.name }}-postgres-0"
+    - "postgres-{{ ansible_operator_meta.name }}-postgres-13-0"
   when:
     - postgres_keep_pvc_after_upgrade is defined
     - postgres_keep_pvc_after_upgrade | length

@@ -1,5 +1,4 @@
 ---
-postgres_version: 13
 _postgres_image: postgres
 
 postgres_storage_requirements:

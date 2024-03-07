@@ -1,6 +1,7 @@
 ---
+supported_pg_version: 15
 deployment_type: "galaxy"
-_postgres_image: postgres:13
+_postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
 
 custom_resource_key: '_galaxy_ansible_com_galaxyrestore'
 
