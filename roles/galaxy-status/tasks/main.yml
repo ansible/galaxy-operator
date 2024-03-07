@@ -25,7 +25,7 @@
     name: "{{ ansible_operator_meta.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
     status:
-      upgradedPostgresVersion: "{{ upgraded_postgres_version }}"
+      upgradedPostgresVersion: "{{ upgraded_postgres_version | string }}"
   when:
     - upgraded_postgres_version is defined
     - upgraded_postgres_version | length
