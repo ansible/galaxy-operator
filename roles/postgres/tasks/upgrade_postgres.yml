@@ -37,7 +37,7 @@
     conditions:
       - type: Database-Ready
         message: "Creating the new database configuration for postgres-{{ supported_pg_version }}"
-        reason: "CreatingNewSecretForPostgres{{ supported_pg_version }}"
+        reason: "CreatingNewSecretForPostgres"
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
