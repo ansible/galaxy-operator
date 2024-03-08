@@ -82,12 +82,8 @@
       when: pvc_status.resources | length == 0
   when: storage_type | lower == 'file'
 
-- include: scale_down.yml deploy_name={{ item }}
-  with_items:
-    - "{{ deployment_name}}-api"
-    - "{{ deployment_name }}-content"
-    - "{{ deployment_name }}-worker"
-    - "{{ deployment_name }}-web"
+- name: Scale down deployments for migration
+  include: scale_down_deployments.yml
 
 - name: Set full resolvable host name for postgres pod
   set_fact:
