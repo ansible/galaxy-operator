@@ -104,15 +104,22 @@
     - name: Set path to PG_VERSION file for given container image
       set_fact:
         path_to_pg_version: '{{ postgres_data_path }}/PG_VERSION'
+        path_to_pg_version_old: '/var/lib/postgresql/data/pgdata/PG_VERSION'
 
-    - name: Get old PostgreSQL version
+    - name: Get old PostgreSQL version (Checking old pg data path too)
       kubernetes.core.k8s_exec:
         namespace: "{{ ansible_operator_meta.namespace }}"
         pod: "{{ old_postgres_pod['metadata']['name'] }}"
         command: |
-          bash -c """
-          cat {{ path_to_pg_version }}
-          """
+          bash -c '
+          if [ -f {{ path_to_pg_version }} ]; then
+            cat {{ path_to_pg_version }}
+          elif [ -f {{ path_to_pg_version_old }} ]; then
+            cat {{ path_to_pg_version_old }}
+          else
+            echo "Neither file exists"
+          fi
+          '
       register: _old_pg_version
 
     - debug:
