@@ -18,7 +18,7 @@
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
 - name: Scale down Deployment for migration
-  include_tasks: scale_down_deployment.yml
+  include_tasks: scale_down_deployments.yml
 
 - name: Delete existing postgres configuration secret
   k8s:
