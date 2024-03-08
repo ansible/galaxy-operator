@@ -323,3 +323,22 @@
         reason: DatabaseTasksFinished
         status: "True"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Scale up web and content Deployments using replicas from the Galaxy CR
+  kubernetes.core.k8s_scale:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ item.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    replicas: "{{ item.replicas }}"
+    wait: yes
+  loop:
+    - name: "{{ ansible_operator_meta.name }}-web"
+      replicas: "{{ cr_spec['web']['replicas'] }}"
+    - name: "{{ ansible_operator_meta.name }}-content"
+      replicas: "{{ cr_spec['content']['replicas'] }}"
+  when:
+    - combined_web.replicas is defined
+    - combined_web.replicas | int > 0
+    - combined_content.replicas is defined
+    - combined_content.replicas | int > 0
