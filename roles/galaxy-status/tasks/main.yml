@@ -28,7 +28,6 @@
       upgradedPostgresVersion: "{{ upgraded_postgres_version | string }}"
   when:
     - upgraded_postgres_version is defined
-    - upgraded_postgres_version | length
 
 - name: Get the resource pod information.
   k8s_info:
