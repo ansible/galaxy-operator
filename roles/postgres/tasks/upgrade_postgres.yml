@@ -306,9 +306,9 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     name: "{{ item }}"
     state: absent
-    loop:
-    - "postgres-{{ ansible_operator_meta.name }}-postgres-0"
-    - "postgres-{{ ansible_operator_meta.name }}-postgres-13-0"
+  loop:
+  - "postgres-{{ ansible_operator_meta.name }}-postgres-0"
+  - "postgres-{{ ansible_operator_meta.name }}-postgres-13-0"
   when:
     - not postgres_keep_pvc_after_upgrade
 
@@ -324,21 +324,22 @@
         status: "True"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- name: Scale up web and content Deployments using replicas from the Galaxy CR
+# Default to 1 replica if not specified
+- name: Scale up web and content Deployments using replicas from the custom resource
   kubernetes.core.k8s_scale:
-    api_version: apps/v1
+    api_version: v1
     kind: Deployment
     name: "{{ item.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
     replicas: "{{ item.replicas }}"
-    wait: yes
   loop:
+    - name: "{{ ansible_operator_meta.name }}-api"
+      replicas: "{{ combined_api.replicas | default(1) }}"
     - name: "{{ ansible_operator_meta.name }}-web"
-      replicas: "{{ cr_spec['web']['replicas'] }}"
+      replicas: "{{ combined_web.replicas | default(1)}}"
     - name: "{{ ansible_operator_meta.name }}-content"
-      replicas: "{{ cr_spec['content']['replicas'] }}"
-  when:
-    - combined_web.replicas is defined
-    - combined_web.replicas | int > 0
-    - combined_content.replicas is defined
-    - combined_content.replicas | int > 0
+      replicas: "{{ combined_content.replicas | default(1) }}"
+    - name: "{{ ansible_operator_meta.name }}-worker"
+      replicas: "{{ combined_worker.replicas | default(1)}}"
+    - name: "{{ ansible_operator_meta.name }}-redis"
+      replicas: "{{ combined_redis.replicas | default(1)}}"
