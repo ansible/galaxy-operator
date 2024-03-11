@@ -60,7 +60,7 @@ spec:
             - name: RELATED_IMAGE_GALAXY_WEB
               value: quay.io/ansible/galaxy-ui:latest
             - name: RELATED_IMAGE_GALAXY_REDIS
-              value: redis:latest
+              value: redis:7
             - name: RELATED_IMAGE_GALAXY_POSTGRES
               value: quay.io/sclorg/postgresql-15-c9s:latest
             - name: RELATED_IMAGE_GALAXY_INIT_GPG_CONTAINER
