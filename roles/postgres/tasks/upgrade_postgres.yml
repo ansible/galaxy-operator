@@ -128,18 +128,6 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     label_selectors:
       - "app.kubernetes.io/component=database"
-      - "app.kubernetes.io/instance=postgres-{{ ansible_operator_meta.name }}"
-      - "app.kubernetes.io/version={{ supported_pg_version }}"
-      - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
-  register: old_postgres_svc
-
-# TODO: The galaxy-operator labels are different. potential issue here.
-- name: Get the name of the service for the old postgres pod
-  k8s_info:
-    kind: Service
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    label_selectors:
-      - "app.kubernetes.io/component=database"
       - "app.kubernetes.io/instance={{ old_postgres_pod.metadata.labels['app.kubernetes.io/instance'] }}"
       - "app.kubernetes.io/version={{ old_postgres_pod.metadata.labels['app.kubernetes.io/version'] }}"  # unique to the galaxy-operator
       - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
