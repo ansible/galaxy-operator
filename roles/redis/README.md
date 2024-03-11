@@ -10,7 +10,7 @@ A role to setup Galaxyredis, yielding the following objects:
 Role Variables
 --------------
 
-* `redis_image`: The redis image name. Default: redis:latest
+* `redis_image`: The redis image name. Default: redis:7
 
 Requirements
 ------------

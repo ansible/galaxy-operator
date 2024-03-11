@@ -1,5 +1,5 @@
 ---
-_redis_image: redis:latest
+_redis_image: redis:7
 
 redis_storage_size: 1Gi
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
