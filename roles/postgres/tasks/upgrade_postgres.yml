@@ -324,22 +324,3 @@
         status: "True"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-# Default to 1 replica if not specified
-- name: Scale up web and content Deployments using replicas from the custom resource
-  kubernetes.core.k8s_scale:
-    api_version: v1
-    kind: Deployment
-    name: "{{ item.name }}"
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    replicas: "{{ item.replicas }}"
-  loop:
-    - name: "{{ ansible_operator_meta.name }}-api"
-      replicas: "{{ combined_api.replicas | default(1) }}"
-    - name: "{{ ansible_operator_meta.name }}-web"
-      replicas: "{{ combined_web.replicas | default(1)}}"
-    - name: "{{ ansible_operator_meta.name }}-content"
-      replicas: "{{ combined_content.replicas | default(1) }}"
-    - name: "{{ ansible_operator_meta.name }}-worker"
-      replicas: "{{ combined_worker.replicas | default(1)}}"
-    - name: "{{ ansible_operator_meta.name }}-redis"
-      replicas: "{{ combined_redis.replicas | default(1)}}"

@@ -82,11 +82,14 @@
     - postgres_migrant_configuration_secret is defined
     - recorded_db_migration_secret == postgres_migrant_configuration_secret
 
-
 - name: Set PostgreSQL Configuration
   set_fact:
     pg_config: '{{ _generated_pg_config_resources["resources"] | default([]) | length | ternary(_generated_pg_config_resources, _pg_config) }}'
   no_log: "{{ no_log }}"
+
+- name: Set actual postgres configuration secret used
+  set_fact:
+    _postgres_configuration_secret: "{{ pg_config['resources'][0]['metadata']['name'] }}"
 
 - name: Set user provided postgres image
   set_fact:
