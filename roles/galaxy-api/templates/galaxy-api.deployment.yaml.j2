@@ -137,9 +137,15 @@ spec:
           - start-api
           env:
             - name: POSTGRES_SERVICE_HOST
-              value: "{{ postgres_host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
             - name: POSTGRES_SERVICE_PORT
-              value: "{{ postgres_port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
               value: "{{ ansible_operator_meta.name }}-redis-svc"
@@ -255,9 +261,15 @@ spec:
               pulpcore-manager migrate
           env:
             - name: POSTGRES_SERVICE_HOST
-              value: "{{ postgres_host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
             - name: POSTGRES_SERVICE_PORT
-              value: "{{ postgres_port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
             - name: HOME
               value: "/var/lib/pulp"
           volumeMounts:
