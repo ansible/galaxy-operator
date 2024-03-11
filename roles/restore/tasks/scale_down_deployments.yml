@@ -5,7 +5,7 @@
     kind: Deployment
     namespace: "{{ ansible_operator_meta.namespace }}"
     label_selectors:
-      - 'app.kubernetes.io/part-of={{ deploy_name }}'
+      - 'app.kubernetes.io/part-of={{ deployment_name }}'
       - 'app.kubernetes.io/managed-by={{ deployment_type }}-operator'
   register: _deployments
 

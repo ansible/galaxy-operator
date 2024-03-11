@@ -18,6 +18,7 @@
     cr_spec_strip: "{ "
     admin_str: "admin_password_secret: {{ admin_password_name }}"
     storage_str: "object_storage_{{ storage_type | lower }}_secret: {{ storage_secret }}"
+    storage_key: "object_storage_{{ storage_type | lower }}_secret"
     container_token_str: "container_token_secret: {{ container_token_secret }}"
     db_fields_str: "db_fields_encryption_secret: {{ db_fields_encryption_secret }}"
     signing_str: "signing_secret: {{ signing_secret }}"
@@ -39,7 +40,7 @@
   set_fact:
     cr_spec_strip: "{{ cr_spec_strip + ', ' + storage_str }}"
   when:
-    - not 'object_storage_{{ storage_type | lower }}_secret' in cr_object.stdout
+    - not storage_key in cr_object.stdout
     - storage_type | lower != 'file'
 
 - name: Set custom resource spec container token from backup

@@ -159,20 +159,3 @@
       "
   register: data_migration
   no_log: "{{ no_log }}"
-
-- name: Scale up web and content Deployments using replicas from the Galaxy CR
-  kubernetes.core.k8s_scale:
-    api_version: apps/v1
-    kind: Deployment
-    name: "{{ item.name }}"
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    replicas: "{{ item.replicas }}"
-    wait: yes
-  loop:
-    - name: "{{ ansible_operator_meta.name }}-web"
-      replicas: "{{ cr_spec['web']['replicas'] }}"
-    - name: "{{ ansible_operator_meta.name }}-content"
-      replicas: "{{ cr_spec['content']['replicas'] }}"
-  when:
-    - cr_spec['web']['replicas'] | int > 0
-    - cr_spec['content']['replicas'] | int > 0
