@@ -76,7 +76,7 @@ echo $BASE_ADDR
 
 if [ -z "$(pip freeze | grep pulp-cli)" ]; then
   echo "Installing pulp-cli"
-  pip install pulp-cli[pygments]
+  pip install pulp-cli[pygments]==0.23.0
 fi
 
 if [[ "$CI_TEST" == "galaxy" ]]; then
