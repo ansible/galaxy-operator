@@ -248,7 +248,7 @@ catalog-build: opm ## Build a catalog image.
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+	$(MAKE) $(ENGINE)-push IMG=$(CATALOG_IMG)
 
 # Generate operator.yaml with image tag as a release artifact
 .PHONY: generate-operator-yaml
