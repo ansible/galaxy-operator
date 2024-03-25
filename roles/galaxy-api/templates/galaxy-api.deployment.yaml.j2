@@ -95,7 +95,7 @@ spec:
               - path: collection_sign.sh
                 key: collection_sign.sh
               - path: container_sign.sh
-                key: container_sign.sh            
+                key: container_sign.sh
         - name: {{ ansible_operator_meta.name }}-signing-galaxy
           secret:
             secretName: {{ signing_secret }}
@@ -212,6 +212,7 @@ spec:
             - name: gpg-file-storage
               mountPath: "/var/lib/pulp/.gnupg"
 {% endif %}
+{% endif %}
 {% if bundle_ca_crt is defined %}
             - name: "ca-trust-extracted"
               mountPath: "/etc/pki/ca-trust/extracted"
@@ -219,7 +220,6 @@ spec:
               mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
               subPath: bundle-ca.crt
               readOnly: true
-{% endif %}
 {% endif %}
 {% if signing_secret is defined %}
             - name: {{ ansible_operator_meta.name }}-signing-scripts
