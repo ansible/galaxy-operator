@@ -11,7 +11,6 @@ metadata:
   name: controller-manager
   namespace: system
   annotations: # About kube-linter checks: https://docs.kubelinter.io/#/generated/checks
-#    email: pulp-dev@redhat.com # TODO - update this
     ignore-check.kube-linter.io/minimum-three-replicas: "Operator should be unique"
     ignore-check.kube-linter.io/no-read-only-root-fs: "Operator needs to generate files"
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
