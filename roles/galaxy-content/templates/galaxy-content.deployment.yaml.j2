@@ -158,6 +158,8 @@ spec:
           resources: {{ combined_content.resource_requirements }}
 {% endif %}
           env:
+            - name: ENTRYPOINT
+              value: "{{ _entrypoint_dir }}/pulpcore-content"
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
             - name: POSTGRES_SERVICE_PORT
