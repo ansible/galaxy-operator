@@ -136,6 +136,8 @@ spec:
           args:
           - start-api
           env:
+            - name: ENTRYPOINT
+              value: "{{ _entrypoint_dir }}/pulpcore-api"
             - name: POSTGRES_SERVICE_HOST
               value: "{{ postgres_host }}"
             - name: POSTGRES_SERVICE_PORT
