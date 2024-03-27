@@ -3,8 +3,6 @@ kind: Galaxy
 metadata:
   name: example-galaxy
 spec:
-  image_version: main
-  image_web_version: main
   no_log: false
   admin_password_secret: "example-galaxy-admin-password"
   storage_type: File
