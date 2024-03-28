@@ -1,4 +1,4 @@
-FROM quay.io/operator-framework/ansible-operator:v1.23.0
+FROM quay.io/operator-framework/ansible-operator:v1.34.1
 
 ARG DEFAULT_GALAXY_VERSION
 ARG DEFAULT_GALAXY_UI_VERSION
