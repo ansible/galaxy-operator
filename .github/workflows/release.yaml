@@ -64,6 +64,12 @@ jobs:
             --tag ${QUAY_REGISTRY}/galaxy-operator:latest
         working-directory: galaxy-operator
 
+      - name: Install operator-sdk
+        run: |
+          curl -LO https://github.com/operator-framework/operator-sdk/releases/download/v1.34.1/operator-sdk_linux_amd64
+          chmod +x operator-sdk_linux_amd64
+          sudo mv operator-sdk_linux_amd64 /usr/local/bin/operator-sdk
+
       - name: Build Bundle Image
         run: |
           make bundle bundle-build IMG=galaxy-operator:${TAG_NAME} VERSION=${TAG_NAME} BUNDLE_IMG=galaxy-operator-bundle:${TAG_NAME}
