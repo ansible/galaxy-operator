@@ -83,7 +83,7 @@
   when: storage_type | lower == 'file'
 
 - name: Scale down deployments for migration
-  include: scale_down_deployments.yml
+  include_tasks: scale_down_deployments.yml
 
 - name: Set full resolvable host name for postgres pod
   set_fact:

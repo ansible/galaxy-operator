@@ -3,3 +3,6 @@ deployment_type: "galaxy"
 _postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
 
 supported_pg_version: 15
+
+is_k8s: false
+is_openshift: false

@@ -11,11 +11,20 @@ metadata:
     app.kubernetes.io/part-of: '{{ deployment_type }}'
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 spec:
+{% if is_k8s %}
+  securityContext:
+    runAsUser: 1000
+{% endif %}
   containers:
   - name: {{ ansible_operator_meta.name }}-backup-manager
     image: "{{ _postgres_image }}"
     imagePullPolicy: Always
-    command: ["sleep", "infinity"]
+    command:
+      - /bin/bash
+      - -c
+      - |
+        mkdir -p {{ _backup_dir }}/
+        sleep infinity
     volumeMounts:
     - name: {{ ansible_operator_meta.name }}-backup
       mountPath: /backups

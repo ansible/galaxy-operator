@@ -2,7 +2,7 @@
 
 #### PostgreSQL Version
 
-The default PostgreSQL version for the version of Galaxy bundled with the latest version of the galaxy-operator is PostgreSQL 15. You can find this default for a given version by at the default value for [supported_pg_version](./roles/installer/vars/main.yml#L7).
+The default PostgreSQL version for the version of Galaxy bundled with the latest version of the galaxy-operator is PostgreSQL 15. You can find this default for a given version by at the default value for [supported_pg_version](https://github.com/ansible/galaxy-operator/tree/main/roles/installer/vars/main.yml#L7).
 
 We only have coverage for the default version of PostgreSQL. Newer versions of PostgreSQL will likely work, but should only be configured as an external database. If your database is managed by the galaxy-operator (default if you don't specify a `postgres_configuration_secret`), then you should not override the default version as this may cause issues when the operator tries to upgrade your postgresql pod.
 
@@ -31,7 +31,7 @@ stringData:
 type: Opaque
 ```
 
-> Please ensure that the value for the variable `password` should _not_ contain single or double quotes (`'`, `"`) or backslashes (`\`) to avoid any issues during deployment, [backup](./roles/backup) or [restoration](./roles/restore).
+> Please ensure that the value for the variable `password` should _not_ contain single or double quotes (`'`, `"`) or backslashes (`\`) to avoid any issues during deployment, [backup](https://github.com/ansible/galaxy-operator/tree/main/roles/backup) or [restoration](https://github.com/ansible/galaxy-operator/tree/main/roles/restore).
 
 > It is possible to set a specific username, password, port, or database, but still have the database managed by the operator. In this case, when creating the postgres-configuration secret, the `type: managed` field should be added.
 
