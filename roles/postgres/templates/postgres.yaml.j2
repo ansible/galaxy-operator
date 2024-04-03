@@ -86,7 +86,7 @@ spec:
                   name: '{{ _postgres_configuration_secret }}'
                   key: password
             - name: PGDATA
-              value: '{{ postgres_data_path }}'
+              value: '{{ _postgres_data_path }}'
             - name: POSTGRES_INITDB_ARGS
               value: '{{ postgres_initdb_args }}'
             - name: POSTGRES_HOST_AUTH_METHOD
@@ -129,8 +129,8 @@ spec:
             successThreshold: 1
           volumeMounts:
             - name: postgres
-              mountPath: '{{ postgres_data_path | dirname }}'
-              subPath: '{{ postgres_data_path | dirname | basename }}'
+              mountPath: '{{ _postgres_data_path | dirname }}'
+              subPath: '{{ _postgres_data_path | dirname | basename }}'
           resources: {{ postgres_resource_requirements }}
 {% if postgres_selector %}
       nodeSelector:
