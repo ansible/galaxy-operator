@@ -91,6 +91,19 @@ rules:
     verbs:
       - patch
       - get
+  - apiGroups:
+      - batch
+    resources:
+      - cronjobs
+      - jobs
+    verbs:
+      - get
+      - list
+      - create
+      - patch
+      - update
+      - watch
+
   ##
   ## Rules for galaxy.ansible.com/v1beta1, Kind: Galaxy
   ##

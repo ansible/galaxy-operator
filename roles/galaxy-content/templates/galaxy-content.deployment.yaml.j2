@@ -46,6 +46,11 @@ spec:
       affinity:
         nodeAffinity: {{ _node_affinity }}
 {% endif %}
+{% if is_k8s %}
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+{% endif %}
 {% if node_selector %}
       nodeSelector:
         {{ node_selector | indent(width=8) }}

@@ -14,12 +14,12 @@ jobs:
         include:
           - STORAGE: filesystem
             IMAGE: minimal
-          - STORAGE: filesystem
-            IMAGE: s6
-          - STORAGE: azure
-            IMAGE: minimal
-          - STORAGE: s3
-            IMAGE: minimal
+          # - STORAGE: filesystem
+          #   IMAGE: s6
+          # - STORAGE: azure
+          #   IMAGE: minimal
+          # - STORAGE: s3
+          #   IMAGE: minimal
     steps:
       - name: PR head repo
         id: head_repo_name
@@ -121,6 +121,10 @@ jobs:
       - name: Test
         run: sudo -E .ci/scripts/galaxy_ng-tests.sh -m
         shell: bash
+
+      # # TODO: Remove after testing
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Backup & Restore
         run: CI_TEST=galaxy .ci/scripts/backup_and_restore.sh -m

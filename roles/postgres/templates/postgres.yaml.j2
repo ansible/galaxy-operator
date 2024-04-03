@@ -59,7 +59,7 @@ spec:
               {{ postgres_init_container_commands | indent(width=14) }}
           resources: {{ postgres_resource_requirements }}
           volumeMounts:
-            - name: postgres-{{ supported_pg_version }}
+            - name: postgres
               mountPath: '{{ _postgres_data_path | dirname }}'
               subPath: '{{ _postgres_data_path | dirname | basename }}'
 {% endif %}

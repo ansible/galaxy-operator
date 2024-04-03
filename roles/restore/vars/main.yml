@@ -11,3 +11,6 @@ backup_kind: 'GalaxyBackup'
 # If set to true, the restore process will delete the existing database and create a new one
 force_drop_db: false
 pg_drop_create: ''
+
+is_k8s: false
+is_openshift: false
