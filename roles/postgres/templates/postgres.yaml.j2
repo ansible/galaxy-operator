@@ -45,6 +45,24 @@ spec:
         nodeAffinity: {{ _node_affinity }}
 {% endif %}
       serviceAccountName: '{{ ansible_operator_meta.name }}'
+{% if postgres_data_volume_init and not is_openshift %}
+      initContainers:
+        - name: init
+          image: '{{ _postgres_image }}'
+          imagePullPolicy: '{{ image_pull_policy }}'
+          securityContext:
+            runAsUser: 0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              {{ postgres_init_container_commands | indent(width=14) }}
+          resources: {{ postgres_resource_requirements }}
+          volumeMounts:
+            - name: postgres-{{ supported_pg_version }}
+              mountPath: '{{ _postgres_data_path | dirname }}'
+              subPath: '{{ _postgres_data_path | dirname | basename }}'
+{% endif %}
       containers:
         - image: '{{ _postgres_image }}'
           name: postgres

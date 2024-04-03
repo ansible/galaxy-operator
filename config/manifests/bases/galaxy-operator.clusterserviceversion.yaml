@@ -114,6 +114,15 @@ spec:
         path: postgres_tolerations
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Sets permissions on the /var/lib/pgsql/data for postgres container using an init container (not Openshift)
+        displayName: PostgreSQL initialize data volume
+        path: postgres_data_volume_init
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Customize the postgres init container commands (Non Openshift)
+        displayName: PostgreSQL Init Container Commands
+        path: postgres_init_container_commands
+        x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Database storage class
         path: postgres_storage_class
