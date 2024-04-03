@@ -103,7 +103,7 @@
   block:
     - name: Set path to PG_VERSION file for given container image
       set_fact:
-        path_to_pg_version: '{{ postgres_data_path }}/PG_VERSION'
+        path_to_pg_version: '{{ _postgres_data_path }}/PG_VERSION'
         path_to_pg_version_old: '/var/lib/postgresql/data/pgdata/PG_VERSION'
 
     - name: Get old PostgreSQL version (Checking old pg data path too)
