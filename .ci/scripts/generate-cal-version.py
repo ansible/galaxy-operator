@@ -12,11 +12,11 @@ if version in releases:
     raise ValueError(f"A release with version {version} already exists.")
 
 if not version:
-    date = datetime.datetime.now().strftime('%Y.%m.%d')
-    version = date
+    date = datetime.datetime.now()
+    version = f'{date.year}.{date.month}.{date.day}'
     suffix = 2
     while version in releases:
-        version = f'{date}-{suffix}'
+        version = f'{date.year}.{date.month}.{date.day}-{suffix}'
         suffix += 1
 
 print(version)
