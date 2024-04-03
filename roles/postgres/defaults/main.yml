@@ -33,6 +33,11 @@ postgres_tolerations: ''
 # Define postgres configuration arguments to use
 postgres_extra_args: ''
 
+postgres_data_volume_init: false
+postgres_init_container_commands: |
+  chown 26:0 /var/lib/pgsql/data
+  chmod 700 /var/lib/pgsql/data
+
 custom_resource_key: '_galaxy_ansible_com_galaxy'
 database_status_present: false
 
