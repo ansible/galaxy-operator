@@ -1,5 +1,8 @@
 name: Promote Operator Release
 
+env:
+  ENGINE: docker # use docker for everything so buildx commands can be used
+
 on:
   release:
     types: [published]
@@ -72,7 +75,7 @@ jobs:
 
       - name: Build Bundle Image
         run: |
-          make bundle bundle-build IMG=galaxy-operator:${TAG_NAME} VERSION=${TAG_NAME} BUNDLE_IMG=galaxy-operator-bundle:${TAG_NAME}
+          make bundle bundle-build IMG=quay.io/ansible/galaxy-operator:${TAG_NAME} VERSION=${TAG_NAME} BUNDLE_IMG=galaxy-operator-bundle:${TAG_NAME}
           docker tag galaxy-operator-bundle:${TAG_NAME} galaxy-operator-bundle:latest
         working-directory: galaxy-operator
 
