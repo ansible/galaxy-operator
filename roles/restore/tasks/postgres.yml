@@ -40,10 +40,6 @@
   when: postgres_label_selector is not defined
 
 - block:
-    - name: Set the resource pod name as a variable.
-      set_fact:
-        storage_claim: "{{ deployment_name }}-file-storage"
-
     - name: Get the postgres pod information
       k8s_info:
         kind: Pod
@@ -64,6 +60,10 @@
   when: postgres_type == 'managed'
 
 - block:
+    - name: Set the resource pod name as a variable.
+      set_fact:
+        storage_claim: "{{ deployment_name }}-file-storage"
+
     - name: Wait for PVC to be created if file-storage is used
       k8s_info:
         api_version: v1
