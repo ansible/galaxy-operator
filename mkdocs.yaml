@@ -44,7 +44,9 @@ nav:
         - Build: build.md
       - User Guide:
         - Advanced Configuration:
+          - CA Trust: user-guide/advanced-configuration/trusting-a-custom-certificate-authority.md
           - Extra_Settings: user-guide/advanced-configuration/extra-settings.md
+          - LDAP_Settings: user-guide/advanced-configuration/enabling-ldap-integration-at-galaxy-bootstrap.md
   - Containers: container.md
   - Custom Resources:
       - Galaxy:
