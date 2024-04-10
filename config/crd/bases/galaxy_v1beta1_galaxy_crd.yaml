@@ -83,6 +83,12 @@ spec:
                       x-kubernetes-preserve-unknown-fields: true
                   type: object
                 type: array
+              ldap_cacert_secret:
+                description: Secret where can be found the LDAP trusted Certificate Authority Bundle
+                type: string
+              ldap_password_secret:
+                description: Secret where can be found the LDAP bind password
+                type: string
               bundle_cacert_secret:
                 description: Secret where the trusted Certificate Authority Bundle is stored
                 type: string

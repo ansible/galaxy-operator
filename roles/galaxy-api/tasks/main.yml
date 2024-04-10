@@ -87,6 +87,16 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
+- name: Load LDAP CAcert certificate
+  include_tasks: load_ldap_cacert_secret.yml
+  when:
+  - ldap_cacert_secret != ''
+
+- name: Load ldap bind password
+  include_tasks: load_ldap_password_secret.yml
+  when:
+  - ldap_password_secret != ''
+
 - name: galaxy-server secret
   k8s:
     state: "{{ deployment_state }}"

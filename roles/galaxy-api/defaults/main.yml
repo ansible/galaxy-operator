@@ -47,3 +47,10 @@ keycloak_realm_available: false
 
 gunicorn_timeout: 90
 gunicorn_api_workers: 2
+
+# Secret to lookup that provides the LDAP CACert trusted bundle
+#
+ldap_cacert_secret: ''
+
+# Secret to lookup that provides the LDAP bind password
+ldap_password_secret: ''
