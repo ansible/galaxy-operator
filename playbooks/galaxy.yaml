@@ -7,7 +7,7 @@
     - community.crypto
   vars:
     default_settings:
-      api_root: '/api/galaxy/pulp/'
+      galaxy_api_path_prefix: "/api/galaxy"
       cache_enabled: true
       db_encryption_key: "/etc/pulp/keys/database_fields.symmetric.key"
       galaxy_collection_signing_service: ansible-default
