@@ -4,6 +4,15 @@
 #   (pulp_settings.content_origin is not defined)
 # (short-circuit evaluation only works for multiple separate when statements)
 # https://github.com/ansible/ansible/issues/50554
+- name: Check settings
+  assert:
+    that: pulp_settings is undefined
+    fail_msg: >-
+      [WARNING]: pulp_settings: is deprecated and will be removed in a future release.\n
+      Please use extra_settings: instead.
+    quiet: true
+  ignore_errors: true
+
 - name: Setting CONTENT_ORIGIN
   set_fact:
     content_origin_temp: pulp_settings.content_origin

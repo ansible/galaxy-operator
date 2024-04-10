@@ -42,6 +42,9 @@ nav:
       - Getting Started:
         - Quickstart: quickstart.md
         - Build: build.md
+      - User Guide:
+        - Advanced Configuration:
+          - Extra_Settings: user-guide/advanced-configuration/extra-settings.md
   - Containers: container.md
   - Custom Resources:
       - Galaxy:
