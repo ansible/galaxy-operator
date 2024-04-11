@@ -257,3 +257,8 @@ generate-operator-yaml: kustomize ## Generate operator.yaml with image tag $(VER
 	@$(KUSTOMIZE) build config/default > ./operator.yaml
 
 	@echo "Generated operator.yaml with image tag $(VERSION)"
+
+# Build and Push All The Parts of the Catalog (Operator, Bundle, and Catalog)
+.PHONY: all
+all: 
+	$(MAKE) build; $(MAKE) push; $(MAKE) bundle; $(MAKE) bundle-build; $(MAKE) bundle-push; $(MAKE) catalog-build; $(MAKE) catalog-push

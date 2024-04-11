@@ -62,8 +62,8 @@ spec:
                   type: string
                 no_log:
                   default: true
-                  description: Configure no_log for no_log tasks
-                  type: boolean
+                  description: Configure no_log (hides sensitive information in operator/task logs)
+                  type: boolean 
             status:
               properties:
                 restoreComplete:

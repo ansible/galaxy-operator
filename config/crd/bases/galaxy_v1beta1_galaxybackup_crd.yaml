@@ -46,7 +46,7 @@ spec:
                   type: string
                 no_log:
                   default: true
-                  description: Configure no_log for no_log tasks
+                  description: Configure no_log (hides sensitive information in operator/task logs)
                   type: boolean
               required:
                 - deployment_name
