@@ -10,7 +10,7 @@
   - set_fact:
       _pulp_default_plugins:
         - { name: "{{ ansible_operator_meta.name }}-content", path: "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}", targetPort: "content-24816", serviceName: "{{ ansible_operator_meta.name }}-content-svc" }
-        - { name: "{{ ansible_operator_meta.name }}-api-v3", path: "{{ pulp_combined_settings.api_root }}api/v3/", targetPort: "api-24817", serviceName: "{{ ansible_operator_meta.name }}-api-svc" }
+        - { name: "{{ ansible_operator_meta.name }}-api-v3", path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/", targetPort: "api-24817", serviceName: "{{ ansible_operator_meta.name }}-api-svc" }
         - { name: "{{ ansible_operator_meta.name }}-auth", path: "/auth/login/", targetPort: "api-24817", serviceName: "{{ ansible_operator_meta.name }}-api-svc" }
         - { name: "{{ ansible_operator_meta.name }}", path: "/", targetPort: "api-24817", serviceName: "{{ ansible_operator_meta.name }}-api-svc" }
 

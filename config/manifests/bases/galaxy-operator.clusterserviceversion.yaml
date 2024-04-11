@@ -92,13 +92,11 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
-      - displayName: PostgreSQL container storage requirements (when using a managed
-          instance)
+      - displayName: PostgreSQL container storage requirements (when using a managed instance)
         path: postgres_storage_requirements
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
-      - displayName: PostgreSQL container resource requirements (when using a managed
-          instance)
+      - displayName: PostgreSQL container resource requirements (when using a managed instance)
         path: postgres_resource_requirements
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
@@ -109,6 +107,16 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Postgres Extra Arguments
         path: postgres_extra_args
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Postgres Selector
+        path: postgres_selector
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Postgres Tolerations
+        path: postgres_tolerations
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
@@ -134,6 +142,21 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: Database backup label selector
+        path: postgres_label_selector
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Node Selector
+        path: node_selector
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Tolerations
+        path: tolerations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Gunicorn API workers
         path: gunicorn_api_workers
         x-descriptors:
@@ -264,6 +287,18 @@ spec:
       - description: Image pull policy for container image
         displayName: Image pull policy
         path: image_pull_policy
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Image Version
+        displayName: Image Version
+        path: image_version
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Image Web Version
+        displayName: Image Web Version
+        path: image_web_version
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
@@ -493,6 +528,11 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: No Log Configuration
+        path: no_log
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       statusDescriptors:
       - displayName: Conditions
         path: conditions
@@ -533,26 +573,6 @@ spec:
         path: deployedVersion
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - displayName: Node Selector
-        path: node_selector
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
-      - displayName: Tolerations
-        path: tolerations
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
-      - displayName: Postgres Selector
-        path: postgres_selector
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
-      - displayName: Postgres Tolerations
-        path: postgres_tolerations
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
       - description: Image of the instance deployed
         displayName: Image
         path: deployedImage
@@ -607,16 +627,20 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:io.kubernetes:StorageClass
-      - displayName: Database backup label selector
-        path: postgres_label_selector
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Custom Resource Key
         path: custom_resource_key
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Database restore label selector
+        path: postgres_label_selector
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: No Log Configuration
+        path: no_log
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       statusDescriptors:
       - displayName: Conditions
         path: conditions
@@ -717,6 +741,11 @@ spec:
         path: custom_resource_key
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: No Log Configuration
+        path: no_log
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       statusDescriptors:
       - displayName: Conditions
         path: conditions
@@ -727,11 +756,6 @@ spec:
         path: restoreComplete
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - displayName: No Log Configuration
-        path: no_log
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       version: v1beta1
   description: |-
 
