@@ -82,6 +82,7 @@ spec:
                     value:
                       x-kubernetes-preserve-unknown-fields: true
                   type: object
+                type: array
               bundle_cacert_secret:
                 description: Secret where the trusted Certificate Authority Bundle is stored
                 type: string
