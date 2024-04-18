@@ -152,7 +152,9 @@
       echo keepalive_pid: $keepalive_pid
       set -e -o pipefail
       {{ pg_drop_create }}
+      set +H  # Disable history expansion
       cat {{ backup_dir }}/pulp.db | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
+      set -H  # Re-enable history expansion
       PG_RC=$?
       set +e +o pipefail
       exit $PG_RC
