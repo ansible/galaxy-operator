@@ -195,11 +195,22 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           command:
-            - /bin/sh
+            - /bin/bash
             - -c
             - |
               wait-for-migrations
           resources: {{ combined_worker.resource_requirements }}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"

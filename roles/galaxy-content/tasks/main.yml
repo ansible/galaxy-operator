@@ -53,6 +53,17 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
+- name: Wait for {{ ansible_operator_meta.name }}-server secret to be created
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ ansible_operator_meta.name }}-server"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+    wait: yes
+    wait_timeout: 300
+
 - name: galaxy-content deployment
   k8s:
     state: "{{ deployment_state }}"

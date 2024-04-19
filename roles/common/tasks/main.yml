@@ -82,3 +82,6 @@
 
 - name: Configure Object Storage
   include_tasks: object_storage_configuration.yml
+
+- name: Configure Galaxy Server Secret
+  include_tasks: galaxy_server_secret.yml
