@@ -148,9 +148,10 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     name: "{{ ansible_operator_meta.name }}-postgres-{{ supported_pg_version }}"
   register: _pg_sts_status
+  until: _pg_sts_status['resources'][0]['status']['availableReplicas'] == _pg_sts_status['resources'][0]['status']['replicas']
+  retries: 20
+  delay: 10
 
-# This status will probably not reflect the real state during the first playbook execution
-# I thought to put a wait_for here, but it would just delay the execution of the other tasks
 - operator_sdk.util.k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"
@@ -162,4 +163,3 @@
         reason: DatabaseTasksFinished
         status: "True"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
-#  when: _pg_sts_status['resources'][0]['status']['availableReplicas'] == _pg_sts_status['resources'][0]['status']['replicas']
