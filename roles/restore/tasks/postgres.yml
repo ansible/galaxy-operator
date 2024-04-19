@@ -85,9 +85,14 @@
 - name: Scale down deployments for migration
   include_tasks: scale_down_deployments.yml
 
+- name: Set _cluster_name with preceeding dot if it exists
+  set_fact:
+    _cluster_name: "{{ cluster_name | default('') | ternary('.' + cluster_name, '') }}"
+  no_log: "{{ no_log }}"
+
 - name: Set full resolvable host name for postgres pod
   set_fact:
-    resolvable_db_host: '{{ (postgres_type == "managed") | ternary(postgres_host + "." + ansible_operator_meta.namespace + ".svc." + cluster_name, postgres_host) }}'  # yamllint disable-line rule:line-length
+    resolvable_db_host: '{{ (postgres_type == "managed") | ternary(postgres_host + "." + ansible_operator_meta.namespace + ".svc" + _cluster_name, postgres_host) }}'  # yamllint disable-line rule:line-length
   no_log: "{{ no_log }}"
 
 - name: Set pg_restore command
