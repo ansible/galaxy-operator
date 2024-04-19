@@ -18,4 +18,4 @@ db_fields_encryption_secret: ''
 sso_secret: ''
 
 # Default cluster name
-cluster_name: 'cluster.local'
+cluster_name: '' # On most clusters, this is 'cluster.local'
