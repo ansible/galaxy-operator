@@ -74,7 +74,7 @@
       until: pvc_status.resources | length > 0
       retries: 60
       delay: 10
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Fail with custom message if PVC not found
       fail:

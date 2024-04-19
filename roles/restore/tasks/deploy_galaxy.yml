@@ -25,6 +25,14 @@
     db_str: "postgres_configuration_secret: {{ db_secret_name }}"
     sso_str: "sso_secret: {{ sso_secret }}"
 
+# TODO: Convert all of these tasks to use the combine filter
+- name: Remove postgres_configuration_secret from spec
+  set_fact:
+    cr_object: "{{ cr_object | combine({'postgres_configuration_secret': db_str}, recursive=True) }}"
+  when:
+    - database_type is defined
+    - database_type == 'managed'
+
 - name: Strip end characters from spec
   set_fact:
     cr_spec_strip: "{{ cr_object.stdout[:-2] }}"
@@ -59,11 +67,6 @@
   when:
     - not 'signing_secret' in cr_object.stdout
     - signing_secret != ''
-
-- name: Set custom resource spec db from backup
-  set_fact:
-    cr_spec_strip: "{{ cr_spec_strip + ', ' + db_str }}"
-  when: not 'postgres_configuration_secret' in cr_object.stdout
 
 - name: Set custom resource spec SSO from backup
   set_fact:
