@@ -69,6 +69,7 @@ spec:
             items:
               - path: settings.py
                 key: settings.py
+        {{ lookup("template", "../galaxy-config/templates/common/volumes/extra_settings_files.yaml.j2")  | indent(width=8) | trim }}
         - name: {{ ansible_operator_meta.name }}-db-fields-encryption
           secret:
             secretName: {{ db_fields_encryption_secret }}
@@ -153,6 +154,7 @@ spec:
               mountPath: "/etc/pulp/settings.py"
               subPath: settings.py
               readOnly: true
+            {{ lookup("template", "../galaxy-config/templates/common/volume_mounts/extra_settings_files.yaml.j2")  | indent(width=12) | trim }}
             - name: {{ ansible_operator_meta.name }}-db-fields-encryption
               mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
               subPath: database_fields.symmetric.key
@@ -220,6 +222,7 @@ spec:
               mountPath: "/etc/pulp/settings.py"
               subPath: settings.py
               readOnly: true
+            {{ lookup("template", "../galaxy-config/templates/common/volume_mounts/extra_settings_files.yaml.j2")  | indent(width=12) | trim }}
             - name: {{ ansible_operator_meta.name }}-db-fields-encryption
               mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
               subPath: database_fields.symmetric.key
