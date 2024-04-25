@@ -1,3 +1,5 @@
+Testing CI...
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/ansible/galaxy-operator/main/docs/images/logo_large.svg" style="width: 55%" />
 </p>
