@@ -10,7 +10,7 @@
 - name: Set file copy command
   set_fact:
     copy_cmd: >-
-      cp -fr /var/lib/pulp/. {{ _backup_dir }}/pulp
+      cp -fr /var/lib/pulp/{artifact,media,scripts,tmp} {{ _backup_dir }}/pulp/
 
 - name: Write content files to backup on PVC
   k8s_exec:

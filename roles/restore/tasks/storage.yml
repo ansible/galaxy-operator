@@ -18,7 +18,7 @@
 - name: Set file copy command
   set_fact:
     copy_cmd: >-
-      cp -fr {{ backup_dir }}/pulp/. /var/lib/pulp
+      cp -fr {{ backup_dir }}/pulp /var/lib/pulp
 
 - name: Write content files from backup on PVC
   k8s_exec:

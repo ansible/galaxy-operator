@@ -172,6 +172,16 @@
       signingSecret: "{{ signing_secret }}"
   when: signing_secret is defined
 
+- name: Update galaxy signing configmap name status
+  operator_sdk.util.k8s_status:
+    api_version: '{{ api_version }}'
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    status:
+      signingConfigMap: "{{ signing_scripts_configmap }}"
+  when: signing_scripts_configmap is defined
+
 - name: Update container token secret name status
   operator_sdk.util.k8s_status:
     api_version: '{{ api_version }}'

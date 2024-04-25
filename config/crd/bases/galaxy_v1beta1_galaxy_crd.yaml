@@ -909,6 +909,9 @@ spec:
               upgradedPostgresVersion:
                 description: Status to indicate that the database has been upgraded to the version in the status
                 type: string
+              signingSecret:
+                description: Secret where the signing certificates are stored
+                type: string
               conditions:
                 description: The resulting conditions when a Service Telemetry is instantiated
                 items:
