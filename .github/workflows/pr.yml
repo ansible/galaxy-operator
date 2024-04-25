@@ -58,7 +58,7 @@ jobs:
 
       - name: Start minikube
         run: |
-          minikube start --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000
+          minikube start --kubernetes-version=v1.28.3 --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000
           minikube addons enable metrics-server
         # now you can run kubectl to see the pods in the cluster
 
