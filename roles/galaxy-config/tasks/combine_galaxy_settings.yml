@@ -66,33 +66,3 @@
     pulp_combined_settings: "{{ default_settings|combine(raw_pulp_settings, recursive=True) if pulp_settings is defined and pulp_settings is not none else default_settings }}"
     cacheable: yes
   no_log: "{{ no_log }}"
-
-- name: Include redis role
-  include_role:
-    name: redis
-  when: pulp_combined_settings.cache_enabled
-
-- include_tasks:
-    file: sso-configuration.yml
-  when:
-    - sso_secret is defined
-    - sso_secret | length
-
-- k8s_status:
-    api_version: "{{ api_version }}"
-    kind: "{{ kind }}"
-    name: "{{ ansible_operator_meta.name }}"
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    conditions:
-      - type: "{{ deployment_type|capitalize }}-API-Ready"
-        message: "Creating {{ ansible_operator_meta.name }}-server Secret resource"
-        reason: CreatingServerSecret
-        status: "False"
-        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
-
-- name: galaxy-server secret
-  k8s:
-    state: "{{ deployment_state }}"
-    definition: "{{ lookup('template', 'templates/galaxy-server.secret.yaml.j2') | from_yaml }}"
-  register: galaxy_server_secret
-  no_log: "{{ no_log }}"

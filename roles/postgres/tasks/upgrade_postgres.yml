@@ -317,6 +317,6 @@
 - name: Update galaxy-server secret with new postgres host
   k8s:
     state: "{{ deployment_state }}"
-    definition: "{{ lookup('template', '../common/templates/galaxy-server.secret.yaml.j2') | from_yaml }}"
+    definition: "{{ lookup('template', '../galaxy-config/templates/galaxy-server.secret.yaml.j2') | from_yaml }}"
   register: galaxy_server_secret
   no_log: "{{ no_log }}"
