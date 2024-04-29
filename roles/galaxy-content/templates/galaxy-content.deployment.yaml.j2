@@ -41,6 +41,19 @@ spec:
         app.kubernetes.io/component: content-server
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+      annotations:
+        kubectl.kubernetes.io/default-container: content
+{% for template in [
+    "galaxy-file-storage.pvc",
+  ] %}
+        checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.yaml.j2') | sha1 }}"
+{% endfor %}
+{% for secret in [
+    "galaxy_server_secret",
+    "db_fields_encryption_secret_contents",
+  ] %}
+        checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
+{% endfor %}
     spec:
 {% if _node_affinity is defined %}
       affinity:
