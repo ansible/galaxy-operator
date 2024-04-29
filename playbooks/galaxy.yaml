@@ -65,6 +65,7 @@
     - common
     - postgres
     - galaxy-web
+    - galaxy-config
 
   tasks:
 
