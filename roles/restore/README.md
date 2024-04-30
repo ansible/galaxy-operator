@@ -10,6 +10,20 @@ Role Variables
 
 * `backup_name`: The name of the galaxy backup custom resource to restore from
 * `postgres_label_selector`: The label selector for an external container based database
+* `restore_resource_requirements`: The resources limits and requests for restore CR
+
+
+Defining resources limits and requests for restore CR
+
+```
+restore_resource_requirements:
+  limits:
+    cpu: "1000m"
+    memory: "4096Mi"
+  requests:
+    cpu: "25m"
+    memory: "32Mi"
+```
 
 Requirements
 ------------

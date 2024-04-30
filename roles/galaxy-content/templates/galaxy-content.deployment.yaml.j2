@@ -43,11 +43,13 @@ spec:
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
       annotations:
         kubectl.kubernetes.io/default-container: content
+{% if is_file_storage %}
 {% for template in [
     "galaxy-file-storage.pvc",
   ] %}
         checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.yaml.j2') | sha1 }}"
 {% endfor %}
+{% endif %}
 {% for secret in [
     "galaxy_server_secret",
     "db_fields_encryption_secret_contents",
