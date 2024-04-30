@@ -22,7 +22,7 @@ spec:
 {% endif %}
       containers:
       - name: backup-content
-        image: quay.io/ansible/galaxy-ng:latest # TODO: Add set image tasks, and var ref here, etc.
+        image: {{ _galaxy_image }}
         imagePullPolicy: Always
         command:
           - /bin/bash
@@ -30,6 +30,10 @@ spec:
           - |
             mkdir -p {{ _backup_dir }}/pulp/
             cp -fr /var/lib/pulp/. {{ _backup_dir }}/pulp
+{% if backup_resource_requirements is defined %}
+        resources:
+          {{ backup_resource_requirements | to_nice_yaml(indent=2) | indent(width=10, first=False) }}
+{%- endif %}
         volumeMounts:
         - name: {{ ansible_operator_meta.name }}-backup
           mountPath: /backups

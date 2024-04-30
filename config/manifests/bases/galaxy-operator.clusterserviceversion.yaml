@@ -615,17 +615,22 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes:PersistentVolumeClaim
         - urn:alm:descriptor:com.tectonic.ui:advanced
-      - displayName: Backup persistent volume claim namespace
+      - displayName: Backup persistent volume claim namespace (Deprecated)
         path: backup_pvc_namespace
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:hidden
         - urn:alm:descriptor:io.kubernetes:Namespace
       - displayName: Backup PVC storage requirements
         path: backup_storage_requirements
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
         - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Backup Management Pod Resource Requirements
+        path: backup_resource_requirements
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       - displayName: Backup PVC storage class
         path: backup_storage_class
         x-descriptors:
@@ -737,6 +742,11 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:select:S3
         - urn:alm:descriptor:com.tectonic.ui:select:Azure
         - urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup_source:PVC
+      - displayName: Restore Management Pod Resource Requirements
+        path: restore_resource_requirements
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       - displayName: Database restore label selector
         path: postgres_label_selector
         x-descriptors:

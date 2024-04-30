@@ -25,6 +25,10 @@ spec:
       - |
         mkdir -p {{ _backup_dir }}/
         sleep infinity
+{% if backup_resource_requirements is defined %}
+    resources:
+      {{ backup_resource_requirements | to_nice_yaml(indent=2) | indent(width=6, first=False) }}
+{%- endif %}
     volumeMounts:
     - name: {{ ansible_operator_meta.name }}-backup
       mountPath: /backups

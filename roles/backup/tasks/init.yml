@@ -76,6 +76,10 @@
   set_fact:
     _galaxy: "{{ _custom_resource['resources'][0] }}"
 
+- name: Set Galaxy Image used
+  set_fact:
+    _galaxy_image: "{{ _galaxy['status']['deployedImage'] }}"
+
 - name: Set apiVersion
   set_fact:
     api_version: "{{ _galaxy['apiVersion'] }}"
