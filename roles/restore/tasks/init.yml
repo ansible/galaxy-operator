@@ -146,6 +146,7 @@
   k8s:
     name: "{{ ansible_operator_meta.name }}-backup-manager"
     kind: Pod
+    api_version: v1
     namespace: "{{ backup_pvc_namespace }}"
     state: absent
     force: true
@@ -170,6 +171,7 @@
 - name: Wait for restore management pod to be running
   k8s_info:
     kind: Pod
+    api_version: v1
     namespace: "{{ ansible_operator_meta.namespace }}"
     label_selectors:
       - "app.kubernetes.io/component=backup-manager"

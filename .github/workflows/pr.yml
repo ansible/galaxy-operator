@@ -122,10 +122,6 @@ jobs:
         run: sudo -E .ci/scripts/galaxy_ng-tests.sh -m
         shell: bash
 
-      # # TODO: Remove after testing
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-
       - name: Backup & Restore
         run: CI_TEST=galaxy .ci/scripts/backup_and_restore.sh -m
         shell: bash
@@ -135,6 +131,7 @@ jobs:
       - name: Logs
         if: always()
         run: .github/workflows/scripts/show_logs.sh
+
       # - name: Debugging example (uncomment when needed)
       #   if: failure()
       #   uses: mxschmitt/action-tmate@v3
