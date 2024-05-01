@@ -1,13 +1,4 @@
 ---
-- name: Check settings
-  assert:
-    that: pulp_settings is undefined
-    fail_msg: >-
-      [WARNING]: pulp_settings: is deprecated and will be removed in a future release.\n
-      Please use extra_settings: instead.
-    quiet: true
-  ignore_errors: true
-
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"
