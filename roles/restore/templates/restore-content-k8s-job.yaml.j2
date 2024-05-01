@@ -28,8 +28,8 @@ spec:
           - /bin/bash
           - -c
           - |
-            stat {{ backup_dir }}/pulp/
-            cp -fr {{ backup_dir }}/pulp/. /var/lib/pulp
+            stat {{ backup_dir }}/pulp
+            cp -fr {{ backup_dir }}/pulp /var/lib/pulp
 {% if restore_resource_requirements is defined %}
         resources:
           {{ restore_resource_requirements | to_nice_yaml(indent=2) | indent(width=10, first=False) }}
