@@ -4,6 +4,7 @@
   k8s:
     name: "{{ ansible_operator_meta.name }}-backup-manager"
     kind: Pod
+    api_version: v1
     namespace: "{{ backup_pvc_namespace }}"
     state: absent
     force: true
@@ -75,6 +76,10 @@
 - name: Set Galaxy object
   set_fact:
     _galaxy: "{{ _custom_resource['resources'][0] }}"
+
+- name: Set Galaxy Image used
+  set_fact:
+    _galaxy_image: "{{ _galaxy['status']['deployedImage'] }}"
 
 - name: Set apiVersion
   set_fact:
@@ -178,8 +183,31 @@
   set_fact:
     _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_GALAXY_POSTGRES')) | default(_postgres_image, true) }}"
 
+- name: Determine the timestamp for the backup once for all nodes
+  set_fact:
+    now: '{{ lookup("pipe", "date +%F-%H%M%S") }}'
+
+- name: Set backup directory name
+  set_fact:
+    _backup_dir: "/backups/openshift-backup-{{ now }}"
+
 - name: Create management pod from templated deployment config
   k8s:
     state: present
     definition: "{{ lookup('template', 'templates/management-pod.yaml.j2') | from_yaml }}"
     wait: true
+
+- name: Wait for backup management pod to be running
+  k8s_info:
+    kind: Pod
+    api_version: v1
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/component=backup-manager"
+      - "app.kubernetes.io/instance={{ deployment_type }}-backup-manager-{{ ansible_operator_meta.name }}"
+  register: backup_pod_info
+  until:
+    - backup_pod_info['resources'] | length
+    - backup_pod_info['resources'][0]['status']['phase'] == 'Running'
+  retries: 120
+  delay: 10

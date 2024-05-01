@@ -82,3 +82,4 @@
 
 - name: Configure Object Storage
   include_tasks: object_storage_configuration.yml
+

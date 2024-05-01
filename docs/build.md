@@ -127,7 +127,7 @@ pod/galaxy-api-5d4d945787-jq2kk                          1/1     Running   0    
 pod/galaxy-content-754466b885-8c85x                      1/1     Running   0          2m41s
 pod/galaxy-content-754466b885-bgzz7                      1/1     Running   0          2m41s
 pod/galaxy-operator-controller-manager-d84cd6d4c-2zpw5   2/2     Running   0          3m55s
-pod/galaxy-postgres-13-0                                 1/1     Running   0          3m
+pod/galaxy-postgres-15-0                                 1/1     Running   0          3m
 pod/galaxy-redis-b77c7ccb-zqdv6                          1/1     Running   0          2m30s
 pod/galaxy-web-dc44cff56-k46j2                           1/1     Running   0          2m53s
 pod/galaxy-worker-64f7889dd7-t5jdd                       1/1     Running   0          2m36s

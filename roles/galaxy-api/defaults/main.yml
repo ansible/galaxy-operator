@@ -3,31 +3,6 @@
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
 raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
 
-# Set content host
-content_host: '{{ ansible_operator_meta.name }}-content-svc'
-content_port: '24816'
-
-# Host to create the root with.
-# If not specific will default to <instance-name>-<namespace>-<routerCanonicalHostname>
-#
-route_host: ''
-
-hostname: '{{ deployment_type }}.example.com'
-
-web_protocol: 'http'
-
-ingress_type: none
-# TLS secret for the ingress. The secret either has to exist before hand with
-# the corresponding cert and key or just be an indicator for where an automated
-# process like cert-manager (enabled via annotations) will store the TLS
-# certificate and key.
-ingress_tls_secret: ''
-
-# Secret to lookup that provide the TLS specific
-# credentials to deploy
-#
-route_tls_secret: ''
-
 container_auth_public_key_name: 'container_auth_public_key.pem'
 container_auth_private_key_name: 'container_auth_private_key.pem'
 

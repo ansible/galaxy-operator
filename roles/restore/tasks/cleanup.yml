@@ -1,13 +1,5 @@
 ---
 
-- name: Delete any existing management pod
-  k8s:
-    name: "{{ ansible_operator_meta.name }}-backup-manager"
-    kind: Pod
-    namespace: "{{ backup_pvc_namespace }}"
-    state: absent
-    force: true
-
 - name: Remove ownerReferences from admin password secret to avoid garbage collection
   k8s:
     definition:

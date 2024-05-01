@@ -42,7 +42,7 @@ spec:
                   description: Name of the PVC to be restored from, set as a status found on the backup object (backupClaim)
                   type: string
                 backup_pvc_namespace:
-                  description: Namespace the PVC is in
+                  description: Namespace the PVC is in (Deprecated)
                   type: string
                 backup_dir:
                   description: Backup directory name, set as a status found on the backup object (backupDirectory)
@@ -57,13 +57,31 @@ spec:
                     - azure
                     - Azure
                   type: string
+                restore_resource_requirements:
+                  description: Resource requirements for the management pod used to do a restore
+                  properties:
+                    requests:
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                      type: object
+                    limits:
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                      type: object
+                  type: object
                 postgres_label_selector:
                   description: Label selector used to identify postgres pod for executing migration
                   type: string
                 no_log:
                   default: true
-                  description: Configure no_log for no_log tasks
-                  type: boolean
+                  description: Configure no_log (hides sensitive information in operator/task logs)
+                  type: boolean 
             status:
               properties:
                 restoreComplete:

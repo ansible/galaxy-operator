@@ -70,3 +70,11 @@
       no_log: "{{ no_log }}"
 
   when: not _db_fields_encryption_secret['resources'] | default([]) | length
+
+- name: Retrieve db_fields_encryption_key Secret
+  k8s_info:
+    kind: Secret
+    namespace: '{{ ansible_operator_meta.namespace }}'
+    name: '{{ db_fields_encryption_secret }}'
+  register: db_fields_encryption_secret_contents
+  no_log: "{{ no_log }}"

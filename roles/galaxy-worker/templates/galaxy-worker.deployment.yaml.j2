@@ -41,10 +41,14 @@ spec:
         app.kubernetes.io/component: worker
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
-{% if signing_secret is defined %}
       annotations:
         kubectl.kubernetes.io/default-container: worker
-{% endif %}
+{% for secret in [
+    "galaxy_server_secret",
+    "db_fields_encryption_secret_contents",
+  ] %}
+        checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
+{% endfor %}
     spec:
 {% if _node_affinity is defined %}
       affinity:
@@ -121,9 +125,15 @@ spec:
           - start-worker
           env:
             - name: POSTGRES_SERVICE_HOST
-              value: "{{ postgres_host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
             - name: POSTGRES_SERVICE_PORT
-              value: "{{ postgres_port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
               value: "{{ ansible_operator_meta.name }}-redis-svc"
@@ -189,11 +199,22 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           command:
-            - /bin/sh
+            - /bin/bash
             - -c
             - |
               wait-for-migrations
           resources: {{ combined_worker.resource_requirements }}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"

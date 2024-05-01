@@ -25,14 +25,14 @@
     name: "{{ ansible_operator_meta.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
     status:
-      upgradedPostgresVersion: "{{ upgraded_postgres_version }}"
+      upgradedPostgresVersion: "{{ upgraded_postgres_version | string }}"
   when:
     - upgraded_postgres_version is defined
-    - upgraded_postgres_version | length
 
 - name: Get the resource pod information.
   k8s_info:
     kind: Pod
+    api_version: v1
     namespace: '{{ ansible_operator_meta.namespace }}'
     label_selectors:
       - "app.kubernetes.io/instance=nginx-{{ ansible_operator_meta.name }}"
@@ -53,7 +53,7 @@
 
 - name: Check, through galaxy-web, if the app is ready to serve requests
   uri:
-    url: '{{ status_protocol }}://{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local:{{ status_port }}{{ pulp_combined_settings.api_root }}api/v3/status/'
+    url: '{{ status_protocol }}://{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local:{{ status_port }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
   register: result_not_route
   until: >
     result_not_route.json is defined and
@@ -69,7 +69,7 @@
 
 - name: Check, through galaxy-route, if the app is ready to serve requests
   uri:
-    url: 'https://{{ route_host }}{{ pulp_combined_settings.api_root }}api/v3/status/'
+    url: 'https://{{ route_host }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
     validate_certs: no
   register: result_route
   until: >

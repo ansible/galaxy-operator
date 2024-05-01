@@ -1,0 +1,54 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ ansible_operator_meta.name }}-backup-content
+  namespace: {{ backup_pvc_namespace }}
+  labels:
+    app.kubernetes.io/name: '{{ deployment_type }}-backup-content'
+    app.kubernetes.io/instance: '{{ deployment_type }}-backup-content-{{ ansible_operator_meta.name }}'
+    app.kubernetes.io/component: backup-content
+    app.kubernetes.io/part-of: '{{ deployment_type }}'
+    app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      annotations:
+    spec:
+{% if is_k8s %}
+      securityContext:
+        runAsUser: 1000
+{% endif %}
+      containers:
+      - name: backup-content
+        image: {{ _galaxy_image }}
+        imagePullPolicy: Always
+        command:
+          - /bin/bash
+          - -c
+          - |
+            mkdir -p {{ _backup_dir }}/pulp
+            cp -fr /var/lib/pulp/{artifact,media,scripts} {{ _backup_dir }}/pulp/
+{% if backup_resource_requirements is defined %}
+        resources:
+          {{ backup_resource_requirements | to_nice_yaml(indent=2) | indent(width=10, first=False) }}
+{%- endif %}
+        volumeMounts:
+        - name: {{ ansible_operator_meta.name }}-backup
+          mountPath: /backups
+{% if storage_claim is defined %}
+        - name: file-storage
+          mountPath: "/var/lib/pulp"
+{% endif %}
+      volumes:
+      - name: {{ ansible_operator_meta.name }}-backup
+        persistentVolumeClaim:
+          claimName: {{ backup_claim }}
+{% if storage_claim is defined %}
+      - name: file-storage
+        persistentVolumeClaim:
+          claimName: {{ storage_claim }}
+{% endif %}
+      restartPolicy: Never
+  backoffLimit: 0

@@ -1,4 +1,4 @@
-FROM quay.io/operator-framework/ansible-operator:v1.23.0
+FROM quay.io/operator-framework/ansible-operator:v1.34.1
 
 ARG DEFAULT_GALAXY_VERSION
 ARG DEFAULT_GALAXY_UI_VERSION
@@ -22,4 +22,8 @@ COPY watches.yaml ${HOME}/watches.yaml
 COPY roles/ ${HOME}/roles/
 COPY playbooks/ ${HOME}/playbooks/
 
-ENTRYPOINT ["/tini", "--", "/usr/local/bin/ansible-operator", "run", "--watches-file=./watches.yaml", "--reconcile-period=0s"]
+ENTRYPOINT ["/tini", "--", "/usr/local/bin/ansible-operator", "run", \
+    "--watches-file=./watches.yaml", \
+    "--reconcile-period=0s", \
+    "--ansible-log-events=Tasks" \
+]
