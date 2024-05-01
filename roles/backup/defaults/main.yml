@@ -4,15 +4,13 @@ deployment_name: ''
 
 # Specify a pre-created PVC (name) to backup to
 backup_pvc: ''
-backup_pvc_namespace: "{{ ansible_operator_meta.namespace }}"
+backup_pvc_namespace: "{{ ansible_operator_meta.namespace }}" # deprecated
 
 # Size of backup PVC if created dynamically
 backup_storage_requirements: ''
 
 # Specify storage class to determine how to dynamically create PVC's with
 backup_storage_class: ''
-
-postgres_version: 13
 
 # Secret Names
 admin_password_secret: "{{ deployment_name }}-admin-password"
@@ -23,3 +21,12 @@ custom_resource_key: '_galaxy_ansible_com_galaxybackup'
 database_type: 'unmanaged'
 
 azure_container_path: ''
+
+# Default resource requirements
+backup_resource_requirements:
+  limits:
+    cpu: "1000m"
+    memory: "4096Mi"
+  requests:
+    cpu: "25m"
+    memory: "32Mi"

@@ -137,6 +137,7 @@ deploy: kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/c
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+	cd config/default && $(KUSTOMIZE) edit set namespace ${NAMESPACE}
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 resources: kustomize ## Get galaxy resources
@@ -257,3 +258,8 @@ generate-operator-yaml: kustomize ## Generate operator.yaml with image tag $(VER
 	@$(KUSTOMIZE) build config/default > ./operator.yaml
 
 	@echo "Generated operator.yaml with image tag $(VERSION)"
+
+# Build and Push All The Parts of the Catalog (Operator, Bundle, and Catalog)
+.PHONY: all
+all: 
+	$(MAKE) build; $(MAKE) push; $(MAKE) bundle; $(MAKE) bundle-build; $(MAKE) bundle-push; $(MAKE) catalog-build; $(MAKE) catalog-push

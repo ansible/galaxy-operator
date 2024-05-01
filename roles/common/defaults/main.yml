@@ -1,5 +1,4 @@
 ---
-route_host: ''
 image_pull_secret: ''
 image_pull_secrets: []
 operator_service_account_name: '{{ lookup("env","OPERATOR_SA_NAME") | default("galaxy-operator-sa",true) }}'
@@ -93,8 +92,7 @@ default_azure_settings:
   DEFAULT_FILE_STORAGE: "storages.backends.azure_storage.AzureStorage"
 
 # postgres_configuration.yml
-postgres_version: 13
-_postgres_image: postgres:13
+_postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
 
 # Secret to lookup that provide the PostgreSQL configuration
 postgres_configuration_secret: '{{ ansible_operator_meta.name }}-postgres-configuration'
@@ -128,3 +126,29 @@ node_selector: ''
 #     value: "Galaxy"
 #     effect: "NoSchedule"
 tolerations: ''
+
+web_protocol: 'http'
+ingress_type: none
+
+# Host to create the root with.
+# If not specific will default to <instance-name>-<namespace>-<routerCanonicalHostname>
+#
+route_host: ''
+
+hostname: '{{ deployment_type }}.example.com'
+
+# TLS secret for the ingress. The secret either has to exist before hand with
+# the corresponding cert and key or just be an indicator for where an automated
+# process like cert-manager (enabled via annotations) will store the TLS
+# certificate and key.
+ingress_tls_secret: ''
+
+# Secret to lookup that provide the TLS specific
+# credentials to deploy
+#
+route_tls_secret: ''
+
+
+# Set content host
+content_host: '{{ ansible_operator_meta.name }}-content-svc'
+content_port: '24816'

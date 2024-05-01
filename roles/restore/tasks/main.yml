@@ -5,6 +5,8 @@
     custom_resource_status: "{{ hostvars[inventory_hostname][custom_resource_key]['status'] | default({}) }}"
 
 - block:
+    - include_tasks: ../../common/tasks/check_k8s_or_openshift.yml
+
     - include_tasks: init.yml
 
     - include_tasks: secrets.yml
@@ -13,7 +15,12 @@
 
     - include_tasks: postgres.yml
 
-    - include_tasks: storage.yml
+    - include_tasks: remove_management_pod.yml
+
+    - name: Apply kubernetes job to restore /var/lib/pulp content
+      k8s:
+        state: present
+        definition: "{{ lookup('template', 'restore-content-k8s-job.yaml.j2') }}"
       when: storage_type | lower == 'file'
 
     - name: Set flag signifying this restore was successful

@@ -4,7 +4,7 @@ backup_name: ''
 
 # Required: specify a pre-created PVC (name) to restore from
 backup_pvc: ''
-backup_pvc_namespace: "{{ ansible_operator_meta.namespace }}"
+backup_pvc_namespace: "{{ ansible_operator_meta.namespace }}" # deprecated
 
 # Required: backup name, found on the backup object
 backup_dir: ''
@@ -18,4 +18,13 @@ db_fields_encryption_secret: ''
 sso_secret: ''
 
 # Default cluster name
-cluster_name: 'cluster.local'
+cluster_name: '' # On most clusters, this is 'cluster.local'
+
+# Default resource requirements
+restore_resource_requirements:
+  limits:
+    cpu: "1000m"
+    memory: "4096Mi"
+  requests:
+    cpu: "25m"
+    memory: "32Mi"

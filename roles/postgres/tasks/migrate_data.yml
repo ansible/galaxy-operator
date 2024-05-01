@@ -18,10 +18,11 @@
 - name: Get the postgres pod information
   k8s_info:
     kind: Pod
+    api_version: v1
     namespace: '{{ ansible_operator_meta.namespace }}'
     label_selectors:
       - "{{ postgres_label_selector }}"
-      - "app.kubernetes.io/version={{ postgres_version }}"
+      - "app.kubernetes.io/version={{ supported_pg_version }}"
   register: postgres_pod
   until: "postgres_pod['resources'][0]['status']['phase'] == 'Running'"
   delay: 5
@@ -43,13 +44,8 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- include: scale_down.yml deployment_name={{ item }}
-  with_items:
-    - "{{ ansible_operator_meta.name }}-api"
-    - "{{ ansible_operator_meta.name }}-content"
-    - "{{ ansible_operator_meta.name }}-resource-manager"
-    - "{{ ansible_operator_meta.name }}-worker"
-    - "{{ ansible_operator_meta.name }}-web"
+- name: Scale down deployments for migration
+  include: scale_down_deployments.yml
 
 - k8s_status:
     api_version: "{{ api_version }}"

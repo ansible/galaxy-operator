@@ -146,6 +146,7 @@
   k8s:
     name: "{{ ansible_operator_meta.name }}-backup-manager"
     kind: Pod
+    api_version: v1
     namespace: "{{ backup_pvc_namespace }}"
     state: absent
     force: true
@@ -166,6 +167,21 @@
     state: present
     definition: "{{ lookup('template', 'templates/management-pod.yaml.j2') | from_yaml }}"
     wait: true
+
+- name: Wait for restore management pod to be running
+  k8s_info:
+    kind: Pod
+    api_version: v1
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/component=backup-manager"
+      - "app.kubernetes.io/instance={{ deployment_type }}-backup-manager-{{ ansible_operator_meta.name }}"
+  register: restore_pod_info
+  until:
+    - restore_pod_info['resources'] | length
+    - restore_pod_info['resources'][0]['status']['phase'] == 'Running'
+  retries: 120
+  delay: 10
 
 - name: Check to make sure backup directory exists on PVC
   k8s_exec:

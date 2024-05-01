@@ -41,6 +41,21 @@ spec:
         app.kubernetes.io/component: content-server
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+      annotations:
+        kubectl.kubernetes.io/default-container: content
+{% if is_file_storage %}
+{% for template in [
+    "galaxy-file-storage.pvc",
+  ] %}
+        checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.yaml.j2') | sha1 }}"
+{% endfor %}
+{% endif %}
+{% for secret in [
+    "galaxy_server_secret",
+    "db_fields_encryption_secret_contents",
+  ] %}
+        checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
+{% endfor %}
     spec:
 {% if _node_affinity is defined %}
       affinity:
@@ -48,8 +63,8 @@ spec:
 {% endif %}
 {% if is_k8s %}
       securityContext:
-        runAsUser: 700
-        fsGroup: 700
+        runAsUser: 1000
+        fsGroup: 1000
 {% endif %}
 {% if node_selector %}
       nodeSelector:
@@ -112,11 +127,22 @@ spec:
           image: "{{ _image }}"
           imagePullPolicy: "{{ image_pull_policy }}"
           command:
-            - /bin/sh
+            - /bin/bash
             - -c
             - |
               wait-for-migrations
           resources: {{ combined_content.resource_requirements }}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
@@ -161,9 +187,15 @@ spec:
             - name: ENTRYPOINT
               value: "{{ _entrypoint_dir }}/pulpcore-content"
             - name: POSTGRES_SERVICE_HOST
-              value: "{{ postgres_host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
             - name: POSTGRES_SERVICE_PORT
-              value: "{{ postgres_port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
               value: "{{ ansible_operator_meta.name }}-redis-svc"
