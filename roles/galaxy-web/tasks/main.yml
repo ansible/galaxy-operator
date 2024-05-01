@@ -23,13 +23,6 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- name: Validate API root
-  fail:
-    msg: "API root should start and end with '/'"
-  when:
-  - not pulp_combined_settings.api_root.startswith('/')
-  - not pulp_combined_settings.api_root.endswith('/')
-
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"

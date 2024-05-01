@@ -1,0 +1,18 @@
+---
+
+- name: Configure Galaxy Server Secret
+  include_tasks: combine_galaxy_settings.yml
+
+- name: Include redis role
+  include_role:
+    name: redis
+  when: pulp_combined_settings.cache_enabled
+
+- include_tasks:
+    file: sso-configuration.yml
+  when:
+    - sso_secret is defined
+    - sso_secret | length
+
+- name: Configure Galaxy Server Secret
+  include_tasks: galaxy_server_secret.yml

@@ -58,7 +58,7 @@ jobs:
 
       - name: Start minikube
         run: |
-          minikube start --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000
+          minikube start --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000 --kubernetes-version=v1.28.3
           minikube addons enable metrics-server
         # now you can run kubectl to see the pods in the cluster
 
@@ -131,6 +131,7 @@ jobs:
       - name: Logs
         if: always()
         run: .github/workflows/scripts/show_logs.sh
+
       # - name: Debugging example (uncomment when needed)
       #   if: failure()
       #   uses: mxschmitt/action-tmate@v3

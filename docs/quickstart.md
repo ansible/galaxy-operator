@@ -83,7 +83,7 @@ galaxy-api-5d4d945787-jtc59                           1/1     Running   0       
 galaxy-content-754466b885-cmmp4                       1/1     Running   0          3m23s
 galaxy-content-754466b885-zsfqq                       1/1     Running   0          3m23s
 galaxy-operator-controller-manager-5f75d85bf8-j49mr   2/2     Running   0          4m21s
-galaxy-postgres-13-0                                  1/1     Running   0          3m40s
+galaxy-postgres-15-0                                  1/1     Running   0          3m40s
 galaxy-redis-994cbcbff-9rf55                          1/1     Running   0          3m11s
 galaxy-web-dc44cff56-lmshc                            1/1     Running   0          3m33s
 galaxy-worker-64f7889dd7-9lvkm                        1/1     Running   0          3m17s

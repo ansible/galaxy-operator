@@ -40,10 +40,14 @@ spec:
         app.kubernetes.io/component: api
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
-{% if signing_secret is defined %}
       annotations:
         kubectl.kubernetes.io/default-container: api
-{% endif %}
+{% for secret in [
+    "galaxy_server_secret",
+    "db_fields_encryption_secret_contents",
+  ] %}
+        checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
+{% endfor %}
     spec:
 {% if _node_affinity is defined %}
       affinity:
@@ -139,9 +143,15 @@ spec:
             - name: ENTRYPOINT
               value: "{{ _entrypoint_dir }}/pulpcore-api"
             - name: POSTGRES_SERVICE_HOST
-              value: "{{ postgres_host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
             - name: POSTGRES_SERVICE_PORT
-              value: "{{ postgres_port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
               value: "{{ ansible_operator_meta.name }}-redis-svc"
@@ -169,7 +179,7 @@ spec:
               containerPort: 8000
           livenessProbe:
             httpGet:
-              path: "{{ pulp_combined_settings.api_root }}api/v3/status/"
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
               port: 8000
               scheme: HTTP
             failureThreshold: 5
@@ -180,7 +190,7 @@ spec:
             exec:
               command:
                 - /usr/bin/readyz.py
-                - "{{ pulp_combined_settings.api_root }}api/v3/status/"
+                - "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
             failureThreshold: 10
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -257,9 +267,15 @@ spec:
               pulpcore-manager migrate
           env:
             - name: POSTGRES_SERVICE_HOST
-              value: "{{ postgres_host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
             - name: POSTGRES_SERVICE_PORT
-              value: "{{ postgres_port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
             - name: HOME
               value: "/var/lib/pulp"
           volumeMounts:
