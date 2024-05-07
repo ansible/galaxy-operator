@@ -14,5 +14,17 @@
     - sso_secret is defined
     - sso_secret | length
 
+- include_tasks:
+    file: load_ldap_cacert_secret.yml
+  when: 
+    - ldap_cacert_secret is defined
+    - ldap_cacert_secret | length
+
+- include_tasks:
+    file: load_ldap_password_secretyml
+  when: 
+    - ldap_password_secret is defined
+    - ldap_password_secret | length
+
 - name: Configure Galaxy Server Secret
   include_tasks: galaxy_server_secret.yml

@@ -1,1 +1,8 @@
 ---
+
+# Secret to lookup that provides the LDAP CACert trusted bundle
+#
+ldap_cacert_secret: ''
+
+# Secret to lookup that provides the LDAP bind password
+ldap_password_secret: ''
