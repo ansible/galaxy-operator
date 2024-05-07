@@ -2,9 +2,11 @@
   description = "Our test install exports a test only PRIVATE KEY"
   paths = [
     ".ci/assets/kubernetes/galaxy-container-auth.secret.yaml",
+    ".ci/assets/kubernetes/galaxy-external-database.secret.yaml",
     ".ci/assets/kubernetes/galaxy-object-storage.aws.secret.yaml",
     ".ci/assets/kubernetes/galaxy-object-storage.azure.secret.yaml",
     ".ci/assets/kubernetes/galaxy_sign.secret.yaml",
+    ".ci/scripts/prepare-external-database.sh",
     ".ci/scripts/prepare-object-storage.sh",
     "config/samples/galaxyproject_v1beta1_galaxy_cr.default.yaml",
     "containers/compose/certs/database_fields.symmetric.key",

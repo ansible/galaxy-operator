@@ -74,8 +74,17 @@ elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_IMAGE" == "s6" ]]; then
   echo "Will deploy signing secret for testing ..."
   $KUBECTL apply -f $KUBE_ASSETS_DIR/galaxy_sign.secret.yaml
   $KUBECTL apply -f $KUBE_ASSETS_DIR/signing_scripts.configmap.yaml
-elif [[ "$CI_TEST" == "galaxy" ]]; then
+elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_DATABASE" == "internal" ]]; then
   CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.ci.yaml
+  echo "Will deploy admin password secret for testing ..."
+  $KUBECTL apply -f $KUBE_ASSETS_DIR/galaxy-admin-password.secret.yaml
+  echo "Will deploy signing secret for testing ..."
+  $KUBECTL apply -f $KUBE_ASSETS_DIR/galaxy_sign.secret.yaml
+  $KUBECTL apply -f $KUBE_ASSETS_DIR/signing_scripts.configmap.yaml
+elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_DATABASE" == "external" ]]; then
+  CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.externaldb.ci.yaml
+  echo "Will deploy postgresql secret for testing..."
+  $KUBECTL apply -f $KUBE_ASSETS_DIR/galaxy-external-database.secret.yaml
   echo "Will deploy admin password secret for testing ..."
   $KUBECTL apply -f $KUBE_ASSETS_DIR/galaxy-admin-password.secret.yaml
   echo "Will deploy signing secret for testing ..."

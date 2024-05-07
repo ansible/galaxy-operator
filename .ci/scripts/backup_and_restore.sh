@@ -18,7 +18,11 @@ RESTORE_RESOURCE=galaxy_v1beta1_galaxyrestore_cr.ci.yaml
 if [[ "$CI_TEST" == "true" ]]; then
   CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.ci.yaml
 elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "filesystem" ]]; then
-  CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.ci.yaml
+  if [[ "$CI_TEST_DATABASE" == "external" ]]; then
+    CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.externaldb.ci.yaml
+  else
+    CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.ci.yaml
+  fi
 elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "azure" ]]; then
   CUSTOM_RESOURCE=galaxy_v1beta1_galaxy_cr.galaxy.azure.ci.yaml
 elif [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "s3" ]]; then
