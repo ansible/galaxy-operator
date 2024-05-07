@@ -152,6 +152,7 @@
   until: _pg_sts_status['resources'][0]['status']['availableReplicas'] == _pg_sts_status['resources'][0]['status']['replicas']
   retries: 20
   delay: 10
+  when: managed_database | bool
 
 - operator_sdk.util.k8s_status:
     api_version: "{{ api_version }}"
