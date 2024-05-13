@@ -14,7 +14,7 @@
 
 - name: Set custom resource spec variable from backup
   set_fact:
-    cr_spec_from_backup: "{{ cr_object.stdout }}"
+    cr_spec_from_backup: "{{ cr_object.stdout | from_yaml }}"
     cr_spec_strip: "{ "
     admin_str: "admin_password_secret: {{ admin_password_name }}"
     storage_str: "object_storage_{{ storage_type | lower }}_secret: {{ storage_secret }}"
@@ -26,7 +26,7 @@
 
 - name: Remove postgres_configuration_secret from spec
   set_fact:
-    cr_spec_from_backup: "{{ (cr_spec_from_backup[:-2] | from_yaml) | combine({'postgres_configuration_secret': db_secret_name}, recursive=True) }}"
+    cr_spec_from_backup: "{{ cr_spec_from_backup | combine({'postgres_configuration_secret': db_secret_name}, recursive=True) }}"
   when:
     - database_type is defined
     - database_type == 'managed'

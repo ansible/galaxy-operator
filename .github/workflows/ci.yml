@@ -23,12 +23,19 @@ jobs:
         include:
           - STORAGE: filesystem
             IMAGE: minimal
+            DATABASE: internal
+          - STORAGE: filesystem
+            IMAGE: minimal
+            DATABASE: external
           - STORAGE: filesystem
             IMAGE: s6
+            DATABASE: internal
           - STORAGE: azure
             IMAGE: minimal
+            DATABASE: internal
           - STORAGE: s3
             IMAGE: minimal
+            DATABASE: internal
     steps:
       - uses: actions/checkout@v2
         with:
@@ -50,6 +57,7 @@ jobs:
           echo "CI_TEST=true" >> $GITHUB_ENV
           echo "CI_TEST_STORAGE=${{ matrix.STORAGE }}" >> $GITHUB_ENV
           echo "CI_TEST_IMAGE=${{ matrix.IMAGE }}" >> $GITHUB_ENV
+          echo "CI_TEST_DATABASE=${{ matrix.DATABASE }}" >> $GITHUB_ENV
           echo "API_ROOT=/api/galaxy/pulp/" >> $GITHUB_ENV
         shell: bash
       - name: Start minikube
@@ -79,8 +87,9 @@ jobs:
           sudo -E docker images
         shell: bash
 
-      - name: Prepare Object Storage
+      - name: Prepare External Database and Object Storage
         run: |
+          .ci/scripts/prepare-external-database.sh
           .ci/scripts/prepare-object-storage.sh
         shell: bash
 
