@@ -14,9 +14,7 @@
 - name: Set web protocol
   set_fact:
     web_protocol: "https"
-  when:
-    - ingress_tls_secret | length
-    - route_tls_secret | length
+  when: ingress_tls_secret | length
 
 - name: Set node address for ingress
   set_fact:
