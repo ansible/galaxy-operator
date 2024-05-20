@@ -136,11 +136,6 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
         - urn:alm:descriptor:io.kubernetes:Secret
-      - displayName: Database migration label selector
-        path: postgres_label_selector
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:advanced
-        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Postgres Keep Old Data PVC After Upgrade
         path: postgres_keep_pvc_after_upgrade
         x-descriptors:
@@ -151,6 +146,10 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Galaxy Spec Overrides
+        path: spec_overrides
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
       - displayName: Node Selector
         path: node_selector
         x-descriptors:

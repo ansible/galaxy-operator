@@ -36,6 +36,11 @@
   set_fact:
     cr_spec: "{{ cr_spec_from_backup }}"
 
+- name: Combine spec_overrides with spec
+  set_fact:
+    cr_spec: "{{ cr_spec | default({}) | combine(spec_overrides) }}"
+  no_log: "{{ no_log }}"
+
 - name: Deploy object
   k8s:
     state: present

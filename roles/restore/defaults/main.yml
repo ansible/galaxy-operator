@@ -28,3 +28,5 @@ restore_resource_requirements:
   requests:
     cpu: "25m"
     memory: "32Mi"
+
+spec_overrides: {}
