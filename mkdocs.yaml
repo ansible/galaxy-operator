@@ -42,11 +42,14 @@ nav:
       - Getting Started:
         - Quickstart: quickstart.md
         - Build: build.md
+      - Advanced Configuration:
+        - Extra Settings: user-guide/advanced-configuration/extra-settings.md
   - Containers: container.md
   - Custom Resources:
       - Galaxy:
         - API: roles/galaxy-api.md
         - Common: roles/galaxy-common.md
+        - Config: roles/galaxy-config.md
         - Content: roles/galaxy-content.md
         - Route: roles/galaxy-route.md
         - Worker: roles/galaxy-worker.md
