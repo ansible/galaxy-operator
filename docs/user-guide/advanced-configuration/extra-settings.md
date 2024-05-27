@@ -100,7 +100,7 @@ spec:
         key: custom_ldap.py              # The key in the Secret, which means the file name
 ```
 
-!!! Warning "Restriction"
+!!! warning "Restriction"
     There are some restrictions on the ConfigMaps or Secrets used in `extra_settings_files`.
 
     - The keys in ConfigMaps or Secrets MUST be the name of python files and MUST end with `.py`
@@ -108,9 +108,5 @@ spec:
     - The keys in ConfigMaps or Secrets are converted to the following strings, which MUST not exceed 63 characters
         - Keys in ConfigMaps: `<instance name>-<KEY>-configmap`
         - Keys in Secrets: `<instance name>-<KEY>-secret`
-    - Following keys are reserved and MUST NOT be used in ConfigMaps or Secrets
-        - `credentials.py`
-        - `execution_environments.py`
-        - `ldap.py`
 
     Refer to the Kubernetes documentations ([[1]](https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/config-map-v1/), [[2]](https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/secret-v1/), [[3]](https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/volume/), [[4]](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/)) for more information about character types and length restrictions.
