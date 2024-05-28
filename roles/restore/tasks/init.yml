@@ -144,7 +144,7 @@
 
 - name: Delete any existing management pod
   k8s:
-    name: "{{ ansible_operator_meta.name }}-backup-manager"
+    name: "{{ ansible_operator_meta.name }}-db-management"
     kind: Pod
     api_version: v1
     namespace: "{{ backup_pvc_namespace }}"
@@ -186,7 +186,7 @@
 - name: Check to make sure backup directory exists on PVC
   k8s_exec:
     namespace: "{{ backup_pvc_namespace}}"
-    pod: "{{ ansible_operator_meta.name }}-backup-manager"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
     command: >-
       bash -c "stat {{ backup_dir }}"
   register: stat_backup_dir

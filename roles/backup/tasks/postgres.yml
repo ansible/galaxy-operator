@@ -59,14 +59,14 @@
 - name: Precreate file for database dump
   k8s_exec:
     namespace: "{{ backup_pvc_namespace}}"
-    pod: "{{ ansible_operator_meta.name }}-backup-manager"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
     command: >-
       touch {{ _backup_dir }}/pulp.db
 
 - name: Set permissions on file for database dump
   k8s_exec:
     namespace: "{{ backup_pvc_namespace }}"
-    pod: "{{ ansible_operator_meta.name }}-backup-manager"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
     command: >-
       chmod 0600 {{ _backup_dir }}/pulp.db
 
@@ -84,7 +84,7 @@
 - name: Write pg_dump to backup on PVC
   k8s_exec:
     namespace: "{{ backup_pvc_namespace }}"
-    pod: "{{ ansible_operator_meta.name }}-backup-manager"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
     command: |
       bash -c "
       function end_keepalive {

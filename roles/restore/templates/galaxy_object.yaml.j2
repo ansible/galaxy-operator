@@ -1,7 +1,8 @@
 ---
-apiVersion: '{{ api_version }}'
-kind: Galaxy
+apiVersion: '{{ deployment_api_version }}'
+kind: '{{ deployment_kind }}'
 metadata:
   name: '{{ deployment_name }}'
   namespace: '{{ ansible_operator_meta.namespace }}'
-spec: {{ cr_spec }}
+spec:
+  {{ spec | to_yaml | indent(2) }}

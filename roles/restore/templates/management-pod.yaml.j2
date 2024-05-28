@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ ansible_operator_meta.name }}-backup-manager
+  name: {{ ansible_operator_meta.name }}-db-management
   namespace: {{ backup_pvc_namespace }}
   annotations:
   labels:
@@ -17,7 +17,7 @@ spec:
     runAsUser: 1000
 {% endif %}
   containers:
-  - name: {{ ansible_operator_meta.name }}-backup-manager
+  - name: {{ ansible_operator_meta.name }}-db-management
     image: "{{ _postgres_image }}"
     command:
       - /bin/bash
