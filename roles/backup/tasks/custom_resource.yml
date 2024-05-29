@@ -1,0 +1,29 @@
+---
+
+- name: "Set {{ deployment_type }} object"
+  set_fact:
+    _galaxy: "{{ cr_spec }}"
+    _db_secret_value: |
+      {"database_secret": "{{ status['databaseConfigurationSecret'] }}"}
+    _admin_password_secret: "{{ status['adminPasswordSecret'] }}"
+    _db_fields_encryption_secret: "{{ status['dbFieldsEncryptionSecret'] }}"
+
+- name: Set names of backed up secrets in the CR spec
+  set_fact:
+    _galaxy: "{{ _galaxy | combine ({ item.key : item.value }) }}"
+  with_items:
+    - {"key": "db_fields_encryption_secret", "value": "{{ _db_fields_encryption_secret }}"}
+    - {"key": "admin_password_secret", "value": "{{ _admin_password_secret }}"}
+    - {"key": "database", "value": "{{ _db_secret_value }}" }
+
+- name: "Set {{ deployment_type }} object"
+  set_fact:
+    galaxy_spec:
+      spec: "{{ _galaxy }}"
+
+- name: "Write {{ deployment_type }} object to pvc"
+  k8s_cp:
+    namespace: "{{ backup_pvc_namespace }}"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
+    remote_path: "{{ _backup_dir  }}/cr_object"
+    content: "{{ galaxy_spec | to_yaml }}"

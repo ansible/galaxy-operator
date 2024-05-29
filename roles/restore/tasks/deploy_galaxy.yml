@@ -1,57 +1,23 @@
 ---
-- name: Set apiVersion and kind variables
-  set_fact:
-    api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
-    kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
-
-- name: Get object definition from pvc
-  k8s_exec:
-    namespace: "{{ backup_pvc_namespace }}"
-    pod: "{{ ansible_operator_meta.name }}-backup-manager"
-    command: >-
-      bash -c "cat '{{ backup_dir }}/cr_object'"
-  register: cr_object
-
-- name: Set custom resource spec variable from backup
-  set_fact:
-    cr_spec_from_backup: "{{ cr_object.stdout | from_yaml }}"
-    cr_spec_strip: "{ "
-    admin_str: "admin_password_secret: {{ admin_password_name }}"
-    storage_str: "object_storage_{{ storage_type | lower }}_secret: {{ storage_secret }}"
-    storage_key: "object_storage_{{ storage_type | lower }}_secret"
-    container_token_str: "container_token_secret: {{ container_token_secret }}"
-    db_fields_str: "db_fields_encryption_secret: {{ db_fields_encryption_secret }}"
-    signing_str: "signing_secret: {{ signing_secret }}"
-    sso_str: "sso_secret: {{ sso_secret }}"
-
-- name: Remove postgres_configuration_secret from spec
-  set_fact:
-    cr_spec_from_backup: "{{ cr_spec_from_backup | combine({'postgres_configuration_secret': db_secret_name}, recursive=True) }}"
-  when:
-    - database_type is defined
-    - database_type == 'managed'
-    - cr_spec_from_backup | length > 1
-
-- name: Set custom resource spec from backup
-  set_fact:
-    cr_spec: "{{ cr_spec_from_backup }}"
 
 - name: Combine spec_overrides with spec
   set_fact:
-    cr_spec: "{{ cr_spec | default({}) | combine(spec_overrides) }}"
+    spec: "{{ spec | default({}) | combine(spec_overrides) }}"
   no_log: "{{ no_log }}"
 
-- name: Deploy object
+- name: Deploy Galaxy
   k8s:
-    state: present
+    state: "{{ state | default('present') }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    apply: yes
     definition: "{{ lookup('template', 'galaxy_object.yaml.j2') }}"
     wait: true
 
-- name: Remove ownerReferences to prevent garbage collection of new CR
+- name: Remove ownerReferences to prevent garbage collection of new Galaxy CRO
   k8s:
     definition:
-      apiVersion: '{{ api_version }}'
-      kind: Galaxy
+      apiVersion: '{{ deployment_api_version }}'
+      kind: '{{ deployment_kind }}'
       metadata:
         name: '{{ deployment_name }}'
         namespace: '{{ ansible_operator_meta.namespace }}'

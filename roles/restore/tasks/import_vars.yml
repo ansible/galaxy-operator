@@ -1,0 +1,25 @@
+---
+
+- name: Import cr_object variables
+  block:
+  - name: "Get {{ deployment_type }} object definition from pvc"
+    k8s_exec:
+      namespace: "{{ backup_pvc_namespace }}"
+      pod: "{{ ansible_operator_meta.name }}-db-management"
+      command: >-
+        bash -c "cat '{{ backup_dir }}/cr_object'"
+    register: cr_object
+
+  - name: Create temp file for spec dict
+    tempfile:
+      state: file
+    register: tmp_spec
+
+  - name: Write spec vars to temp file
+    copy:
+      content: "{{ cr_object.stdout }}"
+      dest: "{{ tmp_spec.path }}"
+      mode: '0644'
+
+  - name: Include spec vars to save them as a dict
+    include_vars: "{{ tmp_spec.path }}"

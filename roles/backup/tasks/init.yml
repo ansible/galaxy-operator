@@ -2,7 +2,7 @@
 
 - name: Delete any existing management pod
   k8s:
-    name: "{{ ansible_operator_meta.name }}-backup-manager"
+    name: "{{ ansible_operator_meta.name }}-db-management"
     kind: Pod
     api_version: v1
     namespace: "{{ backup_pvc_namespace }}"
@@ -36,7 +36,6 @@
     - backup_pvc != ''
     - provided_pvc.resources | length == 0
 
-# If backup_pvc is defined, use in management-pod.yml.j2
 - name: Set default pvc name
   set_fact:
     _default_backup_pvc: "{{ deployment_name }}-backup-claim"
@@ -65,10 +64,10 @@
         namespace: '{{ backup_pvc_namespace }}'
         ownerReferences: null
 
-- name: Get Galaxy custom resource object
+- name: "Get {{ deployment_type }} custom resource object"
   k8s_info:
-    version: v1beta1
-    kind: Galaxy
+    version: '{{ deployment_api_version }}'
+    kind: '{{ deployment_kind }}'
     namespace: '{{ ansible_operator_meta.namespace }}'
     name: '{{ deployment_name }}'
   register: _custom_resource

@@ -12,6 +12,8 @@
 
     - include_tasks: postgres.yml
 
+    - include_tasks: custom_resource.yml
+
     - include_tasks: secrets.yml
 
     - include_tasks: remove_management_pod.yml

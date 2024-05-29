@@ -15,7 +15,7 @@
     - ingress_type is defined
     - ('route' == ingress_type|lower) or ('ingress' == ingress_type|lower)
 
-- name: Remove deprecated {{ deployment_type }} Routes when present for {{ ansible_operator_meta.name }} from {{ ansible_operator_meta.namespace }} namespace
+- name: "Remove deprecated {{ deployment_type }} Routes when present for {{ ansible_operator_meta.name }} from {{ ansible_operator_meta.namespace }} namespace"
   kubernetes.core.k8s:
     state: absent
     api_version: v1

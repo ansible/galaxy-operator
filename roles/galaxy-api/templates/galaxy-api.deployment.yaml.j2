@@ -44,6 +44,7 @@ spec:
         kubectl.kubernetes.io/default-container: api
 {% for secret in [
     "galaxy_server_secret",
+    "_postgres_configuration_secret",
     "db_fields_encryption_secret_contents",
   ] %}
         checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
