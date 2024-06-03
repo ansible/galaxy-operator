@@ -2,6 +2,8 @@ apiVersion: galaxy.ansible.com/v1beta1
 kind: Galaxy
 metadata:
   name: example-galaxy
+  annotations:
+    "ansible.sdk.operatorframework.io/verbosity": "5"
 spec:
   image: quay.io/ansible/galaxy-ng
   image_version: latest
