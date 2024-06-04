@@ -13,7 +13,6 @@ Role Variables
 * `backup_storage_requirements`: The size of storage for the PVC created by operator if one is not supplied
 * `backup_resource_requirements`: The size of storage for the PVC created by operator if one is not supplied
 * `backup_storage_class`: The storage class to be used for the backup PVC
-* `postgres_configuration_secret`: The postgres_configuration_secret
 
 
 Defining resources limits and request for backup CR
