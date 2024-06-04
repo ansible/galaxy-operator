@@ -246,7 +246,7 @@
 - name: Remove old Postgres StatefulSet
   k8s:
     kind: StatefulSet
-    api_version: v1
+    api_version: apps/v1
     namespace: "{{ ansible_operator_meta.namespace }}"
     name: "{{ item }}"
     state: absent
