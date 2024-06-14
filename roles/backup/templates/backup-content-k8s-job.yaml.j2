@@ -29,7 +29,9 @@ spec:
           - -c
           - |
             mkdir -p {{ _backup_dir }}/pulp
-            cp -fr /var/lib/pulp/{artifact,media,scripts} {{ _backup_dir }}/pulp/
+            if [ -d "/var/lib/pulp/media" ]; then cp -fr /var/lib/pulp/media {{ _backup_dir }}/pulp/; fi
+            if [ -d "/var/lib/pulp/media/artifact" ]; then cp -fr /var/lib/pulp/media/artifact {{ _backup_dir }}/pulp/; fi
+            if [ -d "/var/lib/pulp/scripts" ]; then cp -fr /var/lib/pulp/scripts {{ _backup_dir }}/pulp/; fi
 {% if backup_resource_requirements is defined %}
         resources:
           {{ backup_resource_requirements | to_nice_yaml(indent=2) | indent(width=10, first=False) }}
