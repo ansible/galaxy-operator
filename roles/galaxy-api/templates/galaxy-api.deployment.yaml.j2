@@ -379,3 +379,43 @@ spec:
               subPath: bundle-ca.crt
               readOnly: true
 {% endif %}
+        - name: resource-sync-job
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command:
+            - /bin/bash
+            - -c
+            - |
+              if dynaconf get RESOURCE_SERVER__URL >/dev/null 2>&1; then
+                  echo "Scheduling Resource Sync Task to execute every 15 minutes"
+                  django-admin task-scheduler --id dab_sync --interval 15 --path "galaxy_ng.app.tasks.resource_sync.run" || true
+              else
+                  echo "Resource Server is not enabled, skipping sync scheduling"
+              fi
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ _postgres_configuration_secret }}
+                  key: port
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% endif %}
