@@ -188,6 +188,8 @@
     kind: "{{ kind }}"
     name: "{{ ansible_operator_meta.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
+    status:
+      deployedVersion: "{{ installed_plugins.galaxy }}"
 
 - name: Update image status
   operator_sdk.util.k8s_status:
