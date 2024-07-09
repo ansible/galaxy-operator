@@ -112,11 +112,6 @@
   set_fact:
     content_origin_dict: "{ 'content_origin': '{{ content_origin }}', 'ansible_api_hostname': '{{ ansible_api_hostname }}', 'x_pulp_content_host': '{{ content_host }}', 'x_pulp_content_port': '{{ content_port }}' }"
 
-- name: Set token_server and other container default settings
-  set_fact:
-    token_server_dict: "{ 'token_server': '{{ token_server }}', 'token_auth_disabled': 'False', 'token_signature_algorithm': 'ES256','public_key_path': '/etc/pulp/keys/container_auth_public_key.pem', 'private_key_path': '/etc/pulp/keys/container_auth_private_key.pem' }"
-  when: container_token_secret is defined
-
 - name: DEBUG Show content_origin_dict
   debug:
     msg: "{{ content_origin_dict }}"
@@ -125,13 +120,3 @@
   set_fact:
     default_settings: "{{ default_settings|combine(content_origin_dict) }}"
   no_log: "{{ no_log }}"
-
-- name: merge token_server with settings
-  set_fact:
-    default_settings: "{{ default_settings|combine(token_server_dict) }}"
-  no_log: "{{ no_log }}"
-  when: container_token_secret is defined
-
-- name: DEBUG Show content_origin
-  debug:
-    msg: "{{ default_settings.content_origin }}"
