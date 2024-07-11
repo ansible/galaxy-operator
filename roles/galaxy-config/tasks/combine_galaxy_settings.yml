@@ -18,7 +18,7 @@
 # https://github.com/ansible/ansible/issues/50554
 - name: Setting CONTENT_ORIGIN
   set_fact:
-    content_origin_temp: pulp_settings.content_origin
+    content_origin: pulp_settings.content_origin
   when:
     - pulp_settings.content_origin is defined
 
@@ -36,7 +36,7 @@
 
 - include_tasks:
     file: get_node_ip.yml
-  when: content_origin_temp is not defined
+  when: content_origin is not defined
 
 - name: Set token_server and other container default settings
   set_fact:
