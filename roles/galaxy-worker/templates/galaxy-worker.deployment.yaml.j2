@@ -8,6 +8,7 @@ metadata:
     ignore-check.kube-linter.io/no-liveness-probe: "Port isn't exposed"
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
   labels:
+    {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=4) | trim }}
     app.kubernetes.io/name: '{{ deployment_type }}-worker'
     app.kubernetes.io/instance: '{{ deployment_type }}-worker-{{ ansible_operator_meta.name }}'
     app.kubernetes.io/component: worker
@@ -36,6 +37,7 @@ spec:
   template:
     metadata:
       labels:
+        {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=8) | trim }}
         app.kubernetes.io/name: '{{ deployment_type }}-worker'
         app.kubernetes.io/instance: '{{ deployment_type }}-worker-{{ ansible_operator_meta.name }}'
         app.kubernetes.io/component: worker
