@@ -7,6 +7,7 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
   labels:
+    {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=4) | trim }}
     app.kubernetes.io/name: 'nginx'
     app.kubernetes.io/instance: 'nginx-{{ ansible_operator_meta.name }}'
     app.kubernetes.io/component: webserver
@@ -35,6 +36,7 @@ spec:
   template:
     metadata:
       labels:
+        {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=8) | trim }}
         app.kubernetes.io/name: 'nginx'
         app.kubernetes.io/instance: 'nginx-{{ ansible_operator_meta.name }}'
         app.kubernetes.io/component: webserver

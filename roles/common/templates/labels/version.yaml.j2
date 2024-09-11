@@ -1,0 +1,2 @@
+app.kubernetes.io/version: '{{ _image.split(':')[-1] | truncate(63, True, '', 0) }}'
+app.kubernetes.io/operator-version: '{{ lookup("env", "OPERATOR_VERSION") }}'
