@@ -83,7 +83,7 @@ run: ansible-operator ## Run against the configured Kubernetes cluster in ~/.kub
 
 .PHONY: build
 build: ## Build docker image with the manager.
-	$(ENGINE) build -t ${IMG} .
+	$(ENGINE) build -t $(BUILD_ARGS) ${IMG} .
 
 .PHONY: push
 push: ## Push docker image with the manager.
