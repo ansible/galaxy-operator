@@ -368,6 +368,12 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: (Deprecated) The number of Redis replicas
+        displayName: Replicas
+        path: redis.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: API server configuration
         path: api
         x-descriptors:

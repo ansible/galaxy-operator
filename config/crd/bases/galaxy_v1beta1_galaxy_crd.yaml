@@ -340,7 +340,7 @@ spec:
                     type: string
                   replicas:
                     default: 1
-                    description: The number of replicas for the deployment.
+                    description: (Deprecated) The number of replicas for redis is 1
                     format: int32
                     type: integer
                   resource_requirements:
