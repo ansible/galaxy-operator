@@ -11,6 +11,11 @@ If a task cannot be made idempotent, add the tag [molecule-idempotence-notest](h
 3. Push your branch to your fork and open a [Pull request across forks.](https://help.github.com/articles/creating-a-pull-request-from-a-fork/)
 4. Add GitHub labels as appropriate.
 
+Development Guide
+-----------------
+
+See the Openshift [development guide](./development.md) for details on how to deploy on Openshift.
+
 Docs Testing
 ------------
 
