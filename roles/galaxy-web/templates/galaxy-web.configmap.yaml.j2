@@ -135,7 +135,6 @@ data:
                 proxy_redirect off;
                 proxy_pass http://pulp-api;
                 # static files are served through whitenoise - http://whitenoise.evans.io/en/stable/
-                try_files /redirect-page.html =404;
             }
         }
     }

@@ -65,6 +65,14 @@ spec:
         {{ tolerations | indent(width=8) }}
 {% endif %}
       volumes:
+{% if public_base_url is defined %}
+        - name: redirect-page
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-redirect-page'
+            items:
+              - key: redirect-page.html
+                path: redirect-page.html
+{% endif %}
         - name: {{ ansible_operator_meta.name }}-server
           secret:
             secretName: {{ ansible_operator_meta.name }}-server
@@ -202,6 +210,11 @@ spec:
           resources: {{ combined_api.resource_requirements }}
 {% endif %}
           volumeMounts:
+{% if public_base_url is defined %}
+            - name: redirect-page
+              mountPath: '{{ galaxy_webserver_static_dir }}/index.html'
+              subPath: redirect-page.html
+{% endif %}
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
               subPath: settings.py
