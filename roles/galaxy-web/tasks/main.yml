@@ -35,12 +35,19 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- name: galaxy-web configmap
+- name: Apply galaxy-web ConfigMap resources
   k8s:
+    apply: yes
     state: "{{ deployment_state }}"
-    definition: "{{ lookup('template', 'templates/' + item + '.configmap.yaml.j2') | from_yaml }}"
-  with_items:
-    - galaxy-web
+    definition: "{{ lookup('template', 'galaxy-web.configmap.yaml.j2') | from_yaml }}
+    wait: yes
+
+- name: Apply Redirect Page Configmap
+  k8s:
+    apply: yes
+    definition: "{{ lookup('template', 'redirect-page.configmap.html.j2') }}"
+    wait: yes
+  when: gateway_url is defined
 
 - name: Set node affinity
   set_fact:
