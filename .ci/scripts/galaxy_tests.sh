@@ -24,7 +24,7 @@ password password\
 export BASE_ADDR="http://$SERVER:$WEB_PORT"
 echo $BASE_ADDR
 
-pip install pulp-cli==0.23.0
+python3 -m pip install pulp-cli==0.23.0
 
 if [ ! -f ~/.config/pulp/settings.toml ]; then
   echo "Configuring pulp-cli"
