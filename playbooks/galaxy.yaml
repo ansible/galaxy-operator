@@ -24,6 +24,7 @@
           CONN_MAX_AGE: 0
           OPTIONS:
             sslmode: '{{ postgres_sslmode }}'
+            sslrootcert: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
       static_root: /app/galaxy_ng/app/static/
       redis_host: "{{ ansible_operator_meta.name }}-redis-svc"
       redis_port: 6379
