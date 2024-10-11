@@ -44,10 +44,10 @@ jobs:
           # repository: ${{ steps.head_repo_name.outputs.repo }}
           # ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install httpie
         run: |
@@ -128,7 +128,7 @@ jobs:
           sudo popeye --kubeconfig ~/.kube/config || true
 
       - name: Test
-        run: sudo -E .ci/scripts/galaxy_ng-tests.sh -m
+        run: CI_TEST=galaxy .ci/scripts/galaxy_ng-tests.sh -m
         shell: bash
 
       - name: Backup & Restore

@@ -42,10 +42,12 @@ jobs:
           # by default, it uses a depth of 1
           # this fetches all history so that we can read each commit
           fetch-depth: 0
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.8'
+          python-version: '3.9'
+
       - name: Install httpie
         run: |
           echo ::group::HTTPIE
@@ -123,7 +125,7 @@ jobs:
         shell: bash
 
       - name: Test
-        run: sudo -E .ci/scripts/galaxy_ng-tests.sh -m
+        run: CI_TEST=galaxy .ci/scripts/galaxy_ng-tests.sh -m
         shell: bash
 
       - name: Backup & Restore

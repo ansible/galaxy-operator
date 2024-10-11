@@ -78,9 +78,9 @@ password password\
 export BASE_ADDR="http://$SERVER:$WEB_PORT"
 echo $BASE_ADDR
 
-if [ -z "$(pip freeze | grep pulp-cli)" ]; then
+if [ -z "$(python3 -m pip freeze | grep pulp-cli)" ]; then
   echo "Installing pulp-cli"
-  pip install pulp-cli[pygments]==0.23.0
+  python3 -m pip install pulp-cli[pygments]==0.23.0
 fi
 
 if [[ "$CI_TEST" == "galaxy" ]]; then
