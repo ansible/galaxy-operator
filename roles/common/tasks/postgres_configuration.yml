@@ -89,7 +89,14 @@
 
 - name: Set actual postgres configuration secret used
   set_fact:
-    _postgres_configuration_secret: "{{ pg_config['resources'][0]['metadata']['name'] }}"
+    postgres_configuration_secret_name: "{{ pg_config['resources'][0]['metadata']['name'] }}"
+
+- name: Get postgres configuration secret
+  k8s_info:
+    kind: Secret
+    namespace: '{{ ansible_operator_meta.namespace }}'
+    name: '{{ postgres_configuration_secret_name }}'
+  register: postgres_configuration_secret_contents
 
 - name: Set user provided postgres image
   set_fact:
