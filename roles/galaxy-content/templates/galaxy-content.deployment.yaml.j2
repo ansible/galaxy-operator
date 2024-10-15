@@ -53,8 +53,8 @@ spec:
 {% endfor %}
 {% endif %}
 {% for secret in [
-    "galaxy_server_secret",
-    "_postgres_configuration_secret",
+    "galaxy_server_secret_contents",
+    "postgres_configuration_secret_contents",
     "db_fields_encryption_secret_contents",
   ] %}
         checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
@@ -139,12 +139,12 @@ spec:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: host
             - name: POSTGRES_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: port
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
@@ -192,12 +192,12 @@ spec:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: host
             - name: POSTGRES_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
