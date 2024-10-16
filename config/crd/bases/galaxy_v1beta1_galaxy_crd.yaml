@@ -890,6 +890,9 @@ spec:
               storageSecret:
                 description: The name of the secret used for object storage
                 type: string
+              upgradedFrom:
+                description: Last gated version
+                type: string                
               deployedVersion:
                 description: Version of the deployed instance
                 type: string
