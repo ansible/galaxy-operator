@@ -182,6 +182,16 @@
       containerTokenSecret: "{{ container_token_secret }}"
   when: container_token_secret is defined
 
+- name: Update upgradedFrom status
+  operator_sdk.util.k8s_status:
+    api_version: '{{ api_version }}'
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    status:
+      upgradedFrom: "{{ upgraded_from }}"
+  when: upgraded_from is defined
+
 - name: Update version status
   operator_sdk.util.k8s_status:
     api_version: '{{ api_version }}'
