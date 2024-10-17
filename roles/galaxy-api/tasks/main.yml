@@ -19,6 +19,12 @@
   with_items:
     - galaxy-api
 
+- name: Apply Redirect Page Configmap
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'redirect-page.configmap.html.j2') }}"
+  when: public_base_url is defined
+
 - name: Set node affinity
   set_fact:
     _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"

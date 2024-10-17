@@ -44,6 +44,11 @@ spec:
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
       annotations:
         kubectl.kubernetes.io/default-container: api
+{% for template in [
+    "redirect-page.configmap.html",
+  ] %}
+        checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.j2') | sha1 }}"
+{% endfor %}
 {% for secret in [
     "galaxy_server_secret_contents",
     "postgres_configuration_secret_contents",
@@ -65,6 +70,14 @@ spec:
         {{ tolerations | indent(width=8) }}
 {% endif %}
       volumes:
+{% if public_base_url is defined %}
+        - name: redirect-page
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-redirect-page'
+            items:
+              - key: redirect-page.html
+                path: redirect-page.html
+{% endif %}
         - name: {{ ansible_operator_meta.name }}-server
           secret:
             secretName: {{ ansible_operator_meta.name }}-server
@@ -202,6 +215,11 @@ spec:
           resources: {{ combined_api.resource_requirements }}
 {% endif %}
           volumeMounts:
+{% if public_base_url is defined %}
+            - name: redirect-page
+              mountPath: '{{ pulp_combined_settings.static_root }}/galaxy_ng/index.html'
+              subPath: redirect-page.html
+{% endif %}
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
               subPath: settings.py
