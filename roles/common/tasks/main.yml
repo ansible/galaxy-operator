@@ -13,10 +13,6 @@
     api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
     kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
 
-- name: Check for existing {{ deployment_type }} deployment
-  ansible.builtin.include_tasks: check_existing.yml
-  when: gating_version | length
-
 - name: Fail execution if image_pull_secret or image_pull_secrets are defined but as NoneType ('image_pull_secret[s]:')
   fail:
     msg: "If image_pull_secret or image_pull_secrets will not be used, their declarations should be removed."
@@ -62,6 +58,10 @@
     set_fact:
       web_url: "https://{{ route_host }}"
   when: ingress_type | lower == 'route'
+
+- name: Check for existing {{ deployment_type }} deployment
+  ansible.builtin.include_tasks: check_existing.yml
+  when: gating_version | length
 
 - name: Configure Postgres Configuration Secret
   include_tasks: postgres_configuration.yml
