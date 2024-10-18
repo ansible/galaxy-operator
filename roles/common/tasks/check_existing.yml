@@ -1,23 +1,41 @@
 ---
-- name: Check for existing {{ deployment_type }} deployment
+- name: Check if {{ kind }} CR exists by name
+  kubernetes.core.k8s_info:
+    kind: "{{ kind }}"
+    api_version: '{{ api_version }}'
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: '{{ ansible_operator_meta.namespace }}'
+  register: existing_deployment
+
+- name: Set previous_version if deployment exists
+  when:
+    - gating_version | length
+    - existing_deployment.resources | length > 0
   block:
-    - name: Check if {{ kind }} CR exists by name
-      kubernetes.core.k8s_info:
-        kind: "{{ kind }}"
-        api_version: '{{ api_version }}'
-        name: "{{ ansible_operator_meta.name }}"
-        namespace: '{{ ansible_operator_meta.namespace }}'
-      register: existing_deployment
+    - name: Update previous existing deployment without version
+      when: existing_deployment.resources[0].status.deployedVersion is not defined
+      block:
+        - name: Update version status
+          operator_sdk.util.k8s_status:
+            api_version: '{{ api_version }}'
+            kind: "{{ kind }}"
+            name: "{{ ansible_operator_meta.name }}"
+            namespace: "{{ ansible_operator_meta.namespace }}"
+            status:
+              deployedVersion: "4.9.2"
+
+        - name: Check the updated {{ kind }} CR
+          kubernetes.core.k8s_info:
+            kind: "{{ kind }}"
+            api_version: '{{ api_version }}'
+            name: "{{ ansible_operator_meta.name }}"
+            namespace: '{{ ansible_operator_meta.namespace }}'
+          register: existing_deployment
 
     - name: Set previous_version version based on {{ deployment_type }} CR version status
       ansible.builtin.set_fact:
         previous_version: "{{ existing_deployment.resources[0].status.deployedVersion }}"
-      when:
-        - existing_deployment.resources | length > 0
-        - existing_deployment.resources[0].status.deployedVersion is defined
-
-- name: Check previous_version against gating_version if defined
-  block:
+      when: existing_deployment.resources[0].status.deployedVersion is defined
 
     - name: Set upgraded_from to previous_version ({{ previous_version }}) if older than gating_version ({{ gating_version }})
       ansible.builtin.set_fact:
@@ -25,5 +43,4 @@
       when:
         - previous_version is defined
         - previous_version is version(gating_version, '<')
-
-  when: gating_version | length
+...
