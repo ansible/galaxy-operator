@@ -23,6 +23,7 @@
       ansible.builtin.set_fact:
         upgraded_from: "{{ previous_version }}"
       when:
+        - previous_version is defined
         - previous_version is version(gating_version, '<')
 
   when: gating_version | length
