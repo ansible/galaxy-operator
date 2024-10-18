@@ -14,6 +14,7 @@
         previous_version: "{{ existing_deployment.resources[0].status.deployedVersion }}"
       when:
         - existing_deployment.resources | length > 0
+        - existing_deployment.resources[0].status.deployedVersion is defined
         - existing_deployment.resources[0].status.deployedVersion
 
 - name: Check previous_version against gating_version if defined
