@@ -8,5 +8,6 @@ ingress_type: none
 #
 route_tls_termination_mechanism: edge
 
+status_update_full: true
 status_protocol: 'http'
 status_port: '24880'
