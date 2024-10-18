@@ -87,7 +87,7 @@ jobs:
 
       - name: Build Operator
         run: |
-          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
+          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
           sudo -E docker images
         shell: bash
 
@@ -103,7 +103,7 @@ jobs:
         shell: bash
 
       - name: Deploy galaxy-operator to K8s
-        run: sudo -E CI_TEST=galaxy ./up.sh
+        run: sudo -E CI_TEST=galaxy OPERATOR_IMAGE=quay.io/ansible/galaxy-operator:${{ github.sha }} ./up.sh
         shell: bash
 
       - name: Print Galaxy CR
