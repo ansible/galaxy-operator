@@ -1,28 +1,31 @@
 ---
 - name: Check for existing {{ deployment_type }} deployment
-  block:
-    - name: Check if {{ kind }} CR exists by name
-      kubernetes.core.k8s_info:
-        kind: "{{ kind }}"
-        api_version: '{{ api_version }}'
-        name: "{{ ansible_operator_meta.name }}"
-        namespace: '{{ ansible_operator_meta.namespace }}'
-      register: existing_deployment
+  kubernetes.core.k8s_info:
+    kind: "{{ kind }}"
+    api_version: '{{ api_version }}'
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: '{{ ansible_operator_meta.namespace }}'
+  register: existing_deployment
 
-    - name: Set previous_version version based on {{ deployment_type }} CR version status
+- name: Set previous_version if deployment exists
+  block:
+
+    # addresses a pre-existing bug in 2.4 in which deployedVersion is not set in the status
+    - name: Refresh {{ deployment_type }} status if deployedVersion is undefined in existing_deployment status
+      ansible.builtin.include_role:
+        name: galaxy-status
+      vars:
+        status_update_full: false
+      when: existing_deployment.resources[0].status.deployedVersion is not defined
+
+    - name: Set previous_version version based on {{ deployment_type }} deployedVersion status
       ansible.builtin.set_fact:
         previous_version: "{{ existing_deployment.resources[0].status.deployedVersion }}"
-      when:
-        - existing_deployment.resources | length > 0
-        - existing_deployment.resources[0].status.deployedVersion is defined
-
-- name: Check previous_version against gating_version if defined
-  block:
+      when: existing_deployment.resources[0].status.deployedVersion is defined
 
     - name: Set upgraded_from to previous_version ({{ previous_version }}) if older than gating_version ({{ gating_version }})
       ansible.builtin.set_fact:
         upgraded_from: "{{ previous_version }}"
-      when:
-        - previous_version is version(gating_version, '<')
+      when: previous_version is version(gating_version, '<')
 
-  when: gating_version | length
+  when: existing_deployment.resources | length > 0
