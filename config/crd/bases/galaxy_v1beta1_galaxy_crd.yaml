@@ -151,6 +151,10 @@ spec:
               postgres_label_selector:
                 description: Label selector used to identify postgres pod for executing migration
                 type: string
+              force_drop_db:
+                default: false
+                description: (Deprecated) Force drop the database of the new Galaxy before restoring. USE WITH CAUTION!
+                type: boolean
               no_log:
                 default: true
                 description: Configure no_log for no_log tasks
