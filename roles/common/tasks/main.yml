@@ -1,4 +1,5 @@
 ---
+
 - name: Combine default variables for component deployments
   ansible.builtin.set_fact:
     combined_api: "{{ _api | combine(api, recursive=True) }}"
