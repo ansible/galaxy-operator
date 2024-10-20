@@ -59,12 +59,12 @@
       web_url: "https://{{ route_host }}"
   when: ingress_type | lower == 'route'
 
+- name: Configure Postgres Configuration Secret
+  include_tasks: postgres_configuration.yml
+
 - name: Check for existing {{ deployment_type }} deployment
   ansible.builtin.include_tasks: check_existing.yml
   when: gating_version | length
-
-- name: Configure Postgres Configuration Secret
-  include_tasks: postgres_configuration.yml
 
 - name: Set Bundle Certificate Authority
   include_tasks: set_bundle_cacert.yml
