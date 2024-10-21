@@ -1,17 +1,28 @@
 ---
-- name: Check if {{ kind }} CR exists by name
+- name: Check for presence of API Deployment
   kubernetes.core.k8s_info:
-    kind: "{{ kind }}"
-    api_version: '{{ api_version }}'
-    name: "{{ ansible_operator_meta.name }}"
-    namespace: '{{ ansible_operator_meta.namespace }}'
-  register: existing_deployment
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - 'app.kubernetes.io/instance={{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+      - 'app.kubernetes.io/part-of={{ deployment_type }}'
+      - 'app.kubernetes.io/managed-by={{ deployment_type }}-operator'
+  register: _api_deployment
 
 - name: Set previous_version if deployment exists
-  when: existing_deployment.resources | length > 0
+  when: _api_deployment.resources | length > 0
   block:
+    - name: Check if {{ kind }} CR exists by name
+      kubernetes.core.k8s_info:
+        kind: "{{ kind }}"
+        api_version: '{{ api_version }}'
+        name: "{{ ansible_operator_meta.name }}"
+        namespace: '{{ ansible_operator_meta.namespace }}'
+      register: existing_cr
+
     - name: Update previous existing deployment without version
-      when: existing_deployment.resources[0].status.deployedVersion is not defined
+      when: existing_cr.resources[0].status.deployedVersion is not defined
       block:
         - name: Get galaxy settings
           ansible.builtin.include_role:
@@ -23,18 +34,17 @@
             name: galaxy-status
             tasks_from: version.yml
 
-        - name: Check the updated {{ kind }} CR
-          kubernetes.core.k8s_info:
-            kind: "{{ kind }}"
-            api_version: '{{ api_version }}'
-            name: "{{ ansible_operator_meta.name }}"
-            namespace: '{{ ansible_operator_meta.namespace }}'
-          register: existing_deployment
+    - name: Check the updated {{ kind }} CR
+      kubernetes.core.k8s_info:
+        kind: "{{ kind }}"
+        api_version: '{{ api_version }}'
+        name: "{{ ansible_operator_meta.name }}"
+        namespace: '{{ ansible_operator_meta.namespace }}'
+      register: existing_cr
 
     - name: Set previous_version version based on {{ deployment_type }} CR version status
       ansible.builtin.set_fact:
-        previous_version: "{{ existing_deployment.resources[0].status.deployedVersion }}"
-      when: existing_deployment.resources[0].status.deployedVersion is defined
+        previous_version: "{{ existing_cr.resources[0].status.deployedVersion }}"
 
     - name: Set upgraded_from to previous_version ({{ previous_version }}) if older than gating_version ({{ gating_version }})
       ansible.builtin.set_fact:
