@@ -23,7 +23,7 @@
             name: galaxy-status
             tasks_from: version.yml
 
-        - name: Check the updated {{ kind }} CR
+        - name: Check the updated {{ kind }} CR
           kubernetes.core.k8s_info:
             kind: "{{ kind }}"
             api_version: '{{ api_version }}'
