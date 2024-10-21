@@ -1,16 +1,29 @@
 ---
-- name: Check if {{ kind }} CR exists by name
+- name: Check for deployment
   kubernetes.core.k8s_info:
-    kind: "{{ kind }}"
-    api_version: '{{ api_version }}'
+    kind: Deployment
+    api_version: apps/v1
     name: "{{ ansible_operator_meta.name }}"
     namespace: '{{ ansible_operator_meta.namespace }}'
-  register: existing_deployment
+    label_selectors:
+      - 'app.kubernetes.io/part-of={{ ansible_operator_meta.name }}'
+      - 'app.kubernetes.io/managed-by={{ deployment_type }}-operator'
+      - 'app.kubernetes.io/instance={{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+  register: _api_deployment
 
 - name: Set previous_version if deployment exists
-  when: existing_deployment.resources | length > 0
+  when: _api_deployment.resources | length > 0
   block:
-    - name: Update previous existing deployment without version
+
+    - name: Check CR status when _api_deployment detected
+      kubernetes.core.k8s_info:
+        kind: "{{ kind }}"
+        api_version: '{{ api_version }}'
+        name: "{{ ansible_operator_meta.name }}"
+        namespace: '{{ ansible_operator_meta.namespace }}'
+      register: existing_deployment
+
+    - name: Update status if deployedVersion if undefined
       when: existing_deployment.resources[0].status.deployedVersion is not defined
       block:
         - name: Get galaxy settings
@@ -23,7 +36,7 @@
             name: galaxy-status
             tasks_from: version.yml
 
-        - name: Check the updated {{ kind }} CR
+        - name: Check the updated status
           kubernetes.core.k8s_info:
             kind: "{{ kind }}"
             api_version: '{{ api_version }}'
@@ -31,15 +44,12 @@
             namespace: '{{ ansible_operator_meta.namespace }}'
           register: existing_deployment
 
-    - name: Set previous_version version based on {{ deployment_type }} CR version status
+    - name: Set previous_version version based on CR version status
       ansible.builtin.set_fact:
         previous_version: "{{ existing_deployment.resources[0].status.deployedVersion }}"
-      when: existing_deployment.resources[0].status.deployedVersion is defined
 
     - name: Set upgraded_from to previous_version ({{ previous_version }}) if older than gating_version ({{ gating_version }})
       ansible.builtin.set_fact:
         upgraded_from: "{{ previous_version }}"
-      when:
-        - previous_version is defined
-        - previous_version is version(gating_version, '<')
+      when: previous_version is version(gating_version, '<')
 ...
