@@ -1,6 +1,6 @@
 ---
 # Required: specify name of galaxy deployment to backup from
-deployment_name: ''
+# deployment_name: ''
 
 # Specify a pre-created PVC (name) to backup to
 backup_pvc: ''
