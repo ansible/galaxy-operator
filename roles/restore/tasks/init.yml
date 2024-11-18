@@ -49,13 +49,12 @@
     - backup_name is defined
     - backup_name | length
 
-- name: Set deployment_name
+- name: Set deployment_name from restore.spec or default to backup status
   set_fact:
-    deployment_name: "{{ this_backup['resources'][0]['status']['deploymentName'] }}"
+    deployment_name: "{{ deployment_name | default(this_backup['resources'][0]['status']['deploymentName'], true) }}"
   when:
     - backup_name is defined
     - backup_name | length
-    - deployment_name is undefined
 
 - name: Set optional objectstorage backup fact
   set_fact:
