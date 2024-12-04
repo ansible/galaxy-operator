@@ -577,7 +577,7 @@ spec:
         displayName: File storage
         path: storagePersistentVolumeClaim
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:io.kubernetes:PersistentVolumeClaim
       - description: Configuration secret for objectstorage
         displayName: Objectstorage secret
         path: storageSecret
