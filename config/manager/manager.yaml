@@ -42,7 +42,7 @@ spec:
         - --leader-elect
         - --leader-election-id=galaxy-operator
         image: controller:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: galaxy-operator
         env:
           # Watch one namespace (namespace-scoped).
