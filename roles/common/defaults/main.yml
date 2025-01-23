@@ -45,6 +45,7 @@ _worker:
 
 redis: {}
 _redis:
+  replicas: 1
   strategy:
     type: Recreate
   resource_requirements:

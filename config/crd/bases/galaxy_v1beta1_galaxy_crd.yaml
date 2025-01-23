@@ -344,6 +344,7 @@ spec:
                     type: string
                   replicas:
                     default: 1
+                    maximum: 1
                     description: (Deprecated) The number of replicas for redis is 1
                     format: int32
                     type: integer

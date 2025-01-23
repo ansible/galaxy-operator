@@ -15,7 +15,7 @@ metadata:
     app.kubernetes.io/part-of: '{{ deployment_type }}'
     app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
 spec:
-  replicas: 1
+  replicas: {{ combined_redis.replicas }}
 {% if combined_redis.strategy is defined %}
   strategy:
     type: {{ combined_redis.strategy.type }}
