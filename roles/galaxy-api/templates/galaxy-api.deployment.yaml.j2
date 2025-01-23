@@ -44,11 +44,13 @@ spec:
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
       annotations:
         kubectl.kubernetes.io/default-container: api
+{% if public_base_url is defined %}
 {% for template in [
     "redirect-page.configmap.html",
   ] %}
         checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.j2') | sha1 }}"
 {% endfor %}
+{% endif %}
 {% for secret in [
     "galaxy_server_secret_contents",
     "postgres_configuration_secret_contents",
