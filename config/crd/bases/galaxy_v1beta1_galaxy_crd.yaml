@@ -876,7 +876,6 @@ spec:
               public_base_url:
                 description: Public base URL
                 type: string
-                default: ''
             type: object
           status:
             properties:
