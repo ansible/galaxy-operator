@@ -78,6 +78,7 @@ fi
 # -- Create namespace
 # oc new-project $NAMESPACE
 kubectl create namespace $NAMESPACE
+kubectl config set-context --current --namespace=$NAMESPACE
 
 # -- Delete old operator deployment
 kubectl delete deployment galaxy-operator-controller-manager
