@@ -98,5 +98,9 @@ spec:
 {% endif %}
       volumes:
         - name: '{{ ansible_operator_meta.name }}-redis-data'
+{% if redis_data_persistence %}
           persistentVolumeClaim:
             claimName: '{{ ansible_operator_meta.name }}-redis-data'
+{% else %}
+          emptyDir: {}
+{% endif %}

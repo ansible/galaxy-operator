@@ -33,6 +33,9 @@ spec:
   # # We have a little over 10GB free on GHA VMs/instances
   file_storage_size: "10Gi"
   file_storage_storage_class: nfs-local-rwx
+
+  # set redis_data_persistence to true in case you need a redis pvc
+  redis_data_persistence: false
   
   pulp_settings:
     api_root: "/api/galaxy/pulp/"
