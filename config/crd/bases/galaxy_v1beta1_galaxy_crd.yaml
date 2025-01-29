@@ -277,6 +277,9 @@ spec:
               tolerations:
                 description: node tolerations for the Galaxy pods
                 type: string
+              redis_data_persistence:
+                description: Specify whether or not to have a redis pvc
+                type: boolean
               postgres_selector:
                 description: nodeSelector for the Postgres pods
                 type: string
