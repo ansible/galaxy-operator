@@ -91,6 +91,10 @@
   set_fact:
     postgres_configuration_secret_name: "{{ pg_config['resources'][0]['metadata']['name'] }}"
 
+- name: Set database as managed
+  set_fact:
+    managed_database: "{{ pg_config['resources'][0]['data']['type'] | default('') | b64decode == 'managed' }}"
+
 - name: Get postgres configuration secret
   k8s_info:
     kind: Secret
