@@ -154,6 +154,9 @@ spec:
                 default: false
                 description: (Deprecated) Force drop the database of the new Galaxy before restoring. USE WITH CAUTION!
                 type: boolean
+              idle_deployment:
+                description: Scale down deployments to put Galaxy into an idle state
+                type: boolean
               no_log:
                 default: true
                 description: Configure no_log for no_log tasks

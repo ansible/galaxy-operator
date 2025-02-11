@@ -1,0 +1,35 @@
+---
+
+- name: Scale down {{ deployment_type }} deployments
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ ansible_operator_meta.name }}-{{ item }}"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+      spec:
+        replicas: 0
+  loop:
+    - api
+    - content
+    - web
+    - worker
+    - redis
+
+- name: Scale down PostgreSQL Statefulset
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: "{{ ansible_operator_meta.name }}-postgres-{{ supported_pg_version }}"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+      spec:
+        replicas: 0
+  when: managed_database | bool
+
+- name: End Playbook
+  ansible.builtin.meta: end_play
