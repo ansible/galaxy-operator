@@ -118,7 +118,8 @@
 
 - name: Add azure connection string to azure settings
   set_fact:
-    azure_connection_string_dict: "{'AZURE_CONNECTION_STRING': '{{ _custom_azure_configuration['resources'][0]['data']['azure-connection-string'] | b64decode }}' }"
+    azure_connection_string_dict:
+      AZURE_CONNECTION_STRING: "{{ _custom_azure_configuration['resources'][0]['data']['azure-connection-string'] | b64decode }}"
   no_log: "{{ no_log }}"
   when:
     - azure_secret_data_avaiable
@@ -127,20 +128,24 @@
 
 - name: Add azure account name azure settings
   set_fact:
-    azure_account_name_dict : "{'AZURE_ACCOUNT_NAME': '{{ azure_account_name }}' }"
+    azure_account_name_dict:
+      AZURE_ACCOUNT_NAME: "{{ azure_account_name }}"
 
 - name: Add azure account key azure settings
   set_fact:
-    azure_account_key_dict : "{'AZURE_ACCOUNT_KEY': '{{ azure_account_key }}' }"
+    azure_account_key_dict:
+      AZURE_ACCOUNT_KEY: "{{ azure_account_key }}"
   no_log: "{{ no_log }}"
 
 - name: Add azure container azure settings
   set_fact:
-    azure_container_dict : "{'AZURE_CONTAINER': '{{ azure_container }}' }"
+    azure_container_dict:
+      AZURE_CONTAINER: "{{ azure_container }}"
 
 - name: Add azure container path azure settings
   set_fact:
-    azure_container_path_dict : "{'AZURE_LOCATION': '{{ object_storage_path }}' }"
+    azure_container_path_dict:
+      AZURE_LOCATION: "{{ object_storage_path }}"
 
 - name: merge azure_account_name with settings
   set_fact:

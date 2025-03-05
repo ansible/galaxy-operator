@@ -151,30 +151,36 @@
 
 - name: Add s3 access key id to s3 settings
   set_fact:
-    s3_access_key_id_dict : "{'AWS_ACCESS_KEY_ID': '{{ s3_access_key_id }}' }"
+    s3_access_key_id_dict:
+      AWS_ACCESS_KEY_ID: "{{ s3_access_key_id }}"
   no_log: "{{ no_log }}"
 
 - name: Add s3 secret key to s3 settings
   set_fact:
-    s3_secret_access_key_dict : "{'AWS_SECRET_ACCESS_KEY': '{{ s3_secret_access_key }}' }"
+    s3_secret_access_key_dict:
+      AWS_SECRET_ACCESS_KEY: "{{ s3_secret_access_key }}"
   no_log: "{{ no_log }}"
 
 - name: Add s3 bucket to s3 settings
   set_fact:
-    s3_bucket_name_dict : "{'AWS_STORAGE_BUCKET_NAME': '{{ s3_bucket_name }}' }"
+    s3_bucket_name_dict:
+      AWS_STORAGE_BUCKET_NAME: "{{ s3_bucket_name }}"
 
 - name: Add s3 bucket path to s3 settings
   set_fact:
-    s3_bucket_path_dict : "{'MEDIA_ROOT': '{{ object_storage_path }}' }"
+    s3_bucket_path_dict:
+      MEDIA_ROOT: "{{ object_storage_path }}"
 
 - name: Add s3 region to s3 settings
   set_fact:
-    s3_region_dict : "{'AWS_S3_REGION_NAME': '{{ s3_region }}' }"
+    s3_region_dict:
+      AWS_S3_REGION_NAME: "{{ s3_region }}"
   when: s3_region is defined
 
 - name: Add s3 endpoint to s3 settings
   set_fact:
-    s3_endpoint_dict : "{'AWS_S3_ENDPOINT_URL': '{{ s3_endpoint }}' }"
+    s3_endpoint_dict:
+      AWS_S3_ENDPOINT_URL: "{{ s3_endpoint }}"
   when: s3_endpoint is defined
 
 - name: merge s3_access_key_id with settings
