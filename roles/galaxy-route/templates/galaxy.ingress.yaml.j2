@@ -56,7 +56,7 @@ spec:
 {% endif %}
   tls:
     insecureEdgeTerminationPolicy: Redirect
-    termination: edge
+    termination: {{ route_tls_termination_mechanism | lower }}
 {% if route_tls_secret != '' %}
     key: |-
 {{ route_tls_key | indent(width=6, first=True) }}
