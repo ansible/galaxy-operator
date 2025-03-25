@@ -1,27 +1,14 @@
 ---
-- name: Check for specified PostgreSQL configuration
+- name: Get PostgreSQL configuration
   k8s_info:
     kind: Secret
     namespace: '{{ ansible_operator_meta.namespace }}'
     name: '{{ db_secret_name }}'
-  register: _custom_pg_config_resources
+  register: pg_config
   no_log: "{{ no_log }}"
-  when:
-    - db_secret_name is defined
-    - db_secret_name | length
-
-- name: Check for default PostgreSQL configuration
-  k8s_info:
-    kind: Secret
-    namespace: '{{ ansible_operator_meta.namespace }}'
-    name: '{{ deployment_name }}-postgres-configuration'
-  register: _default_pg_config_resources
-  no_log: "{{ no_log }}"
-
-- name: Set PostgreSQL configuration
-  set_fact:
-    pg_config: '{{ _custom_pg_config_resources["resources"] | default([]) | length | ternary(_custom_pg_config_resources, _default_pg_config_resources) }}'
-  no_log: "{{ no_log }}"
+  until: pg_config['resources'] | length
+  delay: 10
+  retries: 60
 
 - name: Store Database Configuration
   set_fact:
@@ -91,9 +78,17 @@
     _cluster_name: "{{ cluster_name | default('') | ternary('.' + cluster_name, '') }}"
   no_log: "{{ no_log }}"
 
-- name: Set full resolvable host name for postgres pod
+- name: Set full resolvable host name for postgresql server
   set_fact:
     resolvable_db_host: '{{ (postgres_type == "managed") | ternary(postgres_host + "." + ansible_operator_meta.namespace + ".svc" + _cluster_name, postgres_host) }}'  # yamllint disable-line rule:line-length
+  no_log: "{{ no_log }}"
+
+- name: Set pg_isready command
+  ansible.builtin.set_fact:
+    pg_isready: >-
+      pg_isready 
+      -h {{ resolvable_db_host }} 
+      -p {{ postgres_port }}
   no_log: "{{ no_log }}"
 
 - name: Set pg_restore command
@@ -135,7 +130,7 @@
           {{ pg_create_db }}
   when: force_drop_db
 
-- name: Restore database dump to the new postgresql container
+- name: Restore Postgres database
   k8s_exec:
     namespace: "{{ backup_pvc_namespace }}"
     pod: "{{ ansible_operator_meta.name }}-db-management"
@@ -149,6 +144,11 @@
         exit $rc
       }
       keepalive_file=\"$(mktemp)\"
+      until {{ pg_isready }} &> /dev/null
+      do
+          echo \"Waiting until Postgres is accepting connections...\"
+          sleep 2
+      done
       while [[ -f \"$keepalive_file\" ]]; do
         echo 'Migrating data from old database...'
         sleep 60
