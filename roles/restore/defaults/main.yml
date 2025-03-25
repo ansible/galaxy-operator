@@ -18,7 +18,7 @@ db_fields_encryption_secret: ''
 sso_secret: ''
 
 # Default cluster name
-cluster_name: 'cluster.local' # On most clusters, this is 'cluster.local'
+cluster_name: '' # On most clusters, this is 'cluster.local'
 
 # Default resource requirements
 restore_resource_requirements:
