@@ -76,3 +76,4 @@ echo "Content endpoint"
 http HEAD http://localhost:24880/galaxy/content/ || true
 echo "Status endpoint"
 http --follow --timeout 30 --check-status --pretty format --print hb http://localhost:24880/api/galaxy/pulp/api/v3/status/ || true
+http --follow --timeout 30 --check-status --pretty format --print hb http://localhost:24880/api/galaxy/ || true

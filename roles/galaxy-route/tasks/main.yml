@@ -43,7 +43,7 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     conditions:
       - type: "{{ deployment_type|capitalize }}-Routes-Ready"
-        message: Checking routes
-        reason: CheckingRoutes
+        message: All routes were created successfully
+        reason: RouteComplete
         status: "True"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
