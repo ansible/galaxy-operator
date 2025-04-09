@@ -331,8 +331,6 @@ spec:
               echo "${output_col}" # Display the full output
               echo "${output_col}" | grep "already exists" > /dev/null && export COL_RC=0 || export COL_RC=${PIPESTATUS[0]}
 
-              GNUPGHOME=/app/.gnupg gpg --batch --import /etc/pulp/keys/signing_service.gpg
-
               output_con=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService 2>&1)
               echo "${output_con}" # Display the full output
               echo "${output_con}" | grep "already exists" > /dev/null && export CON_RC=0 || export CON_RC=${PIPESTATUS[0]}
