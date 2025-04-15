@@ -197,7 +197,7 @@ spec:
               containerPort: 8000
           livenessProbe:
             httpGet:
-              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
+              path: "{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
               port: 8000
               scheme: HTTP
             failureThreshold: 5
@@ -208,7 +208,7 @@ spec:
             exec:
               command:
                 - /usr/bin/readyz.py
-                - "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
+                - "{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
             failureThreshold: 10
             initialDelaySeconds: 30
             periodSeconds: 10

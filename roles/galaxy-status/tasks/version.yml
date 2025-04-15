@@ -9,7 +9,7 @@
 
 - name: Check, through galaxy-web, if the app is ready to serve requests
   uri:
-    url: '{{ status_protocol }}://{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local:{{ status_port }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
+    url: '{{ status_protocol }}://{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local:{{ status_port }}{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
   register: result_not_route
   until: >
     result_not_route.json is defined and
@@ -25,7 +25,7 @@
 
 - name: Check, through galaxy-route, if the app is ready to serve requests
   uri:
-    url: 'https://{{ route_host }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
+    url: 'https://{{ route_host }}{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
     validate_certs: no
   register: result_route
   until: >
