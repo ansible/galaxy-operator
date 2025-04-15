@@ -216,6 +216,15 @@ spec:
           ports:
             - protocol: TCP
               containerPort: 24816
+          livenessProbe:
+            exec:
+              command:
+                - /usr/bin/readyz.py
+                - "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}"
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            timeoutSeconds: 5
           readinessProbe:
             exec:
               command:
