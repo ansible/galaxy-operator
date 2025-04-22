@@ -6,6 +6,7 @@
     _db_secret_value: "{{ status['databaseConfigurationSecret'] }}"
     _admin_password_secret: "{{ status['adminPasswordSecret'] }}"
     _db_fields_encryption_secret: "{{ status['dbFieldsEncryptionSecret'] }}"
+    _container_token_secret: "{{ status['containerTokenSecret'] }}"
 
 - name: Set names of backed up secrets in the CR spec
   set_fact:
@@ -14,6 +15,7 @@
     - {"key": "db_fields_encryption_secret", "value": "{{ _db_fields_encryption_secret }}"}
     - {"key": "admin_password_secret", "value": "{{ _admin_password_secret }}"}
     - {"key": "postgres_configuration", "value": "{{ _db_secret_value }}" }
+    - {"key": "container_token_secret", "value": "{{ _container_token_secret }}"}
 
 - name: "Set {{ deployment_type }} object"
   set_fact:

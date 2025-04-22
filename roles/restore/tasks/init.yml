@@ -64,6 +64,14 @@
     - backup_name | length
     - this_backup['resources'][0]['status']['storageSecret'] is defined
 
+- name: Set container token secret backup fact
+  set_fact:
+    container_token_secret: "{{ this_backup['resources'][0]['status']['containerTokenSecret'] }}"
+  when:
+    - backup_name is defined
+    - backup_name | length
+    - this_backup['resources'][0]['status']['containerTokenSecret'] is defined
+
 - name: Set optional DB fields encryption backup fact
   set_fact:
     db_fields_encryption_secret: "{{ this_backup['resources'][0]['status']['dbFieldsEncryptionSecret'] }}"
