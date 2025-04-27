@@ -74,3 +74,35 @@
     pulp_combined_settings: "{{ default_settings|combine(raw_pulp_settings, recursive=True) if pulp_settings is defined and pulp_settings is not none else default_settings }}"
     cacheable: yes
   no_log: "{{ no_log }}"
+
+- name: add PULP_AUTH_LDAP_BIND_PASSWORD to pulp settings if ldap_bind_password_secret is defined
+  block:
+  - name: Check for specified ldap configuration secret
+    k8s_info:
+      kind: Secret
+      namespace: '{{ ansible_operator_meta.namespace }}'
+      name: '{{ ldap_bind_password_secret }}'
+    register: _ldap_configuration
+    no_log: "{{ no_log }}"
+    when: ldap_bind_password_secret | length
+
+  - name: Assert that the specified ldap configuration secret exists
+    assert:
+      that:
+        - _ldap_configuration['resources'] | default([]) | length
+      fail_msg: "The specified secret '{{ ldap_bind_password_secret }}' does not exist."
+    no_log: "{{ no_log }}"
+    when: ldap_bind_password_secret | length
+
+  - name: set ldap secret
+    set_fact:
+      ldap_password:
+        PULP_AUTH_LDAP_BIND_PASSWORD:  "{{ _ldap_configuration['resources'][0]['data']['password'] | b64decode }}"
+    no_log: "{{ no_log }}"
+
+  - name: add ldap bind password to combined settings
+    set_fact:
+      pulp_combined_settings: "{{ pulp_combined_settings|combine(ldap_password, recursive=True) }}"
+    no_log: "{{ no_log }}"
+    when: ldap_bind_password_secret | length
+  when: ldap_bind_password_secret is defined
