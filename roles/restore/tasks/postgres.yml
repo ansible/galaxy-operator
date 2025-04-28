@@ -1,6 +1,6 @@
 ---
 - name: Get PostgreSQL configuration
-  k8s_info:
+  kubernetes.core.k8s_info:
     kind: Secret
     namespace: '{{ ansible_operator_meta.namespace }}'
     name: '{{ db_secret_name }}'
@@ -28,7 +28,7 @@
 
 - block:
     - name: Get the postgres pod information
-      k8s_info:
+      kubernetes.core.k8s_info:
         kind: Pod
         api_version: v1
         namespace: '{{ ansible_operator_meta.namespace }}'
@@ -53,7 +53,7 @@
         storage_claim: "{{ deployment_name }}-file-storage"
 
     - name: Wait for PVC to be created if file-storage is used
-      k8s_info:
+      kubernetes.core.k8s_info:
         api_version: v1
         kind: PersistentVolumeClaim
         namespace: "{{ ansible_operator_meta.namespace }}"
@@ -131,7 +131,7 @@
   when: force_drop_db
 
 - name: Restore Postgres database
-  k8s_exec:
+  kubernetes.core.k8s_exec:
     namespace: "{{ backup_pvc_namespace }}"
     pod: "{{ ansible_operator_meta.name }}-db-management"
     command: |
