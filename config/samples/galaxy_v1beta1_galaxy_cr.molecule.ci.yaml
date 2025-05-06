@@ -10,6 +10,7 @@ spec:
   ingress_type: nodeport
   # k3s local-path requires this
   file_storage_access_mode: "ReadWriteOnce"
+  file_storage_storage_class: standard
   # We have a little over 10GB free on GHA VMs/instances
   file_storage_size: "10Gi"
   content:
