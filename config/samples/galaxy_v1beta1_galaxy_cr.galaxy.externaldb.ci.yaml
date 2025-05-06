@@ -18,7 +18,6 @@ spec:
   file_storage_access_mode: "ReadWriteMany"
   # We have a little over 10GB free on GHA VMs/instances
   file_storage_size: "10Gi"
-  file_storage_storage_class: standard
   pulp_settings:
     allowed_export_paths:
       - /tmp
