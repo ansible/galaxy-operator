@@ -1,0 +1,7 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "storage-type-binding"
+spec:
+  policyName: "galaxy-operator-storage-type-validation"
+  validationActions: [Deny]
