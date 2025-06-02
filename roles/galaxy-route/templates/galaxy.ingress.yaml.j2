@@ -10,6 +10,9 @@ metadata:
     {{ ingress_annotations | indent(width=4) }}
 {% endif %}
 spec:
+{% if ingress_class_name is defined %}
+  ingressClassName: '{{ ingress_class_name }}'
+{% endif %}
   rules:
     - host: '{{ hostname }}'
       http:
