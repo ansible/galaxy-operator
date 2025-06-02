@@ -288,6 +288,9 @@ spec:
             - |
               mkdir -p /var/lib/pulp/{tmp,media}
               pulpcore-manager migrate
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
           env:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
@@ -337,6 +340,9 @@ spec:
 
               # Exit with the sum of return codes
               exit $((COL_RC + CON_RC))
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
@@ -412,6 +418,9 @@ spec:
               else
                   echo "Resource Server is not enabled, skipping sync scheduling"
               fi
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
           env:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
