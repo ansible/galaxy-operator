@@ -30,3 +30,5 @@ galaxy_nginx_conf_dir: "/etc/nginx/default.d"
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
 raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
+
+nginx_client_max_body_size: 10
