@@ -97,7 +97,7 @@
   - name: set ldap secret
     set_fact:
       ldap_password:
-        PULP_AUTH_LDAP_BIND_PASSWORD:  "{{ _ldap_configuration['resources'][0]['data']['password'] | b64decode }}"
+        AUTH_LDAP_BIND_PASSWORD:  "{{ _ldap_configuration['resources'][0]['data']['password'] | b64decode }}"
     no_log: "{{ no_log }}"
 
   - name: add ldap bind password to combined settings
