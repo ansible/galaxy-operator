@@ -44,7 +44,7 @@
         with open("/tmp/fernet", "wb") as key_file:
             key_file.write(Fernet.generate_key())
       args:
-        executable: /usr/bin/python3
+        executable: /usr/local/bin/python3
       no_log: "{{ no_log }}"
 
     - name: Store DB fields encryption key
