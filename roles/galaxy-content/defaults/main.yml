@@ -1,9 +1,13 @@
 ---
+# common default values
+client_request_timeout: 30
 ingress_type: none
 
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
 raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
 
-gunicorn_timeout: 90
+# gunicorn default values
+gunicorn_timeout: "{{ (([(client_request_timeout | int), 10] | max) / 3) | int }}"
+gunicorn_timeout_grace_period: 2
 gunicorn_content_workers: 2

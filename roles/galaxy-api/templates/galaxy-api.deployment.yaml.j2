@@ -178,6 +178,8 @@ spec:
 {% endif %}
             - name: GUNICORN_TIMEOUT
               value: "{{ gunicorn_timeout }}"
+            - name: GUNICORN_TIMEOUT_GRACE_PERIOD
+              value: "{{ gunicorn_timeout_grace_period }}"
             - name: GUNICORN_WORKERS
               value: "{{ gunicorn_api_workers }}"
 {% if signing_secret is defined %}
