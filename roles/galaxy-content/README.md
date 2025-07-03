@@ -14,7 +14,7 @@ Role Variables
     * `log_level`: The desired log level.
 * `image`: The image name. Default: quay.io/ansible/galaxy-ng
 * `image_version`: The image tag. Default: main
-* `gunicorn_timeout`: The timeout for the gunicorn process. Default: 90
+* `gunicorn_timeout`: The timeout for the gunicorn process. Default: computed based on `client_request_timeout`
 
 Requirements
 ------------

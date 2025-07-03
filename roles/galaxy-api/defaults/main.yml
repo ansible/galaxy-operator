@@ -6,6 +6,9 @@ raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
 container_auth_public_key_name: 'container_auth_public_key.pem'
 container_auth_private_key_name: 'container_auth_private_key.pem'
 
+# common default values
+client_request_timeout: 30
+
 # Keycloack SSO settings
 keycloak_admin_role: hubadmin
 keycloak_port: 443
@@ -20,5 +23,7 @@ keycloak_protocol_available: false
 keycloak_port_available: false
 keycloak_realm_available: false
 
-gunicorn_timeout: 90
+# gunicorn default values
+gunicorn_timeout: "{{ (([(client_request_timeout | int), 10] | max) / 3) | int }}"
+gunicorn_timeout_grace_period: 2
 gunicorn_api_workers: 2

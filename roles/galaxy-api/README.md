@@ -25,7 +25,7 @@ Role Variables
     * `debug`: Wether to run galaxy in debug mode.
 * `image`: The image name. Default: quay.io/ansible/galaxy-ng
 * `image_version`: The image tag. Default: main
-* `gunicorn_timeout`: The timeout for the gunicorn process. Default: 90
+* `gunicorn_timeout`: The timeout for the gunicorn process. Default: computed from `client_request_timeout`
 * `storage_type`: A string for specifying storage configuration type.
 * `file_storage_access_mode`: The access mode for the volume.
 * `file_storage_size`: The storage size.

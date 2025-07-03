@@ -202,7 +202,7 @@ spec:
               gunicorn_timeout:
                 description: The timeout for the gunicorn process.
                 type: integer
-                default: 90
+                default: 10
               hostname:
                 description: The hostname of the instance
                 type: string
@@ -238,15 +238,15 @@ spec:
                 type: string
               nginx_proxy_read_timeout:
                 description: NGINX proxy read timeout
-                default: 120s
+                default: 15s
                 type: string
               nginx_proxy_connect_timeout:
                 description: NGINX proxy connect timeout
-                default: 120s
+                default: 15s
                 type: string
               nginx_proxy_send_timeout:
                 description: NGINX proxy send timeout
-                default: 120s
+                default: 15s
                 type: string
               service_annotations:
                 description: Annotations to add to the service

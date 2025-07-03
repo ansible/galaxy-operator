@@ -102,6 +102,23 @@ data:
                 # redirects, we set the Host: header above already.
                 proxy_redirect off;
                 proxy_pass http://pulp-content;
+                error_page 504 =503 /json_503;  # Return 503 Service Unavailable with JSON response if gunicorn fails to respond
+                error_page 502 =503 /json_503;  # Optional, in case gunicorn is completely down
+            }
+
+
+            location = /json_503 {
+                # Custom JSON response for 503 Service Unavailable
+                internal;
+                add_header Content-Type application/json;
+
+                # Check if X-Request-ID is set and include it in the response
+                if ($http_x_request_id) {
+                    return 503 '{"status": "error", "message": "Service Unavailable", "code": 503, "request_id": "$http_x_request_id"}';
+                }
+
+                # If X-Request-ID is not set, just return the basic JSON response
+                return 503 '{"status": "error", "message": "Service Unavailable", "code": 503}';
             }
 
             location /{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/ {
@@ -112,6 +129,8 @@ data:
                 # redirects, we set the Host: header above already.
                 proxy_redirect off;
                 proxy_pass http://pulp-api;
+                error_page 504 =503 /json_503;  # Return 503 Service Unavailable with JSON response if gunicorn fails to respond
+                error_page 502 =503 /json_503;  # Optional, in case gunicorn is completely down
             }
 
             location /auth/login/ {
