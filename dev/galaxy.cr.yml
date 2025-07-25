@@ -1,0 +1,79 @@
+---
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
+metadata:
+  name: galaxy
+spec:
+  
+  # ingress_type: nodeport
+  # nodeport_port: 32002
+  ingress_type: Route
+  deployment_type: galaxy
+
+  image_pull_policy: Always
+  no_log: false
+
+  # Test CA Bundle
+  # bundle_cacert_secret: my-custom-certs
+  # route_tls_secret: galaxy-tls
+
+  # signing configuration
+  signing_secret: "signing-galaxy"
+  signing_scripts_configmap: "signing-scripts"
+
+  # admin_password_secret: admin-password-secret
+
+  #object_storage_azure_secret: automation-hub-azurite
+  #storage_type: Azure
+
+  storage_type: File
+
+  # k3s local-path requires this
+  file_storage_access_mode: "ReadWriteMany"
+  # # We have a little over 10GB free on GHA VMs/instances
+  file_storage_size: "10Gi"
+  file_storage_storage_class: nfs-local-rwx
+
+  # set redis_data_persistence to true in case you need a redis pvc
+  # redis_data_persistence: false
+  
+  pulp_settings:
+    api_root: "/api/galaxy/pulp/"
+    allowed_export_paths:
+      - /tmp
+    allowed_import_paths:
+      - /tmp
+    telemetry: false
+
+  # database:
+  #   postgres_storage_class: standard
+  # api:
+  #   replicas: 1
+  # content:
+  #   replicas: 1
+  #   resource_requirements:
+  #     requests:
+  #       cpu: 150m
+  #       memory: 256Mi
+  #     limits:
+  #       cpu: 800m
+  #       memory: 1Gi
+  # worker:
+  #   replicas: 1
+  #   resource_requirements:
+  #     requests:
+  #       cpu: 150m
+  #       memory: 256Mi
+  #     limits:
+  #       cpu: 800m
+  #       memory: 1Gi
+  # web:
+  #   replicas: 1
+  #   resource_requirements:
+  #     requests:
+  #       cpu: 100m
+  #       memory: 256Mi
+  #     limits:
+  #       cpu: 800m
+  #       memory: 1Gi
+

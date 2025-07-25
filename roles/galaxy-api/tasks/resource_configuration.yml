@@ -44,7 +44,7 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     pod: "{{ _api_pod_name }}"
     container: "api"
-    command: bash -c "pulpcore-manager reset-admin-password --password '{{ admin_password }}'"
+    command: bash -c "ANSIBLE_REVERSE_RESOURCE_SYNC=false pulpcore-manager reset-admin-password --password '{{ admin_password }}'"
   register: result
   changed_when: "'That username is already taken' not in result.stderr"
   failed_when: "'That username is already taken' not in result.stderr and 'Successfully set password' not in result.stdout"

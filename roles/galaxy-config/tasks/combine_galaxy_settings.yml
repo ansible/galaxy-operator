@@ -18,9 +18,8 @@
 # https://github.com/ansible/ansible/issues/50554
 - name: Setting CONTENT_ORIGIN
   set_fact:
-    content_origin_temp: pulp_settings.content_origin
+    content_origin: pulp_settings.content_origin
   when:
-    - pulp_settings is defined
     - pulp_settings.content_origin is defined
 
 - name: Getting raw pulp_settings
@@ -37,7 +36,16 @@
 
 - include_tasks:
     file: get_node_ip.yml
-  when: content_origin_temp is not defined
+  when: content_origin is not defined
+
+- name: Set token_server and other container default settings
+  set_fact:
+    token_server_dict: "{ 'token_server': '{{ content_origin }}/token/', 'token_auth_disabled': 'False', 'token_signature_algorithm': 'ES256','public_key_path': '/etc/pulp/keys/container_auth_public_key.pem', 'private_key_path': '/etc/pulp/keys/container_auth_private_key.pem' }"
+
+- name: merge token_server with settings
+  set_fact:
+    default_settings: "{{ default_settings|combine(token_server_dict) }}"
+  no_log: "{{ no_log }}"
 
 - name: Set default CSRF_TRUSTED_ORIGINS to be used if not set by user
   set_fact:

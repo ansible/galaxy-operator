@@ -35,27 +35,10 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
-- name: galaxy-web configmap
+- name: Apply galaxy-web ConfigMap resources
   k8s:
     state: "{{ deployment_state }}"
-    definition: "{{ lookup('template', 'templates/' + item + '.configmap.yaml.j2') | from_yaml }}"
-  with_items:
-    - galaxy-web
-
-- name: Set default galaxy-web image
-  set_fact:
-    _default_image_web: "{{ _image_web }}:{{ _image_web_version }}"
-
-- name: Set user provided galaxy-web image
-  set_fact:
-    _custom_image_web: "{{ image_web }}:{{ image_web_version }}"
-  when:
-    - image_web is defined and image_web != ''
-    - image_web_version is defined and image_web_version != ''
-
-- name: Set galaxy-web image URL
-  set_fact:
-    _image_web: "{{ _custom_image_web | default(lookup('env', 'RELATED_IMAGE_GALAXY_WEB')) | default(_default_image_web, true) }}"
+    definition: "{{ lookup('template', 'galaxy-web.configmap.yaml.j2') | from_yaml }}"
 
 - name: Set node affinity
   set_fact:

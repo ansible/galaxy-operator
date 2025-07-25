@@ -19,20 +19,11 @@
   with_items:
     - galaxy-api
 
-- name: Set default galaxy-api image
-  set_fact:
-    _default_image: "{{ _image }}:{{ _image_version }}"
-
-- name: Set user provided galaxy-api image
-  set_fact:
-    _custom_image: "{{ image }}:{{ image_version }}"
-  when:
-    - image is defined and image != ''
-    - image_version is defined and image_version != ''
-
-- name: Set galaxy-api image URL
-  set_fact:
-    _image: "{{ _custom_image | default(lookup('env', 'RELATED_IMAGE_GALAXY')) | default(_default_image, true) }}"
+- name: Apply Redirect Page Configmap
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'redirect-page.configmap.html.j2') }}"
+  when: public_base_url is defined
 
 - name: Set node affinity
   set_fact:

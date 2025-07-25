@@ -5,6 +5,7 @@
     definition: "{{ lookup('template', 'templates/' + item + '.pvc.yaml.j2') | from_yaml }}"
   with_items:
     - redis
+  when: redis_data_persistence | bool
 
 - name: redis service
   k8s:

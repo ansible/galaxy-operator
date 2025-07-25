@@ -1,11 +1,12 @@
 ---
+
 - name: Combine default variables for component deployments
   ansible.builtin.set_fact:
     combined_api: "{{ _api | combine(api, recursive=True) }}"
     combined_content: "{{ _content | combine(content, recursive=True) }}"
     combined_web: "{{ _web | combine(web, recursive=True) }}"
-    combined_worker: "{{ _web | combine(worker, recursive=True) }}"
-    combined_redis: "{{ _redis | combine(redis, recursive=True) }}"  
+    combined_worker: "{{ _worker | combine(worker, recursive=True) }}"
+    combined_redis: "{{ _redis | combine(redis, recursive=True) }}"
 
 - name: Set apiVersion and kind variables
   ansible.builtin.set_fact:
@@ -61,6 +62,14 @@
 - name: Configure Postgres Configuration Secret
   include_tasks: postgres_configuration.yml
 
+- name: Idle {{ deployment_type }}
+  ansible.builtin.include_tasks: idle_deployment.yml
+  when: idle_deployment | bool
+
+- name: Check for existing {{ deployment_type }} deployment
+  ansible.builtin.include_tasks: check_existing.yml
+  when: gating_version | length
+
 - name: Set Bundle Certificate Authority
   include_tasks: set_bundle_cacert.yml
   when: bundle_cacert_secret | length
@@ -83,3 +92,5 @@
 - name: Configure Object Storage
   include_tasks: object_storage_configuration.yml
 
+- name: Set application images
+  include_tasks: set_images.yml

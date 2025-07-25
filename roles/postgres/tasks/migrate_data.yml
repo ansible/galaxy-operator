@@ -45,7 +45,7 @@
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
 - name: Scale down deployments for migration
-  include: scale_down_deployments.yml
+  include_tasks: scale_down_deployments.yml
 
 - k8s_status:
     api_version: "{{ api_version }}"

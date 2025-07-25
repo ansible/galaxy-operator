@@ -20,7 +20,6 @@ spec:
     schema:
       openAPIV3Schema:
         type: object
-        x-kubernetes-preserve-unknown-fields: true
         description: Schema validation for the Galaxy CRD
         properties:
           apiVersion:
@@ -151,6 +150,13 @@ spec:
               postgres_label_selector:
                 description: Label selector used to identify postgres pod for executing migration
                 type: string
+              force_drop_db:
+                default: false
+                description: (Deprecated) Force drop the database of the new Galaxy before restoring. USE WITH CAUTION!
+                type: boolean
+              idle_deployment:
+                description: Scale down deployments to put Galaxy into an idle state
+                type: boolean
               no_log:
                 default: true
                 description: Configure no_log for no_log tasks
@@ -223,6 +229,9 @@ spec:
               ingress_tls_secret:
                 description: Secret where the ingress TLS secret can be found
                 type: string
+              ingress_class_name:
+                description: The name of ingress class to use instead of the cluster default.
+                type: string
               nginx_client_max_body_size:
                 description: NGINX client max body size
                 default: 10m
@@ -274,6 +283,9 @@ spec:
               tolerations:
                 description: node tolerations for the Galaxy pods
                 type: string
+              redis_data_persistence:
+                description: Specify whether or not to have a redis pvc
+                type: boolean
               postgres_selector:
                 description: nodeSelector for the Postgres pods
                 type: string
@@ -340,7 +352,8 @@ spec:
                     type: string
                   replicas:
                     default: 1
-                    description: The number of replicas for the deployment.
+                    maximum: 1
+                    description: (Deprecated) The number of replicas for redis is 1
                     format: int32
                     type: integer
                   resource_requirements:
@@ -869,10 +882,9 @@ spec:
                         type: object
                     type: object
                 type: object
-              force_drop_db:
-                description: Force drop the database before restoring. USE WITH CAUTION!
-                type: boolean
-                default: false
+              public_base_url:
+                description: Public base URL
+                type: string
             type: object
           status:
             properties:
@@ -894,6 +906,9 @@ spec:
               storageSecret:
                 description: The name of the secret used for object storage
                 type: string
+              upgradedFrom:
+                description: Last gated version
+                type: string                
               deployedVersion:
                 description: Version of the deployed instance
                 type: string

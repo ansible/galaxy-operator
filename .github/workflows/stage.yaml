@@ -45,13 +45,13 @@ jobs:
           repository: ${{ github.repository_owner }}/galaxy-operator
           path: galaxy-operator
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          python-version: '3.9'
 
       - name: Install dependencies
-        run: pip install requests
+        run: python3 -m pip install requests
 
       - name: Install playbook dependencies
         run: |

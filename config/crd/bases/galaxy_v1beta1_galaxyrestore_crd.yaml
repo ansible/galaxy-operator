@@ -20,7 +20,6 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          x-kubernetes-preserve-unknown-fields: true
           description: Schema validation for the GalaxyRestore CRD
           properties:
             spec:
@@ -82,6 +81,10 @@ spec:
                   description: Overrides for the Galaxy spec
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
+                force_drop_db:
+                  default: false
+                  description: Force drop the database of the new Galaxy before restoring. USE WITH CAUTION!
+                  type: boolean
                 no_log:
                   default: true
                   description: Configure no_log (hides sensitive information in operator/task logs)

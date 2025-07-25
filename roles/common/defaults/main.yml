@@ -9,6 +9,9 @@ is_openshift: false
 
 deployment_type: galaxy
 
+# idle_deployment - Scale down replicas to put Galaxy into an idle mode
+idle_deployment: false
+
 api: {}
 _api:
   replicas: 1
@@ -45,6 +48,7 @@ _worker:
 
 redis: {}
 _redis:
+  replicas: 1
   strategy:
     type: Recreate
   resource_requirements:

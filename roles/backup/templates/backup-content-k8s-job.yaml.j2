@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ ansible_operator_meta.name }}-backup-content
-  namespace: {{ backup_pvc_namespace }}
+  namespace: "{{ backup_pvc_namespace }}"
   labels:
     app.kubernetes.io/name: '{{ deployment_type }}-backup-content'
     app.kubernetes.io/instance: '{{ deployment_type }}-backup-content-{{ ansible_operator_meta.name }}'

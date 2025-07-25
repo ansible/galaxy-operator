@@ -20,7 +20,6 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          x-kubernetes-preserve-unknown-fields: true
           description: Schema validation for the GalaxyBackup CRD
           properties:
             spec:

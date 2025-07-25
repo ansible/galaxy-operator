@@ -8,6 +8,7 @@ metadata:
     ignore-check.kube-linter.io/no-liveness-probe: "Port isn't exposed"
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
   labels:
+    {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=4) | trim }}
     app.kubernetes.io/name: '{{ deployment_type }}-worker'
     app.kubernetes.io/instance: '{{ deployment_type }}-worker-{{ ansible_operator_meta.name }}'
     app.kubernetes.io/component: worker
@@ -36,6 +37,7 @@ spec:
   template:
     metadata:
       labels:
+        {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=8) | trim }}
         app.kubernetes.io/name: '{{ deployment_type }}-worker'
         app.kubernetes.io/instance: '{{ deployment_type }}-worker-{{ ansible_operator_meta.name }}'
         app.kubernetes.io/component: worker
@@ -44,8 +46,8 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: worker
 {% for secret in [
-    "galaxy_server_secret",
-    "_postgres_configuration_secret",
+    "galaxy_server_secret_contents",
+    "postgres_configuration_secret_contents",
     "db_fields_encryption_secret_contents",
   ] %}
         checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
@@ -128,12 +130,12 @@ spec:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: host
             - name: POSTGRES_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
@@ -209,12 +211,12 @@ spec:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: host
             - name: POSTGRES_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: port
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server

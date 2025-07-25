@@ -7,6 +7,7 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
   labels:
+    {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=4) | trim }}
     app.kubernetes.io/name: '{{ deployment_type }}-api'
     app.kubernetes.io/instance: '{{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
     app.kubernetes.io/component: api
@@ -35,6 +36,7 @@ spec:
   template:
     metadata:
       labels:
+        {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=8) | trim }}
         app.kubernetes.io/name: '{{ deployment_type }}-api'
         app.kubernetes.io/instance: '{{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
         app.kubernetes.io/component: api
@@ -42,9 +44,16 @@ spec:
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
       annotations:
         kubectl.kubernetes.io/default-container: api
+{% if public_base_url is defined %}
+{% for template in [
+    "redirect-page.configmap.html",
+  ] %}
+        checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.j2') | sha1 }}"
+{% endfor %}
+{% endif %}
 {% for secret in [
-    "galaxy_server_secret",
-    "_postgres_configuration_secret",
+    "galaxy_server_secret_contents",
+    "postgres_configuration_secret_contents",
     "db_fields_encryption_secret_contents",
   ] %}
         checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
@@ -63,6 +72,14 @@ spec:
         {{ tolerations | indent(width=8) }}
 {% endif %}
       volumes:
+{% if public_base_url is defined %}
+        - name: redirect-page
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-redirect-page'
+            items:
+              - key: redirect-page.html
+                path: redirect-page.html
+{% endif %}
         - name: {{ ansible_operator_meta.name }}-server
           secret:
             secretName: {{ ansible_operator_meta.name }}-server
@@ -146,12 +163,12 @@ spec:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: host
             - name: POSTGRES_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: port
 {% if pulp_combined_settings.cache_enabled %}
             - name: REDIS_SERVICE_HOST
@@ -200,6 +217,11 @@ spec:
           resources: {{ combined_api.resource_requirements }}
 {% endif %}
           volumeMounts:
+{% if public_base_url is defined %}
+            - name: redirect-page
+              mountPath: '{{ pulp_combined_settings.static_root }}/galaxy_ng/index.html'
+              subPath: redirect-page.html
+{% endif %}
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
               subPath: settings.py
@@ -266,16 +288,19 @@ spec:
             - |
               mkdir -p /var/lib/pulp/{tmp,media}
               pulpcore-manager migrate
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
           env:
             - name: POSTGRES_SERVICE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: host
             - name: POSTGRES_SERVICE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ _postgres_configuration_secret }}
+                  name: {{ postgres_configuration_secret_name }}
                   key: port
             - name: HOME
               value: "/var/lib/pulp"
@@ -309,14 +334,15 @@ spec:
               echo "${output_col}" # Display the full output
               echo "${output_col}" | grep "already exists" > /dev/null && export COL_RC=0 || export COL_RC=${PIPESTATUS[0]}
 
-              GNUPGHOME=/app/.gnupg gpg --batch --import /etc/pulp/keys/signing_service.gpg
-
               output_con=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService 2>&1)
               echo "${output_con}" # Display the full output
               echo "${output_con}" | grep "already exists" > /dev/null && export CON_RC=0 || export CON_RC=${PIPESTATUS[0]}
 
               # Exit with the sum of return codes
               exit $((COL_RC + CON_RC))
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
           env:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
@@ -378,4 +404,47 @@ spec:
               mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
               subPath: bundle-ca.crt
               readOnly: true
+{% endif %}
+        - name: resource-sync-job
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command:
+            - /bin/bash
+            - -c
+            - |
+              if dynaconf get RESOURCE_SERVER__URL >/dev/null 2>&1; then
+                  echo "Scheduling Resource Sync Task to execute every 15 minutes"
+                  django-admin task-scheduler --id dab_sync --interval 15 --path "galaxy_ng.app.tasks.resource_sync.run" || true
+              else
+                  echo "Resource Server is not enabled, skipping sync scheduling"
+              fi
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: port
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
 {% endif %}

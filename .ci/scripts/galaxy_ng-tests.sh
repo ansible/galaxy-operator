@@ -4,17 +4,17 @@ set -euo pipefail
 KUBE="k3s"
 SERVER=$(hostname)
 WEB_PORT="24817"
-if [[ "${1-null}" == "--minikube" ]] || [[ "${1-null}" == "-m" ]]; then
+if [[ "$1" == "--minikube" ]] || [[ "$1" == "-m" ]]; then
   KUBE="minikube"
   SERVER="localhost"
-  if [[ "$CI_TEST" == "true" ]]; then
+  if [[ "$CI_TEST" == "true" ]] || [[ "$CI_TEST" == "galaxy" ]]; then
     SVC_NAME="example-galaxy-web-svc"
     WEB_PORT="24880"
     kubectl port-forward service/$SVC_NAME $WEB_PORT:$WEB_PORT &
   fi
 fi
 
-pip3 install "ansible<2.13.2"
+python3 -m pip install "ansible<2.13.2"
 
 BASE_ADDR="http://$SERVER:$WEB_PORT"
 echo $BASE_ADDR
@@ -52,10 +52,10 @@ do
     fi
 done
 
-podman pull registry.access.redhat.com/ubi9/ubi-micro:latest
-podman login --tls-verify=false -u admin -p password localhost:24880
-podman tag registry.access.redhat.com/ubi9/ubi-micro:latest localhost:24880/ubi9-micro:latest 
-podman push --tls-verify=false localhost:24880/ubi9-micro:latest
+sudo podman pull registry.access.redhat.com/ubi9/ubi-micro:latest
+sudo podman login --tls-verify=false -u admin -p password localhost:24880
+sudo podman tag registry.access.redhat.com/ubi9/ubi-micro:latest localhost:24880/ubi9-micro:latest
+sudo podman push --tls-verify=false localhost:24880/ubi9-micro:latest
 
 
 curl -H "Authorization:Token $TOKEN" http://localhost:24880/api/galaxy/v3/plugin/execution-environments/repositories/ | jq
@@ -104,7 +104,7 @@ echo "Creating community namespace"
 curl -X POST -d '{"name": "kubernetes", "groups":[]}' -H 'Content-Type: application/json' -H 'Accept: application/json' -H "Authorization:Token $TOKEN" $BASE_ADDR/api/galaxy/v3/namespaces/
 
 echo "Upload kubernetes.core collection"
-ansible-galaxy collection publish -vvvv -c ./vendor/galaxy.ansible.com/kubernetes/core/kubernetes-core-2.3.2.tar.gz
+ansible-galaxy collection publish -vvvv -c ./vendor/galaxy.ansible.com/kubernetes/core/kubernetes-core-3.2.0.tar.gz
 
 echo "Check if it was uploaded"
 curl -H "Authorization:Token $TOKEN" $BASE_ADDR/api/galaxy/content/staging/v3/collections/ | jq

@@ -44,10 +44,10 @@ jobs:
           # repository: ${{ steps.head_repo_name.outputs.repo }}
           # ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install httpie
         run: |
@@ -87,7 +87,7 @@ jobs:
 
       - name: Build Operator
         run: |
-          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:main
+          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
           sudo -E docker images
         shell: bash
 
@@ -103,7 +103,7 @@ jobs:
         shell: bash
 
       - name: Deploy galaxy-operator to K8s
-        run: sudo -E CI_TEST=galaxy ./up.sh
+        run: sudo -E CI_TEST=galaxy OPERATOR_IMAGE=quay.io/ansible/galaxy-operator:${{ github.sha }} ./up.sh
         shell: bash
 
       - name: Print Galaxy CR
@@ -128,7 +128,52 @@ jobs:
           sudo popeye --kubeconfig ~/.kube/config || true
 
       - name: Test
-        run: sudo -E .ci/scripts/galaxy_ng-tests.sh -m
+        run: CI_TEST=galaxy .ci/scripts/galaxy_ng-tests.sh -m
+        shell: bash
+
+      - name: Idle Galaxy Deployment
+        run: |
+          echo "Idling Galaxy deployment..."
+          kubectl -n galaxy patch galaxy example-galaxy --type merge -p '{"spec":{"idle_deployment":true}}'
+        shell: bash
+
+      - name: Wait for Deployments and StatefulSets to Scale Down
+        shell: bash
+        run: |
+          echo "Waiting for all deployments and statefulsets to scale down (excluding galaxy-operator-controller-manager)..."
+          while true; do
+            RUNNING_PODS=$(kubectl get pods -n "$NAMESPACE" --field-selector=status.phase=Running --no-headers | wc -l)
+            if [[ "$RUNNING_PODS" == "1" ]]; then
+              echo "All deployments and statefulsets are scaled down. Only the operator pod is running."
+              break
+            fi
+            echo "Still waiting for scale down..."
+            sleep 5
+          done
+
+      - name: Un-idle Galaxy Deployment
+        run: |
+          echo "Un-idling Galaxy deployment..."
+          kubectl -n galaxy patch galaxy example-galaxy --type merge -p '{"spec":{"idle_deployment":false}}'
+        shell: bash
+
+      - name: Wait for Deployments and StatefulSets to Scale Up
+        run: |
+          echo "Waiting for all deployments and statefulsets to scale up (excluding galaxy-operator-controller-manager)"
+          EXPECTED_PODS=7
+          if [[ "${{ matrix.DATABASE }}" == "external" ]]; then
+            EXPECTED_PODS=6
+          fi
+
+          while true; do
+            RUNNING_PODS=$(kubectl get pods -n "$NAMESPACE" --field-selector=status.phase=Running --no-headers | wc -l)
+            if [[ "$RUNNING_PODS" == "$EXPECTED_PODS" ]]; then
+              echo "All deployments and statefulsets are scaled up."
+              break
+            fi
+            echo "Still waiting for scale up..."
+            sleep 10
+          done
         shell: bash
 
       - name: Backup & Restore

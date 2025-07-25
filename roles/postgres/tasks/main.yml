@@ -22,10 +22,6 @@
     custom_resource: "{{ hostvars[inventory_hostname][custom_resource_key] }}"
     custom_resource_status: "{{ hostvars[inventory_hostname][custom_resource_key]['status'] | default({}) }}"
 
-- name: Set database as managed
-  set_fact:
-    managed_database: "{{ pg_config['resources'][0]['data']['type'] | default('') | b64decode == 'managed' }}"
-
 - name: Set postgres label if not defined by user
   set_fact:
     postgres_label_selector: "app.kubernetes.io/instance=postgres-{{ ansible_operator_meta.name }}"
