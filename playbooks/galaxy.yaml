@@ -70,6 +70,10 @@
 
   tasks:
 
+    # Check for pulp_ansible version compatibility and scale down if needed
+    - name: Check and handle pulp dependency version compatibilities
+      include_tasks: check_pulp_dependency_versions.yml
+
     # If file storage is used, this role will create the PVC,
     # which is needed by the restore management pod
     - include_role:

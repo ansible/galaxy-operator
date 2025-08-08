@@ -1,0 +1,90 @@
+---
+# Check for existing API pods and their pulp dependency versions
+# Sometimes it is necessary to scale down deployments before an upgrade if there are breaking changes in the pulp dependencies.
+# Known incompatibilities to check for:
+#   * pulp_ansible < 0.23 is not compatible with 0.23.0 or later
+
+- name: Check for existing API deployment
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - 'app.kubernetes.io/instance={{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+      - 'app.kubernetes.io/part-of={{ deployment_type }}'
+      - 'app.kubernetes.io/managed-by={{ deployment_type }}-operator'
+  register: _existing_api_deployment
+
+- name: Check pulp_ansible version if API deployment exists
+  when: _existing_api_deployment.resources | length > 0
+  block:
+    - name: Get running API pods
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        label_selectors:
+          - 'app.kubernetes.io/instance={{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+          - 'app.kubernetes.io/part-of={{ deployment_type }}'
+          - 'app.kubernetes.io/managed-by={{ deployment_type }}-operator'
+        field_selectors:
+          - status.phase=Running
+      register: _api_pods
+
+    - name: Check pulp_ansible version and set scaling flag
+      when: _api_pods.resources | length > 0
+      block:
+        - name: Execute pulpcore-manager shell to check pulp_ansible version
+          kubernetes.core.k8s_exec:
+            namespace: "{{ ansible_operator_meta.namespace }}"
+            pod: "{{ _api_pods.resources[0].metadata.name }}"
+            command: |
+              bash -c "pulpcore-manager shell -c \"
+              try:
+                  import importlib.metadata
+                  version = importlib.metadata.version('pulp_ansible')
+                  print(version)
+              except Exception:
+                  print('not_found')
+              \" 2>/dev/null || echo 'not_found'"
+          register: _pulp_ansible_version_output
+          failed_when: false
+
+        - name: Set scaling flag if pulp_ansible version is less than 0.23
+          ansible.builtin.set_fact:
+            needs_scaling_down: true
+          when:
+            - _pulp_ansible_version_output.rc == 0
+            - _pulp_ansible_version_output.stdout | trim != 'not_found'
+            - _pulp_ansible_version_output.stdout | trim != ''
+            - _pulp_ansible_version_output.stdout | trim is version('0.23.0', '<')
+
+- name: Scale down API, Worker, and Content deployments if pulp_ansible < 0.23
+  when: needs_scaling_down | default(false)
+  block:
+    - name: Check for all deployments to scale down
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        label_selectors:
+          - 'app.kubernetes.io/instance={{ deployment_type }}-{{ item }}-{{ ansible_operator_meta.name }}'
+          - 'app.kubernetes.io/part-of={{ deployment_type }}'
+          - 'app.kubernetes.io/managed-by={{ deployment_type }}-operator'
+      loop:
+        - api
+        - worker
+        - content
+      register: _deployments_to_scale
+
+    - name: Scale down deployments
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ item.resources[0].metadata.name }}"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        replicas: 0
+        wait: true
+        wait_timeout: 60
+      loop: "{{ _deployments_to_scale.results }}"
+      when: item.resources | length > 0
