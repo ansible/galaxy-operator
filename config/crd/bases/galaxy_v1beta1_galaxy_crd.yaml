@@ -72,6 +72,28 @@ spec:
                         type: boolean
                     type: object
                 type: object
+              extra_settings_files:
+                description: Extra ConfigMaps or Secrets of settings files to specify for AWX
+                properties:
+                  configmaps:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        key:
+                          type: string
+                      type: object
+                    type: array
+                  secrets:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        key:
+                          type: string
+                      type: object
+                    type: array
+                type: object
               bundle_cacert_secret:
                 description: Secret where the trusted Certificate Authority Bundle is stored
                 type: string
