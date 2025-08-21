@@ -272,7 +272,7 @@ spec:
             - -c
             - |
               mkdir -p /etc/pki/ca-trust/extracted/{java,pem,openssl,edk2}
-              update-ca-trust
+              update-ca-trust extract --output /etc/pki/ca-trust/extracted
 {% if combined_worker.resource_requirements is defined %}
           resources: {{ combined_worker.resource_requirements }}
 {% endif %}
