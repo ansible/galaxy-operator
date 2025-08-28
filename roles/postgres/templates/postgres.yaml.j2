@@ -149,6 +149,11 @@ spec:
             - name: postgres
               mountPath: '{{ _postgres_data_path | dirname }}'
               subPath: '{{ _postgres_data_path | dirname | basename }}'
+{% if postgres_extra_settings | length > 0 %}
+            - name: pg-overrides
+              mountPath: /opt/app-root/src/postgresql-cfg
+              readOnly: true
+{% endif %}
           resources: {{ postgres_resource_requirements }}
 {% if postgres_selector %}
       nodeSelector:
@@ -168,6 +173,15 @@ spec:
         storageClassName: '{{ postgres_storage_class }}'
 {% endif %}
         resources: {{ postgres_storage_requirements }}
+{% if postgres_extra_settings | length > 0 %}
+      volumes:
+        - name: pg-overrides
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-postgres-extra-settings'
+            items:
+              - key: 99-overrides.conf
+                path: 99-overrides.conf
+{% endif %}
 
 # Postgres Service.
 ---
