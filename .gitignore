@@ -12,6 +12,7 @@ hacking/*
 test*
 testing/*
 testbin/*
+hacking/
 
 # Ignore mkdocs builds
 site
