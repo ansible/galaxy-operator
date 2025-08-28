@@ -16,6 +16,7 @@ DEV_CR=${DEV_CR:-dev/galaxy.cr.yml}
 PULL_SECRET_FILE=${PULL_SECRET_FILE:-hacking/pull-secret.yml}
 
 IMG=${IMG:-"quay.io/$QUAY_USER/galaxy-operator:$TAG"}
+KUBE_APPLY="kubectl apply -n $NAMESPACE -f"
 
 KUBE_APPLY="kubectl apply -n $NAMESPACE -f"
 
