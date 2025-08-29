@@ -90,6 +90,8 @@ jobs:
           sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
           sudo -E docker images
         shell: bash
+        env:
+          ENGINE: docker
 
       - name: Prepare External Database and Object Storage
         run: |
