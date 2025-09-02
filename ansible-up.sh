@@ -18,9 +18,6 @@ PULL_SECRET_FILE=${PULL_SECRET_FILE:-hacking/pull-secret.yml}
 IMG=${IMG:-"quay.io/$QUAY_USER/galaxy-operator:$TAG"}
 KUBE_APPLY="kubectl apply -n $NAMESPACE -f"
 
-KUBE_APPLY="kubectl apply -n $NAMESPACE -f"
-
-
 if [ -z "$QUAY_USER" ]; then
   echo "Error: QUAY_USER env variable is not set."
   echo "  export QUAY_USER=developer"

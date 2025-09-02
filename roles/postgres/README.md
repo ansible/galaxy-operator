@@ -17,6 +17,19 @@ Role Variables
     * `admin_password`: Initial password for the Pulp admin.
     * `sslmode` is valid for `external` databases only. The allowed values are: `prefer`, `disable`, `allow`, `require`, `verify-ca`, `verify-full`.
 
+* `postgres_extra_settings`: A list of PostgreSQL configuration parameters to override or add
+    * Each item is a dictionary with `setting` and `value` keys
+    * `setting`: The PostgreSQL configuration parameter name
+    * `value`: The value for the parameter (must be a string)
+    * Example:
+      ```yaml
+      postgres_extra_settings:
+        - setting: max_connections
+          value: "499"
+        - setting: ssl_ciphers
+          value: "HIGH:!aNULL:!MD5"
+      ```
+
 Requirements
 ------------
 
