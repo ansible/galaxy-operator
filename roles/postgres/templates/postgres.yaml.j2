@@ -168,6 +168,15 @@ spec:
       tolerations:
         {{ postgres_tolerations | indent(width=8) }}
 {% endif %}
+{% if postgres_extra_settings | length > 0 %}
+      volumes:
+        - name: pg-overrides
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-postgres-extra-settings'
+            items:
+              - key: 99-overrides.conf
+                path: 99-overrides.conf
+{% endif %}
   volumeClaimTemplates:
     - metadata:
         name: postgres
@@ -178,15 +187,6 @@ spec:
         storageClassName: '{{ postgres_storage_class }}'
 {% endif %}
         resources: {{ postgres_storage_requirements }}
-{% if postgres_extra_settings | length > 0 %}
-      volumes:
-        - name: pg-overrides
-          configMap:
-            name: '{{ ansible_operator_meta.name }}-postgres-extra-settings'
-            items:
-              - key: 99-overrides.conf
-                path: 99-overrides.conf
-{% endif %}
 
 # Postgres Service.
 ---
