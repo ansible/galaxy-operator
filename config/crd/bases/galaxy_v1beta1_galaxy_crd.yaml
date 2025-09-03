@@ -12,7 +12,16 @@ spec:
     singular: galaxy
   scope: Namespaced
   versions:
-  - name: v1beta1
+  - additionalPrinterColumns:
+    - description: Status
+      jsonPath: .status.conditions[0].status
+      name: Status
+      type: string
+    - description: Message
+      jsonPath: .status.conditions[0].message
+      name: Message
+      type: string
+    name: v1beta1
     served: true
     storage: true
     subresources:
@@ -924,7 +933,7 @@ spec:
                 type: string
               upgradedFrom:
                 description: Last gated version
-                type: string                
+                type: string
               deployedVersion:
                 description: Version of the deployed instance
                 type: string
@@ -947,7 +956,6 @@ spec:
                 description: Secret where the signing certificates are stored
                 type: string
               conditions:
-                description: The resulting conditions when a Service Telemetry is instantiated
                 items:
                   properties:
                     status:
@@ -957,9 +965,14 @@ spec:
                     reason:
                       type: string
                     lastTransitionTime:
+                      format: date-time
                       type: string
                     message:
                       type: string
+                  required:
+                  - lastTransitionTime
+                  - status
+                  - type
                   type: object
                 type: array
             type: object
