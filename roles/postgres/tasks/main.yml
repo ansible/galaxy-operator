@@ -75,6 +75,12 @@
             status: "False"
             lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
+    - name: Create postgresql.conf ConfigMap
+      k8s:
+        apply: true
+        definition: "{{ lookup('template', 'postgres_extra_settings.configmap.yaml.j2') }}"
+      when: postgres_extra_settings | length
+
     - name: Create Database if no database is specified
       k8s:
         apply: true

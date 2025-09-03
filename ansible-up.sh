@@ -12,13 +12,11 @@
 # -- Variables
 TAG=${TAG:-dev}
 
-DEV_CR=${DEV_CR:-dev/galaxy.cr.yml}
+DEV_CR=${DEV_CR:-dev/cr-examples/galaxy.cr.yml}
 PULL_SECRET_FILE=${PULL_SECRET_FILE:-hacking/pull-secret.yml}
 
 IMG=${IMG:-"quay.io/$QUAY_USER/galaxy-operator:$TAG"}
-
 KUBE_APPLY="kubectl apply -n $NAMESPACE -f"
-
 
 if [ -z "$QUAY_USER" ]; then
   echo "Error: QUAY_USER env variable is not set."

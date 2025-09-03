@@ -50,3 +50,10 @@ spec:
       limits:
         cpu: 800m
         memory: 1Gi
+
+  # DB configuration
+  postgres_extra_settings:
+    - setting: max_connections
+      value: "999"
+    - setting: ssl_ciphers
+      value: "HIGH:!aNULL:!MD5"

@@ -8,7 +8,6 @@ spec:
   # ingress_type: nodeport
   # nodeport_port: 32002
   ingress_type: Route
-  deployment_type: galaxy
 
   image_pull_policy: Always
   no_log: false
@@ -44,6 +43,12 @@ spec:
     allowed_import_paths:
       - /tmp
     telemetry: false
+
+  postgres_extra_settings:
+    - setting: max_connections
+      value: "999"
+    - setting: ssl_ciphers
+      value: "HIGH:!aNULL:!MD5"
 
   # database:
   #   postgres_storage_class: standard

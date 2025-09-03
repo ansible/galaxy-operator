@@ -84,6 +84,8 @@ spec:
     - 'max_connections=1000'
 ```
 
+> **⚠️ Deprecation Notice**: The `postgres_extra_args` field is deprecated. Use `postgres_extra_settings` instead for configuring PostgreSQL parameters. See the [PostgreSQL Configuration Settings](#postgresql-configuration-settings) section below for the recommended approach.
+
 **Note**: If `postgres_storage_class` is not defined, PostgreSQL will store it's data on a volume using the default storage class for your cluster.
 
 #### Note about overriding the postgres image
@@ -111,4 +113,68 @@ Should you need to modify the init container commands, there is an example below
 postgres_init_container_commands: |
   chown 26:0 /var/lib/pgsql/data
   chmod 700 /var/lib/pgsql/data
+```
+
+#### PostgreSQL Configuration Settings
+
+You can customize PostgreSQL configuration parameters using the `postgres_extra_settings` field. This allows you to override default PostgreSQL settings or add additional configuration parameters.
+
+The `postgres_extra_settings` field accepts a list of setting objects, where each object contains:
+- `setting`: The PostgreSQL configuration parameter name
+- `value`: The value for the configuration parameter (as a string)
+
+**Example configuration:**
+
+```yaml
+spec:
+  postgres_extra_settings:
+    - setting: max_connections
+      value: "499"
+    - setting: ssl_ciphers
+      value: "HIGH:!aNULL:!MD5"
+    - setting: shared_buffers
+      value: "256MB"
+    - setting: effective_cache_size
+      value: "1GB"
+```
+
+**Common PostgreSQL settings you might want to configure:**
+
+| Setting | Description | Example Value |
+|---------|-------------|---------------|
+| `max_connections` | Maximum number of concurrent connections | `"200"` |
+| `ssl_ciphers` | SSL cipher suites to use | `"HIGH:!aNULL:!MD5"` |
+| `shared_buffers` | Amount of memory for shared memory buffers | `"256MB"` |
+| `effective_cache_size` | Planner's assumption about effective cache size | `"1GB"` |
+| `work_mem` | Amount of memory for internal sort operations | `"4MB"` |
+| `maintenance_work_mem` | Memory for maintenance operations | `"64MB"` |
+| `checkpoint_completion_target` | Target for checkpoint completion | `"0.9"` |
+| `wal_buffers` | Amount of memory for WAL buffers | `"16MB"` |
+
+##### Important Notes
+
+!!! warning
+    - Changes to `postgres_extra_settings` require a PostgreSQL pod restart to take effect.
+    - Some settings may require specific PostgreSQL versions or additional configuration.
+    - Always test configuration changes in a non-production environment first.
+
+!!! tip
+    - String values should be quoted in the YAML configuration.
+    - Numeric values can be provided as strings or numbers.
+    - Boolean values should be provided as strings ("on"/"off" or "true"/"false").
+
+For a complete list of available PostgreSQL configuration parameters, refer to the [PostgreSQL documentation](https://www.postgresql.org/docs/current/runtime-config.html).
+
+**Verification:**
+
+You can verify that your settings have been applied by connecting to the PostgreSQL database and running:
+
+```bash
+kubectl exec -it <postgres-pod-name> -n <namespace> -- psql
+```
+
+Then run the following query:
+
+```sql
+SELECT name, setting FROM pg_settings;
 ```

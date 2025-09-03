@@ -39,6 +39,11 @@ spec:
         app.kubernetes.io/version: '{{ supported_pg_version }}'
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+      annotations:
+{% if postgres_extra_settings | length > 0 %}
+        checksum-configmap-postgres_extra_settings: "{{ lookup('template', 'postgres_extra_settings.configmap.yaml.j2') | sha1 }}"
+{% endif %}
+        checksum-secret-postgres_configuration_secret: "{{ lookup('ansible.builtin.vars', postgres_configuration_secret_name, default='')["resources"][0]["data"] | default('') | sha1 }}"
     spec:
 {% if _node_affinity is defined %}
       affinity:
@@ -149,6 +154,11 @@ spec:
             - name: postgres
               mountPath: '{{ _postgres_data_path | dirname }}'
               subPath: '{{ _postgres_data_path | dirname | basename }}'
+{% if postgres_extra_settings | length > 0 %}
+            - name: pg-overrides
+              mountPath: /opt/app-root/src/postgresql-cfg
+              readOnly: true
+{% endif %}
           resources: {{ postgres_resource_requirements }}
 {% if postgres_selector %}
       nodeSelector:
@@ -157,6 +167,15 @@ spec:
 {% if postgres_tolerations %}
       tolerations:
         {{ postgres_tolerations | indent(width=8) }}
+{% endif %}
+{% if postgres_extra_settings | length > 0 %}
+      volumes:
+        - name: pg-overrides
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-postgres-extra-settings'
+            items:
+              - key: 99-overrides.conf
+                path: 99-overrides.conf
 {% endif %}
   volumeClaimTemplates:
     - metadata:
