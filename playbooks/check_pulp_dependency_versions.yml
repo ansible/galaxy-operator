@@ -34,19 +34,26 @@
     - name: Check pulp_ansible version and set scaling flag
       when: _api_pods.resources | length > 0
       block:
+        - name: Wait for API pod to be fully ready
+          kubernetes.core.k8s_info:
+            api_version: v1
+            kind: Pod
+            namespace: "{{ ansible_operator_meta.namespace }}"
+            name: "{{ _api_pods.resources[0].metadata.name }}"
+            wait: true
+            wait_condition:
+              type: Ready
+              status: "True"
+            wait_timeout: 300
+
         - name: Execute pulpcore-manager shell to check pulp_ansible version
           kubernetes.core.k8s_exec:
             namespace: "{{ ansible_operator_meta.namespace }}"
             pod: "{{ _api_pods.resources[0].metadata.name }}"
-            command: |
-              bash -c "pulpcore-manager shell -c \"
-              try:
-                  import importlib.metadata
-                  version = importlib.metadata.version('pulp_ansible')
-                  print(version)
-              except Exception:
-                  print('not_found')
-              \" 2>/dev/null || echo 'not_found'"
+            command: >
+              bash -c "pulpcore-manager shell -c
+              \"from importlib.metadata import version; print(version('pulp_ansible'))\"
+              2>/dev/null || echo not_found"
           register: _pulp_ansible_version_output
           failed_when: false
 
@@ -54,6 +61,7 @@
           ansible.builtin.set_fact:
             needs_scaling_down: true
           when:
+            - _pulp_ansible_version_output.rc is defined
             - _pulp_ansible_version_output.rc == 0
             - _pulp_ansible_version_output.stdout | trim != 'not_found'
             - _pulp_ansible_version_output.stdout | trim != ''
