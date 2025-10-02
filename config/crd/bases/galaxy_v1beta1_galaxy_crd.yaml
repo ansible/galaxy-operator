@@ -258,9 +258,9 @@ spec:
                 description: The name of ingress class to use instead of the cluster default.
                 type: string
               nginx_client_max_body_size:
-                description: NGINX client max body size
-                default: 10m
-                type: string
+                description: Sets the maximum allowed size of the client request body in megabytes (defaults to 10M)
+                default: 10
+                type: integer
               nginx_proxy_read_timeout:
                 description: NGINX proxy read timeout
                 default: 15s
