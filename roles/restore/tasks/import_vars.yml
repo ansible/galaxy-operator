@@ -23,3 +23,8 @@
 
   - name: Include spec vars to save them as a dict
     include_vars: "{{ tmp_spec.path }}"
+
+  - name: Remove temp spec file
+    ansible.builtin.file:
+      path: "{{ tmp_spec.path }}"
+      state: absent
