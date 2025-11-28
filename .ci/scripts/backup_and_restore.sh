@@ -42,6 +42,13 @@ echo ::endgroup::
 
 $KUBECTL delete --cascade=foreground -f config/samples/$CUSTOM_RESOURCE
 $KUBECTL wait --for=delete -f config/samples/$CUSTOM_RESOURCE
+if [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "azure" ]]; then
+$KUBECTL delete -f .ci/assets/kubernetes/galaxy-object-storage.azure.secret.yaml
+fi
+if [[ "$CI_TEST" == "galaxy" && "$CI_TEST_STORAGE" == "s3" ]]; then
+$KUBECTL delete -f .ci/assets/kubernetes/galaxy-object-storage.aws.secret.yaml
+fi
+$KUBECTL get secrets
 
 $KUBECTL apply -f config/samples/$RESTORE_RESOURCE
 time $KUBECTL wait --for condition=RestoreComplete --timeout=-1s -f config/samples/$RESTORE_RESOURCE
