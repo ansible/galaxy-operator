@@ -45,6 +45,11 @@
     _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"
   when: affinity is defined and affinity.node_affinity is defined
 
+- name: Set deployment-specific affinity
+  set_fact:
+    web_affinity: "{{ raw_spec['web']['affinity'] | default({}) }}"
+  when: raw_spec['web']['affinity'] is defined and raw_spec['web']['affinity'] | length > 0
+
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"
