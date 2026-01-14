@@ -5,8 +5,8 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= $(shell git describe --tags)
 
-# Default ENGINE for building galaxy-operator is podman (https://podman.io/).
-ENGINE ?= podman
+# Default ENGINE for building galaxy-operator is docker.
+ENGINE ?= docker
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -118,6 +118,11 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 	docker buildx use project-v3-builder
 	- docker buildx build --push $(BUILD_ARGS) --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile .
 	- docker buildx rm project-v3-builder
+
+.PHONY: podman-buildx
+podman-buildx: ## Build multiarch container image with podman and push to the registry.
+	podman build --platform=$(PLATFORMS) --manifest ${IMG} -f Dockerfile .
+	podman manifest push --all ${IMG} ${IMG}
 
 ##@ Deployment
 
