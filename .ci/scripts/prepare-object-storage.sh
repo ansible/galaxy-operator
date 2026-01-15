@@ -2,7 +2,8 @@
 #!/usr/bin/env bash
 
 if [[ "$CI_TEST_STORAGE" == "azure" ]]; then
-  docker run -d -p 10000:10000 --name galaxy-azurite mcr.microsoft.com/azure-storage/azurite azurite-blob --skipApiVersionCheck --blobHost 0.0.0.0
+  docker volume create azurite
+  docker run -d -p 10000:10000 --name galaxy-azurite -v azurite:/data mcr.microsoft.com/azure-storage/azurite azurite-blob -l /data --skipApiVersionCheck --blobHost 0.0.0.0
   sleep 5
   AZURE_CONNECTION_STRING="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://galaxy-azurite:10000/devstoreaccount1;"
   echo $(minikube ip)   galaxy-azurite | sudo tee -a /etc/hosts
@@ -10,7 +11,8 @@ if [[ "$CI_TEST_STORAGE" == "azure" ]]; then
 elif [[ "$CI_TEST_STORAGE" == "s3" ]]; then
   export MINIO_ACCESS_KEY=AKIAIT2Z5TDYPX3ARJBA
   export MINIO_SECRET_KEY=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
-  docker run -d -p 0.0.0.0:9000:9000 --name galaxy_minio -e MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_SECRET_KEY minio/minio server /data
+  docker volume create minio
+  docker run -d -p 0.0.0.0:9000:9000 --name galaxy_minio -e MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_SECRET_KEY -v minio:/data minio/minio server /data
   wget https://dl.min.io/client/mc/release/linux-amd64/mc
   sudo mv mc /usr/local/bin/
   sudo chmod +x /usr/local/bin/mc
