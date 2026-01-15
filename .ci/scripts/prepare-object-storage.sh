@@ -2,7 +2,7 @@
 #!/usr/bin/env bash
 
 if [[ "$CI_TEST_STORAGE" == "azure" ]]; then
-  docker run -d -p 10000:10000 --name galaxy-azurite mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0
+  docker run -d -p 10000:10000 --name galaxy-azurite mcr.microsoft.com/azure-storage/azurite azurite-blob --skipApiVersionCheck --blobHost 0.0.0.0
   sleep 5
   AZURE_CONNECTION_STRING="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://galaxy-azurite:10000/devstoreaccount1;"
   echo $(minikube ip)   galaxy-azurite | sudo tee -a /etc/hosts
