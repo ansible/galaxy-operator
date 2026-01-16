@@ -11,12 +11,16 @@
 
 # -- Variables
 TAG=${TAG:-dev}
+ENGINE=${ENGINE:-podman}
 
 DEV_CR=${DEV_CR:-dev/cr-examples/galaxy.cr.yml}
 PULL_SECRET_FILE=${PULL_SECRET_FILE:-hacking/pull-secret.yml}
 
 IMG=${IMG:-"quay.io/$QUAY_USER/galaxy-operator:$TAG"}
 KUBE_APPLY="kubectl apply -n $NAMESPACE -f"
+
+# Detect host architecture
+HOST_ARCH=$(uname -m)
 
 if [ -z "$QUAY_USER" ]; then
   echo "Error: QUAY_USER env variable is not set."
@@ -99,7 +103,13 @@ $KUBE_APPLY dev/admin-password-secret.yml
 
 
 # -- Build & Push Operator Image
-make docker-build docker-push IMG=$IMG
+if [[ "$HOST_ARCH" == "aarch64" || "$HOST_ARCH" == "arm64" ]] && [ "$ENGINE" = "podman" ]; then
+  echo "ARM architecture detected with podman, using podman-buildx for multiarch build"
+  make podman-buildx IMG=$IMG
+else
+  echo "Using standard docker build and push"
+  make docker-build docker-push IMG=$IMG
+fi
 
 # -- Deploy Pulp Operator
 echo "Make Deploy"

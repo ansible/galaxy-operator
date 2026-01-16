@@ -11,7 +11,7 @@ ENV ANSIBLE_FORCE_COLOR=true
 ENV ANSIBLE_SHOW_TASK_PATH_ON_FAILURE=true
 
 USER root
-RUN dnf update --security --bugfix -y
+RUN dnf update --security --bugfix -y --disableplugin=subscription-manager
 
 USER ${USER_UID}
 
