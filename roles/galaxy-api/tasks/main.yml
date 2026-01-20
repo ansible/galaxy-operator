@@ -30,6 +30,11 @@
     _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"
   when: affinity is defined and affinity.node_affinity is defined
 
+- name: Set deployment-specific affinity
+  set_fact:
+    api_affinity: "{{ raw_spec['api']['affinity'] | default({}) }}"
+  when: raw_spec['api']['affinity'] is defined and raw_spec['api']['affinity'] | length > 0
+
 - name: Get container token configuration
   k8s_info:
     kind: Secret
