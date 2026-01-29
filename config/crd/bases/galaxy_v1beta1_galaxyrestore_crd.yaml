@@ -32,6 +32,9 @@ spec:
           description: Schema validation for the GalaxyRestore CRD
           properties:
             spec:
+              x-kubernetes-validations:
+                - rule: "has(self.postgres_image) && has(self.postgres_image_version) || !has(self.postgres_image) && !has(self.postgres_image_version)"
+                  message: "Both postgres_image and postgres_image_version must be set when required"
               type: object
               properties:
                 backup_source:
@@ -83,13 +86,6 @@ spec:
                           type: string
                       type: object
                   type: object
-                postgres_label_selector:
-                  description: Label selector used to identify postgres pod for executing migration
-                  type: string
-                spec_overrides:
-                  description: Overrides for the Galaxy spec
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 force_drop_db:
                   default: false
                   description: Force drop the database of the new Galaxy before restoring. USE WITH CAUTION!
@@ -98,6 +94,19 @@ spec:
                   default: true
                   description: Configure no_log (hides sensitive information in operator/task logs)
                   type: boolean
+                postgres_image:
+                  description: Registry path to the PostgreSQL container to use for restore
+                  type: string
+                postgres_image_version:
+                  description: PostgreSQL container image version to use for restore
+                  type: string
+                postgres_label_selector:
+                  description: Label selector used to identify postgres pod for executing migration
+                  type: string
+                spec_overrides:
+                  description: Overrides for the Galaxy spec
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
             status:
               properties:
                 restoreComplete:

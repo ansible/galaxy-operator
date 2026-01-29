@@ -44,6 +44,15 @@ spec:
           metadata:
             type: object
           spec:
+            x-kubernetes-validations:
+              - rule: "has(self.image) && has(self.image_version) || !has(self.image) && !has(self.image_version)"
+                message: "Both image and image_version must be set when required"
+              - rule: "has(self.image_web) && has(self.image_web_version) || !has(self.image_web) && !has(self.image_web_version)"
+                message: "Both image_web and image_web_version must be set when required"
+              - rule: "has(self.redis_image) && has(self.redis_image_version) || !has(self.redis_image) && !has(self.redis_image_version)"
+                message: "Both redis_image and redis_image_version must be set when required"
+              - rule: "has(self.postgres_image) && has(self.postgres_image_version) || !has(self.postgres_image) && !has(self.postgres_image_version)"
+                message: "Both postgres_image and postgres_image_version must be set when required"
             properties:
               deployment_type:
                 description: Name of the deployment type
@@ -62,6 +71,9 @@ spec:
                 type: string
               redis_image:
                 description: The image name for the redis image.
+                type: string
+              redis_image_version:
+                description: Redis container image version to use
                 type: string
               redis_storage_class:
                 description: Storage class to use for the Redis PVC
@@ -101,6 +113,9 @@ spec:
                   type: string
               postgres_image:
                 description: Registry path to the PostgreSQL container to use
+                type: string
+              postgres_image_version:
+                description: PostgreSQL container image version to use
                 type: string
               postgres_storage_requirements:
                 description: Storage requirements for the PostgreSQL container
