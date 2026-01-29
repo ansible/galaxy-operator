@@ -32,6 +32,9 @@ spec:
           description: Schema validation for the GalaxyBackup CRD
           properties:
             spec:
+              x-kubernetes-validations:
+                - rule: "has(self.postgres_image) && has(self.postgres_image_version) || !has(self.postgres_image) && !has(self.postgres_image_version)"
+                  message: "Both postgres_image and postgres_image_version must be set when required"
               type: object
               properties:
                 deployment_name:
@@ -67,13 +70,19 @@ spec:
                 backup_storage_class:
                   description: Storage class to use when creating PVC for backup
                   type: string
-                postgres_label_selector:
-                  description: Label selector used to identify postgres pod for executing migration
-                  type: string
                 no_log:
                   default: true
                   description: Configure no_log (hides sensitive information in operator/task logs)
                   type: boolean
+                postgres_image:
+                  description: Registry path to the PostgreSQL container to use for backup
+                  type: string
+                postgres_image_version:
+                  description: PostgreSQL container image version to use for backup
+                  type: string
+                postgres_label_selector:
+                  description: Label selector used to identify postgres pod for executing migration
+                  type: string
               required:
                 - deployment_name
             status:
