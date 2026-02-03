@@ -67,6 +67,10 @@ spec:
                 backup_storage_class:
                   description: Storage class to use when creating PVC for backup
                   type: string
+                create_backup_pvc:
+                  default: true
+                  description: Automatically create the backup PVC if it does not exist
+                  type: boolean
                 postgres_label_selector:
                   description: Label selector used to identify postgres pod for executing migration
                   type: string

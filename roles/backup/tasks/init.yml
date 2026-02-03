@@ -24,17 +24,18 @@
   block:
     - name: Set error message
       set_fact:
-        error_msg: "{{ backup_pvc }} does not exist, please create this pvc first."
+        error_msg: "{{ backup_pvc }} does not exist, please create this pvc first or ensure create_backup_pvc is set to true (default) for automatic backup_pvc creation."
 
     - name: Handle error
       import_tasks: error_handling.yml
 
     - name: Fail early if pvc is defined but does not exist
       fail:
-        msg: "{{ backup_pvc }} does not exist, please create this pvc first."
+        msg: "{{ backup_pvc }} does not exist, please create this pvc first or ensure create_backup_pvc is set to true (default) for automatic backup_pvc creation."
   when:
     - backup_pvc != ''
     - provided_pvc.resources | length == 0
+    - not create_backup_pvc | bool
 
 - name: Set default pvc name
   set_fact:
@@ -52,7 +53,7 @@
   with_items:
     - backup
   when:
-    - backup_pvc == '' or backup_pvc is not defined
+    - (backup_pvc == '' or backup_pvc is not defined) or (create_backup_pvc | bool)
 
 - name: Remove ownerReferences from backup-claim pvc to avoid garbage collection
   k8s:
