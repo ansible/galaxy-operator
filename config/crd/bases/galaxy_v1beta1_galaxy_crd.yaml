@@ -910,6 +910,24 @@ spec:
               public_base_url:
                 description: Public base URL
                 type: string
+              api_extra_volumes:
+                description: Specify extra volumes to add to API pods
+                type: string
+              api_extra_volume_mounts:
+                description: Specify volume mounts to be added to API container
+                type: string
+              content_extra_volumes:
+                description: Specify extra volumes to add to Content pods
+                type: string
+              content_extra_volume_mounts:
+                description: Specify volume mounts to be added to Content container
+                type: string
+              worker_extra_volumes:
+                description: Specify extra volumes to add to Worker pods
+                type: string
+              worker_extra_volume_mounts:
+                description: Specify volume mounts to be added to Worker container
+                type: string
             type: object
           status:
             properties:
