@@ -4,6 +4,9 @@
 
 # Specify a pre-created PVC (name) to backup to
 backup_pvc: ''
+
+# Automatically create backup PVC if it doesn't exist
+create_backup_pvc: true
 backup_pvc_namespace: "{{ ansible_operator_meta.namespace }}" # deprecated
 
 # Size of backup PVC if created dynamically
