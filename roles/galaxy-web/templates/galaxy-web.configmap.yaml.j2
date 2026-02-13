@@ -20,6 +20,11 @@ data:
     }
 
     http {
+        map $http_x_forwarded_proto $trusted_proto {
+            default $scheme;
+            https   https;
+            http    http;
+        }
         access_log /dev/stdout;
         include mime.types;
         # fallback in case we can't determine a type
@@ -96,7 +101,7 @@ data:
 
             location {{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }} {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
                 proxy_set_header Host $http_host;
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
@@ -123,7 +128,7 @@ data:
 
             location /{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/ {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
                 proxy_set_header Host $http_host;
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
@@ -135,7 +140,7 @@ data:
 
             location /auth/login/ {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
                 proxy_set_header Host $http_host;
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
@@ -147,7 +152,7 @@ data:
 
             location / {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
                 proxy_set_header Host $http_host;
                 # we don't want nginx trying to do something clever with
                 # redirects, we set the Host: header above already.
@@ -162,7 +167,7 @@ data:
   galaxy_ng.conf: |
     location /ui/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         rewrite /ui* /static/galaxy_ng/index.html break;
         # we don't want nginx trying to do something clever with
@@ -173,7 +178,7 @@ data:
 
     location /api/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         # we don't want nginx trying to do something clever with
         # redirects, we set the Host: header above already.
@@ -186,7 +191,7 @@ data:
   pulp_ansible.conf: |
     location /pulp_ansible/galaxy/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         # we don't want nginx trying to do something clever with
         # redirects, we set the Host: header above already.
@@ -198,7 +203,7 @@ data:
   pulp_container.conf: |
     location /v2/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         # we don't want nginx trying to do something clever with
         # redirects, we set the Host: header above already.
@@ -209,7 +214,7 @@ data:
 
     location /extensions/v2/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         # we don't want nginx trying to do something clever with
         # redirects, we set the Host: header above already.
@@ -219,7 +224,7 @@ data:
 
     location /pulp/container/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         # we don't want nginx trying to do something clever with
         # redirects, we set the Host: header above already.
@@ -229,7 +234,7 @@ data:
 
     location /token/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
         proxy_set_header Host $http_host;
         # we don't want nginx trying to do something clever with
         # redirects, we set the Host: header above already.
