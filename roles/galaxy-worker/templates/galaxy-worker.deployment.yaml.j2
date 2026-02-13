@@ -114,6 +114,9 @@ spec:
 {% endif %}
         - name: {{ ansible_operator_meta.name }}-ansible-tmp
           emptyDir: {}
+{% if worker_extra_volumes is defined %}
+{{ worker_extra_volumes | indent(8, true) }}
+{% endif %}
       serviceAccountName: '{{ ansible_operator_meta.name }}'
 {% if topology_spread_constraints %}
       topologySpreadConstraints:
@@ -193,6 +196,9 @@ spec:
             - name: gpg-file-storage
               mountPath: "/var/lib/pulp/.gnupg"
 {% endif %}
+{% endif %}
+{% if worker_extra_volume_mounts is defined %}
+{{ worker_extra_volume_mounts | indent(12, true) }}
 {% endif %}
 {% if combined_worker.resource_requirements is defined %}
           resources: {{ combined_worker.resource_requirements }}
