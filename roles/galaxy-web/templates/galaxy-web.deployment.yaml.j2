@@ -43,7 +43,10 @@ spec:
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
     spec:
-{% if _node_affinity is defined %}
+{% if web_affinity is defined and web_affinity | length > 0 %}
+      affinity:
+        {{ web_affinity | to_nice_yaml | indent(width=8) }}
+{% elif _node_affinity is defined and _node_affinity | length > 0 %}
       affinity:
         nodeAffinity: {{ _node_affinity }}
 {% endif %}

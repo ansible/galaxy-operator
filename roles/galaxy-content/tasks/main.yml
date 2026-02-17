@@ -38,6 +38,11 @@
     _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"
   when: affinity is defined and affinity.node_affinity is defined
 
+- name: Set deployment-specific affinity
+  set_fact:
+    content_affinity: "{{ raw_spec['content']['affinity'] | default({}) }}"
+  when: raw_spec['content']['affinity'] is defined and raw_spec['content']['affinity'] | length > 0
+
 - name: Create Content PVC if file-storage is enabled
   include_tasks: create-content-pvc.yml
 
