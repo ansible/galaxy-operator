@@ -145,6 +145,9 @@ spec:
               - path: container_auth_private_key.pem
                 key: {{ container_auth_private_key_name }}
 {% endif %}
+{% if api_extra_volumes is defined %}
+{{ api_extra_volumes | indent(8, true) }}
+{% endif %}
       serviceAccountName: '{{ ansible_operator_meta.name }}'
 {% if topology_spread_constraints %}
       topologySpreadConstraints:
@@ -280,6 +283,9 @@ spec:
               subPath: container_auth_public_key.pem
               readOnly: true
 {% endif %}
+{% if api_extra_volume_mounts is defined %}
+{{ api_extra_volume_mounts | indent(12, true) }}
+{% endif %}
       initContainers:
         - name: run-migrations
           image: {{ _image }}
@@ -319,6 +325,9 @@ spec:
             - name: file-storage
               readOnly: false
               mountPath: "/var/lib/pulp"
+{% endif %}
+{% if api_extra_volume_mounts is defined %}
+{{ api_extra_volume_mounts | indent(12, true) }}
 {% endif %}
 {% if signing_secret is defined %}
         - name: gpg-importer
@@ -385,6 +394,9 @@ spec:
               mountPath: "/etc/pulp/keys/signing_service.gpg"
               subPath: signing_service.gpg
               readOnly: true
+{% if api_extra_volume_mounts is defined %}
+{{ api_extra_volume_mounts | indent(12, true) }}
+{% endif %}
 {% endif %}
 {% if bundle_ca_crt is defined %}
         - name: configure-bundle-ca-cert
@@ -406,6 +418,9 @@ spec:
               mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
               subPath: bundle-ca.crt
               readOnly: true
+{% if api_extra_volume_mounts is defined %}
+{{ api_extra_volume_mounts | indent(12, true) }}
+{% endif %}
 {% endif %}
         - name: resource-sync-job
           image: {{ _image }}
