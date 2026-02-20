@@ -16,6 +16,7 @@ Role Variables
 * `image_web`: The image name. Default: quay.io/ansible/galaxy-ui
 * `image_web_version`: The image tag. Default: main
 * `nginx_client_max_body_size`: Sets the maximum allowed size of the client request body.
+* `nginx_conf_additional_config`: Allows for injecting nginx configuration options into the nginx.conf configmap that is passed to the galaxy-web deployment.
 
 Requirements
 ------------

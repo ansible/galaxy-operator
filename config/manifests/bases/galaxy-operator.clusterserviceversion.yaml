@@ -228,6 +228,10 @@ spec:
         path: nginx_client_max_body_size
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Nginx conf file additional config
+        path: nginx_conf_additional_config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Nginx proxy read timeout
         path: nginx_proxy_read_timeout
         x-descriptors:
