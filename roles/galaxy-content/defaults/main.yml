@@ -1,6 +1,6 @@
 ---
 # common default values
-client_request_timeout: 30
+client_request_timeout: 1200
 ingress_type: none
 
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr

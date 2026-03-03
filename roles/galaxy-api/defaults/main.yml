@@ -7,7 +7,7 @@ container_auth_public_key_name: 'container_auth_public_key.pem'
 container_auth_private_key_name: 'container_auth_private_key.pem'
 
 # common default values
-client_request_timeout: 30
+client_request_timeout: 1200
 
 # Keycloack SSO settings
 keycloak_admin_role: hubadmin

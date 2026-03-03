@@ -4,7 +4,7 @@
 #
 
 # common default values
-client_request_timeout: 30
+client_request_timeout: 1200
 route_host: ''
 hostname: '{{ deployment_type }}.example.com'
 
