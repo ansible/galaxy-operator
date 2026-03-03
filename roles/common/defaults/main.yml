@@ -70,8 +70,6 @@ object_storage_path: ''
 
 # s3-storage-configuration.yml
 s3_secret_data_available: false
-s3_access_key_id_available: false
-s3_secret_access_key_available: false
 s3_bucket_name_available: false
 s3_region_available: false
 s3_endpoint_available: false

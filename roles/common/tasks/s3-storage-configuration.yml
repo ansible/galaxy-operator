@@ -50,22 +50,6 @@
   when:
     - not s3_secret_data_available
 
-- name: Check if s3-access-key-id is found
-  set_fact:
-    s3_access_key_id_available: true
-  when:
-    - s3_secret_data_available
-    - _custom_s3_configuration.resources[0].data['s3-access-key-id'] is defined
-    - _custom_s3_configuration.resources[0].data['s3-access-key-id'] | length
-
-- name: Check if s3-secret-access-key is found
-  set_fact:
-    s3_secret_access_key_available: true
-  when:
-    - s3_secret_data_available
-    - _custom_s3_configuration.resources[0].data['s3-secret-access-key'] is defined
-    - _custom_s3_configuration.resources[0].data['s3-secret-access-key'] | length
-
 - name: Check if s3-bucket-name is found
   set_fact:
     s3_bucket_name_available: true
@@ -110,8 +94,6 @@
 
   when:
     - s3_secret_data_available
-    - not s3_access_key_id_available
-    - not s3_secret_access_key_available
     - not s3_bucket_name_available
     - not (s3_region_available or s3_endpoint_available)
 
@@ -119,11 +101,19 @@
   set_fact:
     s3_access_key_id: "{{ _custom_s3_configuration['resources'][0]['data']['s3-access-key-id'] | b64decode }}"
   no_log: "{{ no_log }}"
+  when:
+    - s3_secret_data_available
+    - _custom_s3_configuration.resources[0].data['s3-access-key-id'] is defined
+    - _custom_s3_configuration.resources[0].data['s3-access-key-id'] | length
 
 - name: Store s3 secret
   set_fact:
     s3_secret_access_key: "{{ _custom_s3_configuration['resources'][0]['data']['s3-secret-access-key'] | b64decode }}"
   no_log: "{{ no_log }}"
+  when:
+    - s3_secret_data_available
+    - _custom_s3_configuration.resources[0].data['s3-secret-access-key'] is defined
+    - _custom_s3_configuration.resources[0].data['s3-secret-access-key'] | length
 
 - name: Store s3 bucket name
   set_fact:
@@ -154,12 +144,14 @@
     s3_access_key_id_dict:
       AWS_ACCESS_KEY_ID: "{{ s3_access_key_id }}"
   no_log: "{{ no_log }}"
+  when: s3_access_key_id is defined
 
 - name: Add s3 secret key to s3 settings
   set_fact:
     s3_secret_access_key_dict:
       AWS_SECRET_ACCESS_KEY: "{{ s3_secret_access_key }}"
   no_log: "{{ no_log }}"
+  when: s3_secret_access_key is defined
 
 - name: Add s3 bucket to s3 settings
   set_fact:
@@ -187,11 +179,13 @@
   set_fact:
     default_s3_settings: "{{ default_s3_settings|combine(s3_access_key_id_dict) }}"
   no_log: "{{ no_log }}"
+  when: s3_access_key_id_dict is defined
 
 - name: merge s3_secret_access_key with settings
   set_fact:
     default_s3_settings: "{{ default_s3_settings|combine(s3_secret_access_key_dict) }}"
   no_log: "{{ no_log }}"
+  when: s3_secret_access_key_dict is defined
 
 - name: merge s3_bucket_name with settings
   set_fact:
