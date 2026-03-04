@@ -986,19 +986,11 @@ spec:
             spec:
               containers:
               - args:
-                - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
-                - --logtostderr=true
-                - --v=10
-                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.12.0
-                name: kube-rbac-proxy
-                ports:
-                - containerPort: 8443
-                  name: https
-                resources: {}
-              - args:
-                - --metrics-addr=127.0.0.1:8080
-                - --enable-leader-election
+                - --metrics-bind-address=:8443
+                - --metrics-secure
+                - --metrics-require-rbac
+                - --health-probe-bind-address=:6789
+                - --leader-elect
                 - --leader-election-id=galaxy-operator
                 env:
                 - name: ANSIBLE_GATHERING
