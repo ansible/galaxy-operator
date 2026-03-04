@@ -12,7 +12,7 @@ replacements:
   - source:
       kind: Deployment
       name: galaxy-operator-controller-manager
-      fieldPath: spec.template.spec.containers.1.image
+      fieldPath: spec.template.spec.containers.0.image
     targets:
       - select:
           kind: ClusterServiceVersion
