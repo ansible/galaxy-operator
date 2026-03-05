@@ -34,7 +34,7 @@
     name: "{{ ansible_operator_meta.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
     status:
-      backupClaim: "{{ backup_claim }}"
+      backupClaim: "{{ backup_pvc }}"
   when: backup_complete is defined
 
 # The backup PVC namespace in this status can be referenced when restoring
