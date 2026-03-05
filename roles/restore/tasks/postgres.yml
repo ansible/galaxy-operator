@@ -91,6 +91,18 @@
       -p {{ postgres_port }}
   no_log: "{{ no_log }}"
 
+- name: Find database file
+  kubernetes.core.k8s_exec:
+    namespace: "{{ backup_pvc_namespace }}"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
+    command: >-
+      bash -c "ls {{ backup_dir }}/pulp.db.gz 2>/dev/null || ls {{ backup_dir }}/pulp.db 2>/dev/null"
+  register: _db_file_result
+
+- name: Set database filename for restore
+  set_fact:
+    _db_filename: "{{ _db_file_result.stdout | trim | basename }}"
+
 - name: Set pg_restore command
   set_fact:
     pg_restore: >-
@@ -170,7 +182,7 @@
       set -e -o pipefail
       {{ pg_drop_create }}
       set +H  # Disable history expansion
-      cat {{ backup_dir }}/pulp.db | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
+      cat {{ backup_dir }}/{{ _db_filename }} | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
       set -H  # Re-enable history expansion
       PG_RC=$?
       set +e +o pipefail
