@@ -276,6 +276,9 @@ spec:
                 description: NGINX client max body size
                 default: 10m
                 type: string
+              nginx_conf_additional_config:
+                description: Additional config to add to NGINX's nginx.conf file generated via configmap.
+                type: string
               nginx_proxy_read_timeout:
                 description: NGINX proxy read timeout
                 default: 15s
