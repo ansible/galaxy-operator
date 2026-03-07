@@ -15,7 +15,7 @@ Role Variables
     * `replicas`: Number of pod replicas.
 * `image_web`: The image name. Default: quay.io/ansible/galaxy-ui
 * `image_web_version`: The image tag. Default: main
-* `nginx_client_max_body_size`: Sets the maximum allowed size of the client request body.
+* [client_max_body_size](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size) with `nginx_client_max_body_size` (default of 10M)
 
 Requirements
 ------------

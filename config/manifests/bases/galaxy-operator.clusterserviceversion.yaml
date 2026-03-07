@@ -224,10 +224,12 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:number
         - urn:alm:descriptor:com.tectonic.ui:fieldDependency:ingress_type:LoadBalancer
-      - displayName: Nginx client max body size
+      - displayName: Set the maximum allowed size of the client request body in megabytes
+          for nginx
         path: nginx_client_max_body_size
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:hidden
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:number
       - displayName: Nginx proxy read timeout
         path: nginx_proxy_read_timeout
         x-descriptors:
