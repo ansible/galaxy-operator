@@ -79,7 +79,9 @@ default_s3_settings:
   S3_USE_SIGV4: true
   AWS_S3_SIGNATURE_VERSION: "s3v4"
   AWS_S3_ADDRESSING_STYLE: "path"
-  DEFAULT_FILE_STORAGE: "storages.backends.s3boto3.S3Boto3Storage"
+  STORAGES:
+    default:
+      BACKEND: "storages.backends.s3boto3.S3Boto3Storage"
   MEDIA_ROOT: ""
 
 # azure-storage-configuration.yml
@@ -91,7 +93,9 @@ azure_container_available: false
 default_azure_settings:
   AZURE_URL_EXPIRATION_SECS: 60
   AZURE_OVERWRITE_FILES: "True"
-  DEFAULT_FILE_STORAGE: "storages.backends.azure_storage.AzureStorage"
+  STORAGES:
+    default:
+      BACKEND: "storages.backends.azure_storage.AzureStorage"
 
 # postgres_configuration.yml
 _postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
