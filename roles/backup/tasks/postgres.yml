@@ -56,19 +56,23 @@
         postgres_pod_name: "{{ postgres_pod['resources'][0]['metadata']['name'] }}"
   when: postgres_type == 'managed'
 
+- name: Set database filename
+  set_fact:
+    _db_filename: "{{ use_db_compression | bool | ternary('pulp.db.gz', 'pulp.db') }}"
+
 - name: Precreate file for database dump
   k8s_exec:
     namespace: "{{ backup_pvc_namespace}}"
     pod: "{{ ansible_operator_meta.name }}-db-management"
     command: >-
-      touch {{ _backup_dir }}/pulp.db
+      touch {{ _backup_dir }}/{{ _db_filename }}
 
 - name: Set permissions on file for database dump
   k8s_exec:
     namespace: "{{ backup_pvc_namespace }}"
     pod: "{{ ansible_operator_meta.name }}-db-management"
     command: >-
-      chmod 0600 {{ _backup_dir }}/pulp.db
+      chmod 0600 {{ _backup_dir }}/{{ _db_filename }}
 
 - name: Set pg_dump command
   set_fact:
@@ -79,6 +83,8 @@
       -d {{ postgres_database }}
       -p {{ postgres_port }}
       -F custom
+      {{ use_db_compression | bool | ternary('-Z 9', '') }}
+      {{ pg_dump_suffix }}
   no_log: "{{ no_log }}"
 
 - name: Write pg_dump to backup on PVC
@@ -103,7 +109,7 @@
       trap 'end_keepalive \"$keepalive_file\" \"$keepalive_pid\"' EXIT SIGINT SIGTERM
       echo keepalive_pid: $keepalive_pid
       set -e -o pipefail
-      PGPASSWORD='{{ postgres_pass }}' {{ pgdump }} > {{ _backup_dir }}/pulp.db
+      PGPASSWORD='{{ postgres_pass }}' {{ pgdump }} > {{ _backup_dir }}/{{ _db_filename }}
       set +e +o pipefail
       echo 'Successful'
       "

@@ -21,6 +21,12 @@ database_type: 'unmanaged'
 
 azure_container_path: ''
 
+# Allow additional parameters to be added to the pg_dump backup command
+pg_dump_suffix: ''
+
+# Enable compression for database dumps
+use_db_compression: false
+
 # Default resource requirements
 backup_resource_requirements:
   limits:

@@ -87,6 +87,13 @@ spec:
                 postgres_image_version:
                   description: PostgreSQL container image version to use for backup
                   type: string
+                pg_dump_suffix:
+                  description: Additional parameters for the pg_dump command
+                  type: string
+                use_db_compression:
+                  description: Enable compression for database dumps. When true, pg_dump uses built-in compression. Default is false.
+                  type: boolean
+                  default: false
               required:
                 - deployment_name
             status:
