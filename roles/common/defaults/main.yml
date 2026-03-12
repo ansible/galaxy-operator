@@ -82,6 +82,8 @@ default_s3_settings:
   STORAGES:
     default:
       BACKEND: "storages.backends.s3boto3.S3Boto3Storage"
+    staticfiles:
+      BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
   MEDIA_ROOT: ""
 
 # azure-storage-configuration.yml
@@ -96,6 +98,8 @@ default_azure_settings:
   STORAGES:
     default:
       BACKEND: "storages.backends.azure_storage.AzureStorage"
+    staticfiles:
+      BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 # postgres_configuration.yml
 _postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
