@@ -173,15 +173,20 @@
     - _storage_claim['resources'][0]['spec']['accessModes'][0] is defined
     - _storage_claim['resources'][0]['spec']['accessModes'][0] | length
 
+- name: Set default postgres image
+  set_fact:
+    _default_postgres_image: "{{ _postgres_image }}:{{ _postgres_image_version }}"
+
 - name: Set user provided postgres image
   set_fact:
-    _custom_postgres_image: "{{ postgres_image }}"
+    _custom_postgres_image: "{{ postgres_image }}:{{ postgres_image_version }}"
   when:
-    - postgres_image is defined and postgres_image != ''
+    - postgres_image | default([]) | length
+    - postgres_image_version is defined and postgres_image_version != ''
 
 - name: Set Postgres image URL
   set_fact:
-    _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_GALAXY_POSTGRES')) | default(_postgres_image, true) }}"
+    _postgres_image: "{{ _custom_postgres_image | default(lookup('env', 'RELATED_IMAGE_GALAXY_POSTGRES')) | default(_default_postgres_image, true) }}"
 
 - name: Determine the timestamp for the backup once for all nodes
   set_fact:
