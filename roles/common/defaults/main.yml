@@ -102,7 +102,8 @@ default_azure_settings:
       BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 # postgres_configuration.yml
-_postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
+_postgres_image: quay.io/sclorg/postgresql-15-c9s
+_postgres_image_version: latest
 
 # Secret to lookup that provide the PostgreSQL configuration
 postgres_configuration_secret: '{{ ansible_operator_meta.name }}-postgres-configuration'
