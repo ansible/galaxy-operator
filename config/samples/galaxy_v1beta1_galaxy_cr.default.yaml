@@ -4,7 +4,7 @@ metadata:
   name: example-galaxy
 #spec:
   # The registry to grab the galaxy image from.
-# image: quay.io/ansible/galaxy-ng
+# image: quay.io/dsavineau/galaxy-ng
 # image_version: main
 
 # Pulp settings.

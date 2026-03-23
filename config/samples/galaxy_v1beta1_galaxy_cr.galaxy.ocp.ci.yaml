@@ -3,7 +3,7 @@ kind: Galaxy
 metadata:
   name: ocp-example
 spec:
-  image: quay.io/ansible/galaxy-ng
+  image: quay.io/dsavineau/galaxy-ng
   image_version: latest
   image_web: quay.io/ansible/galaxy-ui
   image_web_version: latest
