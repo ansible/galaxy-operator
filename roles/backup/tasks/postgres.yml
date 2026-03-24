@@ -79,6 +79,8 @@
       -d {{ postgres_database }}
       -p {{ postgres_port }}
       -F custom
+      {{ use_db_compression | bool | ternary('', '-Z 0') }}
+      {{ pg_dump_suffix }}
   no_log: "{{ no_log }}"
 
 - name: Write pg_dump to backup on PVC
