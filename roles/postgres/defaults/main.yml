@@ -1,5 +1,6 @@
 ---
-_postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
+_postgres_image: quay.io/sclorg/postgresql-15-c9s
+_postgres_image_version: latest
 
 postgres_storage_requirements:
   requests:

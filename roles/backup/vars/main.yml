@@ -2,7 +2,8 @@
 deployment_kind: Galaxy
 deployment_api_version: v1beta1
 deployment_type: "galaxy"
-_postgres_image: quay.io/sclorg/postgresql-15-c9s:latest
+_postgres_image: quay.io/sclorg/postgresql-15-c9s
+_postgres_image_version: latest
 
 supported_pg_version: 15
 
