@@ -4,7 +4,7 @@ metadata:
   name: ocp-example
 spec:
   image: quay.io/drodowic/galaxy-ng
-  image_version: 8344708
+  image_version: "8344708"
   image_web: quay.io/ansible/galaxy-ui
   image_web_version: latest
   no_log: false
