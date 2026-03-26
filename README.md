@@ -55,6 +55,10 @@ Galaxy is completely free and open-source!
 * Source (ui): [github.com/ansible/ansible-hub-ui](https://github.com/ansible/ansible-hub-ui)
 * Galaxy Bugs: [github.com/ansible/galaxy_ng/issues](https://github.com/ansible/galaxy_ng/issues)
 
+## Contributing
+
+Please visit our [contributing guidelines](./CONTRIBUTING.md) and [development guide](./docs/development.md) for information on how to set up your environment, build and deploy the operator, and submit changes.
+
 ## Get Help
 
 Documentation: [galaxy-operator.readthedocs.io](https://galaxy-operator.readthedocs.io)
