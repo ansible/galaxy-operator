@@ -11,7 +11,7 @@ spec:
   # The minikube VM won't go any larger.
   file_storage_size: "375Gi"
   # Default images:
-  image: quay.io/ansible/galaxy-ng
-  image_version: latest
+  image: quay.io/drodowic/galaxy-ng
+  image_version: 8344708
   image_web: quay.io/ansible/galaxy-ui
   image_web_version: latest
