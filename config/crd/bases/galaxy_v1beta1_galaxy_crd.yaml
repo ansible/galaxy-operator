@@ -1010,7 +1010,7 @@ spec:
                         type: string
                     type: object
                   affinity:
-                    description: If specified, the web pod's scheduling constraints
+                    description: If specified, the api pod's scheduling constraints
                     properties:
                       nodeAffinity:
                         properties:
@@ -1468,7 +1468,7 @@ spec:
                         type: string
                     type: object
                   affinity:
-                    description: If specified, the web pod's scheduling constraints
+                    description: If specified, the content pod's scheduling constraints
                     properties:
                       nodeAffinity:
                         properties:
@@ -1916,7 +1916,7 @@ spec:
                         type: string
                     type: object
                   affinity:
-                    description: If specified, the web pod's scheduling constraints
+                    description: If specified, the worker pod's scheduling constraints
                     properties:
                       nodeAffinity:
                         properties:
