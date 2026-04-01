@@ -3,6 +3,7 @@
 # Sometimes it is necessary to scale down deployments before an upgrade if there are breaking changes in the pulp dependencies.
 # Known incompatibilities to check for:
 #   * pulp_ansible < 0.23 is not compatible with 0.23.0 or later
+#   * pulpcore < 3.50 is not compatible with 3.50.0 or later
 
 - name: Check for existing API deployment
   kubernetes.core.k8s_info:
@@ -57,6 +58,17 @@
           register: _pulp_ansible_version_output
           failed_when: false
 
+        - name: Execute pulpcore-manager shell to check pulpcore version
+          kubernetes.core.k8s_exec:
+            namespace: "{{ ansible_operator_meta.namespace }}"
+            pod: "{{ _api_pods.resources[0].metadata.name }}"
+            command: >
+              bash -c "pulpcore-manager shell -c
+              \"from importlib.metadata import version; print(version('pulpcore'))\"
+              2>/dev/null || echo not_found"
+          register: _pulpcore_version_output
+          failed_when: false
+
         - name: Set scaling flag if pulp_ansible version is less than 0.23
           ansible.builtin.set_fact:
             needs_scaling_down: true
@@ -67,7 +79,17 @@
             - _pulp_ansible_version_output.stdout | trim != ''
             - _pulp_ansible_version_output.stdout | trim is version('0.23.0', '<')
 
-- name: Scale down API, Worker, and Content deployments if pulp_ansible < 0.23
+        - name: Set scaling flag if pulpcore version is less than 3.50
+          ansible.builtin.set_fact:
+            needs_scaling_down: true
+          when:
+            - _pulpcore_version_output.rc is defined
+            - _pulpcore_version_output.rc == 0
+            - _pulpcore_version_output.stdout | trim != 'not_found'
+            - _pulpcore_version_output.stdout | trim != ''
+            - _pulpcore_version_output.stdout | trim is version('3.50.0', '<')
+
+- name: Scale down API, Worker, and Content deployments if needed
   when: needs_scaling_down | default(false)
   block:
     - name: Check for all deployments to scale down
