@@ -122,7 +122,7 @@ jobs:
           CONTAINER_TOOL: docker
 
       - name: Check and wait galaxy-operator deploy
-        run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
+        run: sudo -E time kubectl -n galaxy wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
         shell: bash
 
       - name: Popeye

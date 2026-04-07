@@ -129,7 +129,7 @@ jobs:
         run: kubectl -n galaxy get galaxy example-galaxy -o yaml
 
       - name: Check and wait galaxy-operator deploy
-        run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
+        run: sudo -E time kubectl -n galaxy wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
         shell: bash
 
       - name: KubeLinter
@@ -161,7 +161,7 @@ jobs:
         run: |
           echo "Waiting for all deployments and statefulsets to scale down (excluding galaxy-operator-controller-manager)..."
           while true; do
-            RUNNING_PODS=$(kubectl get pods -n "$NAMESPACE" --field-selector=status.phase=Running --no-headers | wc -l)
+            RUNNING_PODS=$(kubectl get pods -n galaxy --field-selector=status.phase=Running --no-headers | wc -l)
             if [[ "$RUNNING_PODS" == "1" ]]; then
               echo "All deployments and statefulsets are scaled down. Only the operator pod is running."
               break
@@ -185,7 +185,7 @@ jobs:
           fi
 
           while true; do
-            RUNNING_PODS=$(kubectl get pods -n "$NAMESPACE" --field-selector=status.phase=Running --no-headers | wc -l)
+            RUNNING_PODS=$(kubectl get pods -n galaxy --field-selector=status.phase=Running --no-headers | wc -l)
             if [[ "$RUNNING_PODS" == "$EXPECTED_PODS" ]]; then
               echo "All deployments and statefulsets are scaled up."
               break
