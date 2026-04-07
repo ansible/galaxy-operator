@@ -26,13 +26,13 @@ if [[ "$1" == "--kind" ]] || [[ "$1" == "-k" ]]; then
   echo ::endgroup::
 fi
 
-sudo -E kubectl get pods -o wide
-sudo -E kubectl get pods -o go-template='{{range .items}} {{.metadata.name}} {{range .status.containerStatuses}} {{.lastState.terminated.exitCode}} {{end}}{{"\n"}} {{end}}'
-sudo -E kubectl get deployments
+sudo -E kubectl -n galaxy get pods -o wide
+sudo -E kubectl -n galaxy get pods -o go-template='{{range .items}} {{.metadata.name}} {{range .status.containerStatuses}} {{.lastState.terminated.exitCode}} {{end}}{{"\n"}} {{end}}'
+sudo -E kubectl -n galaxy get deployments
 
 if [[ "$KUBE" == "minikube" ]]; then
   echo ::group::METRICS
-  sudo -E kubectl top pods || true
+  sudo -E kubectl -n galaxy top pods || true
   sudo -E kubectl describe node minikube || true
   echo ::endgroup::
   echo ::group::MINIKUBE_LOGS
@@ -41,30 +41,30 @@ if [[ "$KUBE" == "minikube" ]]; then
 fi
 
 echo ::group::OPERATOR_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
+sudo -E kubectl -n galaxy logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
 echo ::endgroup::
 
 echo ::group::GALAXY_API_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-api --tail=10000 || true
+sudo -E kubectl -n galaxy logs -l app.kubernetes.io/name=galaxy-api --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_CONTENT_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-content --tail=10000 || true
+sudo -E kubectl -n galaxy logs -l app.kubernetes.io/name=galaxy-content --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_WORKER_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-worker --tail=10000 || true
+sudo -E kubectl -n galaxy logs -l app.kubernetes.io/name=galaxy-worker --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_WEB_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=nginx --tail=10000 || true
+sudo -E kubectl -n galaxy logs -l app.kubernetes.io/name=nginx --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::POSTGRES
 if [[ "$CI_TEST_DATABASE" == "external" ]]; then
   docker logs postgresql --tail 10000 || true
 else
-  sudo -E kubectl logs -l app.kubernetes.io/name=postgres --tail=10000 || true
+  sudo -E kubectl -n galaxy logs -l app.kubernetes.io/name=postgres --tail=10000 || true
 fi
 echo ::endgroup::
 
@@ -77,11 +77,11 @@ fi
 echo ::endgroup::
 
 echo ::group::EVENTS
-sudo -E kubectl get events --sort-by='.metadata.creationTimestamp' || true
+sudo -E kubectl -n galaxy get events --sort-by='.metadata.creationTimestamp' || true
 echo ::endgroup::
 
 echo ::group::OBJECTS
-sudo -E kubectl get galaxy,galaxybackup,galaxyrestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml
+sudo -E kubectl -n galaxy get galaxy,galaxybackup,galaxyrestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml
 echo ::endgroup::
 
 echo "Content endpoint"

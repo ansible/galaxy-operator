@@ -10,7 +10,7 @@ if [[ "$1" == "--minikube" ]] || [[ "$1" == "-m" ]]; then
   if [[ "$CI_TEST" == "true" ]] || [[ "$CI_TEST" == "galaxy" ]]; then
     SVC_NAME="example-galaxy-web-svc"
     WEB_PORT="24880"
-    kubectl port-forward service/$SVC_NAME $WEB_PORT:$WEB_PORT &
+    kubectl -n galaxy port-forward service/$SVC_NAME $WEB_PORT:$WEB_PORT &
   fi
 fi
 
