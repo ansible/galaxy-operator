@@ -109,10 +109,10 @@ jobs:
             CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-external-database.secret.yaml"
           elif [[ "${{ matrix.STORAGE }}" == "azure" ]]; then
             echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.azure.ci.yaml" >> $GITHUB_ENV
-            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-object-storage.azure.secret.yaml"
+            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-object-storage.azure.secret.yaml .ci/assets/kubernetes/galaxy-container-auth.secret.yaml"
           elif [[ "${{ matrix.STORAGE }}" == "s3" ]]; then
             echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.s3.ci.yaml" >> $GITHUB_ENV
-            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-object-storage.aws.secret.yaml"
+            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-object-storage.aws.secret.yaml .ci/assets/kubernetes/galaxy-container-auth.secret.yaml"
           else
             echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.ci.yaml" >> $GITHUB_ENV
           fi
