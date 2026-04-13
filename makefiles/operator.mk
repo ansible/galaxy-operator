@@ -15,10 +15,10 @@ DEFAULT_CHANNEL = "alpha"
 DEV_CR ?= dev/cr-examples/galaxy.cr.yml
 
 # Dev signing resources
-DEV_SIGNING_SCRIPTS ?= dev/signing-scripts.configmap.yml
+DEV_SIGNING_SCRIPTS ?= .ci/assets/kubernetes/signing_scripts.configmap.yaml
 
 # Custom configs to apply during post-deploy (secrets, configmaps, etc.)
-DEV_CUSTOM_CONFIG ?= dev/signing-scripts.configmap.yml
+DEV_CUSTOM_CONFIG ?= .ci/assets/kubernetes/signing_scripts.configmap.yaml
 
 # Feature flags
 BUILD_IMAGE ?= true
