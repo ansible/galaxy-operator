@@ -30,3 +30,12 @@ galaxy_nginx_conf_dir: "/etc/nginx/default.d"
 # Here we use  _galaxy_ansible_com_galaxy to get un-modified cr
 # see: https://github.com/operator-framework/operator-sdk/issues/1770
 raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
+
+# Nginx timeout and body size defaults. These variables are also defined in
+# galaxy-route/defaults but are used directly in galaxy-web templates. Defining
+# them here ensures they are always in scope when the galaxy-web role runs.
+client_request_timeout: 30
+nginx_client_max_body_size: 10m
+nginx_proxy_read_timeout: '{{ (([(client_request_timeout | int), 10] | max) / 2) | int }}'
+nginx_proxy_connect_timeout: '{{ (([(client_request_timeout | int), 10] | max) / 2) | int }}'
+nginx_proxy_send_timeout: '{{ (([(client_request_timeout | int), 10] | max) / 2) | int }}'
