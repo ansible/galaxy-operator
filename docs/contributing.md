@@ -1,32 +1,9 @@
-Contributing
-============
+# Contributing
 
-Pull Request Checklist
-------------------------
-1. Make sure your change does not break idempotency tests. See [Testing](#Testing)
-(or let CI run the tests for you if you are certain it is idempotent.)
-If a task cannot be made idempotent, add the tag [molecule-idempotence-notest](https://github.com/ansible-community/molecule/issues/816#issuecomment-573319053).
-2. Unless a change is small or doesn't affect users, create an issue on
-[github](https://github.com/ansible/galaxy-operator/issues/new).
-3. Push your branch to your fork and open a [Pull request across forks.](https://help.github.com/articles/creating-a-pull-request-from-a-fork/)
-4. Add GitHub labels as appropriate.
+For full contributing guidelines, see [CONTRIBUTING.md](https://github.com/ansible/galaxy-operator/blob/main/CONTRIBUTING.md) in the repository root.
 
-Development Guide
------------------
+## Quick Links
 
-See the Openshift [development guide](./development.md) for details on how to deploy on Openshift.
-
-Docs Testing
-------------
-
-Cross-platform:
-```
-pip install mkdocs pymdown-extensions mkdocs-material mike mkdocs-git-revision-date-plugin
-```
-
-Then:
-```
-mkdocs serve
-```
-Click the link it outputs. As you save changes to files modified in your editor,
-the browser will automatically show the new content.
+- [Development Guide](development.md) — prerequisites, build/deploy, testing
+- [Pull Requests](https://github.com/ansible/galaxy-operator/pulls) — submit your changes
+- [Issues](https://github.com/ansible/galaxy-operator/issues) — report bugs or request features
