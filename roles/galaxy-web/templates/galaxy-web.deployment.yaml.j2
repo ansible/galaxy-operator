@@ -42,6 +42,10 @@ spec:
         app.kubernetes.io/component: webserver
         app.kubernetes.io/part-of: '{{ deployment_type }}'
         app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+      annotations:
+{% if http_proxy or https_proxy or no_proxy %}
+        checksum-proxy-env-configmap: "{{ lookup('template', '../common/templates/proxy-env.configmap.yaml.j2') | sha1 }}"
+{% endif %}
     spec:
 {% if web_affinity is defined and web_affinity | length > 0 %}
       affinity:
@@ -73,6 +77,10 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
 {% endif %}
+          envFrom:
+            - configMapRef:
+                name: '{{ ansible_operator_meta.name }}-proxy-env'
+                optional: true
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-nginx-conf
               mountPath: /etc/nginx/nginx.conf

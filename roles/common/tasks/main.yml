@@ -8,6 +8,16 @@
     combined_worker: "{{ _worker | combine(worker, recursive=True) }}"
     combined_redis: "{{ _redis | combine(redis, recursive=True) }}"
 
+- name: Set proxy vars from CR spec
+  # TODO: Investigate why these fields require explicit raw_spec extraction while
+  # bundle_cacert_secret (also a top-level string in defaults/main.yml) works via
+  # the operator framework's normal spec-merge without this task. Possible causes:
+  # CRD not applied before first test run, or a framework quirk with newly-added fields.
+  ansible.builtin.set_fact:
+    http_proxy: "{{ raw_spec.http_proxy | default(http_proxy) }}"
+    https_proxy: "{{ raw_spec.https_proxy | default(https_proxy) }}"
+    no_proxy: "{{ raw_spec.no_proxy | default(no_proxy) }}"
+
 - name: Set apiVersion and kind variables
   ansible.builtin.set_fact:
     api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
@@ -119,3 +129,9 @@
 
 - name: Set application images
   include_tasks: set_images.yml
+
+- name: Apply proxy environment ConfigMap
+  k8s:
+    apply: yes
+    definition: "{{ lookup('template', 'proxy-env.configmap.yaml.j2') }}"
+    state: "{{ 'present' if (http_proxy or https_proxy or no_proxy) else 'absent' }}"
