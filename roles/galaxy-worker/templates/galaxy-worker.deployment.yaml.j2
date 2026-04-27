@@ -52,6 +52,9 @@ spec:
   ] %}
         checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
 {% endfor %}
+{% if http_proxy or https_proxy or no_proxy %}
+        checksum-proxy-env-configmap: "{{ lookup('template', '../common/templates/proxy-env.configmap.yaml.j2') | sha1 }}"
+{% endif %}
     spec:
 {% if worker_affinity is defined and worker_affinity | length > 0 %}
       affinity:
@@ -152,6 +155,10 @@ spec:
             - name: GNUPGHOME
               value: "/var/lib/pulp/.gnupg"
 {% endif %}
+          envFrom:
+            - configMapRef:
+                name: '{{ ansible_operator_meta.name }}-proxy-env'
+                optional: true
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-ansible-tmp
               mountPath: "/.ansible/tmp/"
