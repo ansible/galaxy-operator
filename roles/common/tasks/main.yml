@@ -101,10 +101,6 @@
   ansible.builtin.include_tasks: idle_deployment.yml
   when: idle_deployment | bool
 
-- name: Check for existing {{ deployment_type }} deployment
-  ansible.builtin.include_tasks: check_existing.yml
-  when: gating_version | length
-
 - name: Set Bundle Certificate Authority
   include_tasks: set_bundle_cacert.yml
   when: bundle_cacert_secret | length
