@@ -30,18 +30,18 @@
       redis_port: 6379
       redis_password: ""
       LOGGING:
-        dynaconf_merge: "True"
+        dynaconf_merge: True
         handlers:
           collection_import:
-            level: "INFO"
-            class: "pulp_ansible.app.logutils.CollectionImportHandler"
-            formatter: "simple"
+            level: INFO
+            class: pulp_ansible.app.logutils.CollectionImportHandler
+            formatter: simple
         loggers:
           pulp_ansible.app.tasks.upload.process_collection_artifact:
-            level: "INFO"
+            level: INFO
             handlers:
-              - "collection_import"
-            propagate: "False"
+              - collection_import
+            propagate: False
     deployment_state: present
     _image: quay.io/ansible/galaxy-ng
     _image_version: "{{ lookup('env', 'DEFAULT_GALAXY_VERSION') or 'latest' }}"
