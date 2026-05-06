@@ -29,6 +29,19 @@
       redis_host: "{{ ansible_operator_meta.name }}-redis-svc"
       redis_port: 6379
       redis_password: ""
+      LOGGING:
+        dynaconf_merge: '@bool True'
+        handlers:
+          collection_import:
+            level: INFO
+            class: pulp_ansible.app.logutils.CollectionImportHandler
+            formatter: simple
+        loggers:
+          pulp_ansible.app.tasks.upload.process_collection_artifact:
+            level: INFO
+            handlers:
+              - collection_import
+            propagate: '@bool False'
     deployment_state: present
     _image: quay.io/ansible/galaxy-ng
     _image_version: "{{ lookup('env', 'DEFAULT_GALAXY_VERSION') or 'latest' }}"
