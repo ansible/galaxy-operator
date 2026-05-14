@@ -221,6 +221,12 @@ spec:
             - name: PULP_SIGNING_KEY_FINGERPRINT
               value: "{{ signing_key_fingerprint }}"
 {% endif %}
+{% if object_storage_s3_secret is defined %}
+            - name: AWS_REQUEST_CHECKSUM_CALCULATION
+              value: "when_required"
+            - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+              value: "when_required"
+{% endif %}
           envFrom:
             - configMapRef:
                 name: '{{ ansible_operator_meta.name }}-proxy-env'
