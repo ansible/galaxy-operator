@@ -1,26 +1,4 @@
 ---
-- name: Get PostgreSQL configuration
-  kubernetes.core.k8s_info:
-    kind: Secret
-    namespace: '{{ ansible_operator_meta.namespace }}'
-    name: '{{ db_secret_name }}'
-  register: pg_config
-  no_log: "{{ no_log }}"
-  until: pg_config['resources'] | length
-  delay: 10
-  retries: 60
-
-- name: Store Database Configuration
-  set_fact:
-    postgres_user: "{{ pg_config['resources'][0]['data']['username'] | b64decode }}"
-    postgres_pass: "{{ pg_config['resources'][0]['data']['password'] | b64decode }}"
-    postgres_database: "{{ pg_config['resources'][0]['data']['database'] | b64decode }}"
-    postgres_port: "{{ pg_config['resources'][0]['data']['port'] | b64decode }}"
-    postgres_host: "{{ pg_config['resources'][0]['data']['host'] | b64decode }}"
-    postgres_sslmode: "{{ pg_config['resources'][0]['data']['sslmode'] | default('prefer'|b64encode) | b64decode }}"
-    postgres_type: "{{ pg_config['resources'][0]['data']['type'] | default('unmanaged'|b64encode) | b64decode }}"
-  no_log: "{{ no_log }}"
-
 - name: Default label selector to custom resource generated postgres
   set_fact:
     postgres_label_selector: "app.kubernetes.io/instance=postgres-{{ deployment_name }}"

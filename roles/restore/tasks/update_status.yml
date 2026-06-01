@@ -12,6 +12,7 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     status:
       restoreComplete: true
+      restorePostgres: "{{ not postgres_skip_data | bool or postgres_type == 'managed' }}"
   when: restore_complete is defined
 
 - name: Add RestoreComplete condition

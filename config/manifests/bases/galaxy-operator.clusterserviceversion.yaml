@@ -668,6 +668,11 @@ spec:
         path: postgres_label_selector
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Skip PostgreSQL database dump
+        path: postgres_skip_data
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - displayName: No Log Configuration
         path: no_log
         x-descriptors:
@@ -780,6 +785,11 @@ spec:
         path: postgres_label_selector
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - displayName: Skip PostgreSQL database restore
+        path: postgres_skip_data
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - displayName: Custom Resource Key
         path: custom_resource_key
         x-descriptors:
