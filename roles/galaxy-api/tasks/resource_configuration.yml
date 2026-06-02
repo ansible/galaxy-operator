@@ -50,3 +50,11 @@
   failed_when: "'That username is already taken' not in result.stderr and 'Successfully set password' not in result.stdout"
   no_log: "{{ no_log }}"
   when: users_result.return_code > 0
+
+- name: Run container-handle-image-data to cleanup recoverable artifacts
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ _api_pod_name }}"
+    container: "api"
+    command: bash -c "pulpcore-manager container-handle-image-data"
+  register: result
