@@ -330,6 +330,44 @@ spec:
               readOnly: false
               mountPath: "/var/lib/pulp"
 {% endif %}
+        - name: handle-image-data
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command:
+            - /bin/bash
+            - -c
+            - |
+              pulpcore-manager container-handle-image-data || true
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: port
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% endif %}
 {% if signing_secret is defined %}
         - name: gpg-importer
           image: "{{ _image }}"
