@@ -285,31 +285,6 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
     conditions:
       - type: Database-Ready
-        message: Removing old Postgres PVC
-        reason: RemovingOldPostgresPVC
-        status: "False"
-        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
-
-- name: Remove old persistent volume claim
-  k8s:
-    kind: PersistentVolumeClaim
-    api_version: v1
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    name: "{{ item }}"
-    state: absent
-  loop:
-  - "postgres-{{ ansible_operator_meta.name }}-postgres-0"
-  - "postgres-{{ ansible_operator_meta.name }}-postgres-13-0"
-  when:
-    - not postgres_keep_pvc_after_upgrade
-
-- k8s_status:
-    api_version: "{{ api_version }}"
-    kind: "{{ kind }}"
-    name: "{{ ansible_operator_meta.name }}"
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    conditions:
-      - type: Database-Ready
         message: All Postgres upgrade tasks ran successfully
         reason: DatabaseTasksFinished
         status: "True"

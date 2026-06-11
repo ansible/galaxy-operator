@@ -141,11 +141,6 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:advanced
         - urn:alm:descriptor:com.tectonic.ui:hidden
         - urn:alm:descriptor:io.kubernetes:Secret
-      - displayName: Postgres Keep Old Data PVC After Upgrade
-        path: postgres_keep_pvc_after_upgrade
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:hidden
-        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - displayName: Database backup label selector
         path: postgres_label_selector
         x-descriptors:
