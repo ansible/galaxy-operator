@@ -30,13 +30,14 @@
     pod: "{{ _api_pod_name }}"
     container: "api"
     command: >-
-      bash -c "echo 'from django.contrib.auth import get_user_model;
+      bash -c "echo 'import base64;
+      from django.contrib.auth import get_user_model;
       User = get_user_model();
       user, created = User.objects.update_or_create(
         username=\"admin\",
         defaults={\"is_superuser\": True, \"is_staff\": True}
       );
-      user.set_password(\"{{ admin_password }}\");
+      user.set_password(base64.b64decode(\"{{ admin_password | b64encode }}\").decode());
       user.save();
       print(\"created\" if created else \"updated\")'
       | ANSIBLE_REVERSE_RESOURCE_SYNC=false pulpcore-manager shell"
