@@ -24,29 +24,23 @@
   set_fact:
     _api_pod_name: "{{ _api_pod['resources'][0]['metadata']['name'] | default('') }}"
 
-- name: Check if the admin user is defined
+- name: Ensure admin superuser exists with correct password.
   kubernetes.core.k8s_exec:
     namespace: "{{ ansible_operator_meta.namespace }}"
     pod: "{{ _api_pod_name }}"
     container: "api"
     command: >-
-      bash -c "echo 'from django.contrib.auth import get_user_model;
+      bash -c "echo 'import base64;
+      from django.contrib.auth import get_user_model;
       User = get_user_model();
-      nsu = User.objects.filter(is_superuser=True, username=\"admin\").count();
-      exit(0 if nsu > 0 else 1)'
-      | pulpcore-manager shell"
-  ignore_errors: true
-  register: users_result
-  changed_when: users_result.return_code > 0
-
-- name: Create admin user via Django if it doesn't exist.
-  kubernetes.core.k8s_exec:
-    namespace: "{{ ansible_operator_meta.namespace }}"
-    pod: "{{ _api_pod_name }}"
-    container: "api"
-    command: bash -c "ANSIBLE_REVERSE_RESOURCE_SYNC=false pulpcore-manager reset-admin-password --password '{{ admin_password }}'"
+      user, created = User.objects.update_or_create(
+        username=\"admin\",
+        defaults={\"is_superuser\": True, \"is_staff\": True}
+      );
+      user.set_password(base64.b64decode(\"{{ admin_password | b64encode }}\").decode());
+      user.save();
+      print(\"created\" if created else \"updated\")'
+      | ANSIBLE_REVERSE_RESOURCE_SYNC=false pulpcore-manager shell"
   register: result
-  changed_when: "'That username is already taken' not in result.stderr"
-  failed_when: "'That username is already taken' not in result.stderr and 'Successfully set password' not in result.stdout"
+  changed_when: "'created' in result.stdout"
   no_log: "{{ no_log }}"
-  when: users_result.return_code > 0
