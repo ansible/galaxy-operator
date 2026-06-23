@@ -32,3 +32,6 @@ restore_resource_requirements:
 spec_overrides: {}
 
 force_drop_db: false
+
+# Skip PostgreSQL database restore
+postgres_skip_data: false

@@ -87,6 +87,10 @@ spec:
                 postgres_image_version:
                   description: PostgreSQL container image version to use for backup
                   type: string
+                postgres_skip_data:
+                  description: Skip PostgreSQL database dump.
+                  type: boolean
+                  default: false
                 pg_dump_suffix:
                   description: Additional parameters for the pg_dump command
                   type: string
@@ -110,6 +114,9 @@ spec:
                 backupDirectory:
                   description: The directory data is backed up to on the PVC
                   type: string
+                backupPostgres:
+                  description: Backup PostgreSQL data
+                  type: boolean
                 deploymentStorageType:
                   description: The deployment storage type
                   type: string
