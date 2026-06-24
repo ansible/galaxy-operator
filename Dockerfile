@@ -1,4 +1,4 @@
-FROM quay.io/operator-framework/ansible-operator:v1.40.0
+FROM quay.io/operator-framework/ansible-operator:v1.42.2
 
 ARG DEFAULT_GALAXY_VERSION
 ARG DEFAULT_GALAXY_UI_VERSION
@@ -11,7 +11,7 @@ ENV ANSIBLE_FORCE_COLOR=true
 ENV ANSIBLE_SHOW_TASK_PATH_ON_FAILURE=true
 
 USER root
-RUN dnf update --security --bugfix -y --disableplugin=subscription-manager
+RUN microdnf update -y
 
 USER ${USER_UID}
 
