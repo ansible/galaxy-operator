@@ -3,19 +3,13 @@
 
 set -euo pipefail
 
-RELEASE_INFO=$(curl --silent --show-error --fail https://api.github.com/repos/stackrox/kube-linter/releases/latest)
-RELEASE_NAME=$(echo "${RELEASE_INFO}" | jq --raw-output ".name")
-LOCATION=$(echo "${RELEASE_INFO}" \
-  | jq --raw-output ".assets[].browser_download_url" \
-  | grep --fixed-strings kube-linter-linux.tar.gz)
+KUBE_LINTER_VERSION="v0.8.3"
+TARGET="kube-linter-linux-${KUBE_LINTER_VERSION}.tar.gz"
+LOCATION="https://github.com/stackrox/kube-linter/releases/download/${KUBE_LINTER_VERSION}/kube-linter-linux.tar.gz"
 
-# Remove trailing whitespace
-RELEASE_NAME="${RELEASE_NAME%"${RELEASE_NAME##*[![:space:]]}"}"
-TARGET=kube-linter-linux-${RELEASE_NAME}.tar.gz
-# Skip downloading release if downloaded already, e.g. when the action is used multiple times.
-if [ ! -e $TARGET ]; then
-  curl --silent --show-error --fail --location --output $TARGET "$LOCATION"
-  tar -xf $TARGET
+if [ ! -e "$TARGET" ]; then
+  curl --silent --show-error --fail --location --output "$TARGET" "$LOCATION"
+  tar -xf "$TARGET"
 fi
 mkdir -p lint
 sudo -E kubectl get galaxy,galaxybackup,galaxyrestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml > ./lint/k8s-all.yaml
