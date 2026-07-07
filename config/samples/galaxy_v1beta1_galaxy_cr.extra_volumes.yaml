@@ -1,0 +1,75 @@
+---
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
+metadata:
+  name: galaxy-extra-volumes-example
+  namespace: galaxy
+spec:
+  # Standard Galaxy configuration
+  image: quay.io/ansible/galaxy-ng
+  image_version: latest
+  image_web: quay.io/ansible/galaxy-ui
+  image_web_version: latest
+
+  # Component-specific extra volumes example
+  # Each component defines its own volumes and mounts
+
+  # API component volumes and mounts
+  api_extra_volumes: |
+    - name: api-custom-config
+      configMap:
+        name: api-custom-config
+    - name: api-ssl-certs
+      secret:
+        secretName: api-ssl-certs
+        defaultMode: 0600
+    - name: api-shared-data
+      persistentVolumeClaim:
+        claimName: api-shared-pvc
+
+  api_extra_volume_mounts: |
+    - name: api-custom-config
+      mountPath: /etc/galaxy/api-config
+      readOnly: true
+    - name: api-ssl-certs
+      mountPath: /etc/ssl/api
+      readOnly: true
+    - name: api-shared-data
+      mountPath: /var/api-shared
+
+  # Content component volumes and mounts
+  content_extra_volumes: |
+    - name: content-media-storage
+      persistentVolumeClaim:
+        claimName: content-media-pvc
+    - name: content-temp-storage
+      emptyDir:
+        sizeLimit: 2Gi
+
+  content_extra_volume_mounts: |
+    - name: content-media-storage
+      mountPath: /var/media
+    - name: content-temp-storage
+      mountPath: /tmp/content
+
+  # Worker component volumes and mounts
+  worker_extra_volumes: |
+    - name: worker-processing-storage
+      emptyDir:
+        sizeLimit: 5Gi
+    - name: worker-logs
+      hostPath:
+        path: /var/log/galaxy-worker
+        type: DirectoryOrCreate
+
+  worker_extra_volume_mounts: |
+    - name: worker-processing-storage
+      mountPath: /tmp/worker-processing
+    - name: worker-logs
+      mountPath: /var/log/worker
+      readOnly: false
+
+  # Standard storage configuration
+  storage_type: File
+  file_storage_size: 50Gi
+  file_storage_access_mode: ReadWriteMany
