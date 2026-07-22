@@ -126,6 +126,10 @@
 - name: Set application images
   include_tasks: set_images.yml
 
+- name: Set gateway hostname for NO_PROXY exclusion
+  ansible.builtin.set_fact:
+    _gateway_hostname: "{{ raw_spec['pulp_settings']['ANSIBLE_BASE_JWT_KEY'] | default('') | urlsplit('hostname') }}"
+
 - name: Apply proxy environment ConfigMap
   k8s:
     apply: yes
