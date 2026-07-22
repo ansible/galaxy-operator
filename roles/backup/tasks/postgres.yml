@@ -30,13 +30,6 @@
     command: >-
       touch {{ _backup_dir }}/pulp.db
 
-- name: Set permissions on file for database dump
-  k8s_exec:
-    namespace: "{{ backup_pvc_namespace }}"
-    pod: "{{ ansible_operator_meta.name }}-db-management"
-    command: >-
-      chmod 0600 {{ _backup_dir }}/pulp.db
-
 - name: Set pg_dump command
   set_fact:
     pgdump: >-
