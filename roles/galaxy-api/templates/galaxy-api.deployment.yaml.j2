@@ -298,7 +298,9 @@ spec:
             - /bin/bash
             - -c
             - |
+              set -e
               mkdir -p /var/lib/pulp/{tmp,media}
+              pulpcore-manager fix-squashed-migrations
               pulpcore-manager migrate
 {% if combined_api.resource_requirements is defined %}
           resources: {{ combined_api.resource_requirements }}
