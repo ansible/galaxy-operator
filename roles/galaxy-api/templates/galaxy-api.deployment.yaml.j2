@@ -217,10 +217,9 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-                - /usr/bin/readyz.py
-                - "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
+            httpGet:
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
+              port: 8000
             failureThreshold: 10
             initialDelaySeconds: 30
             periodSeconds: 10
