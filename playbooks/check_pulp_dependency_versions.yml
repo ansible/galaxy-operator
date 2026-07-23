@@ -3,7 +3,7 @@
 # Sometimes it is necessary to scale down deployments before an upgrade if there are breaking changes in the pulp dependencies.
 # Known incompatibilities to check for:
 #   * pulp_ansible < 0.23 is not compatible with 0.23.0 or later
-#   * pulpcore < 3.50 is not compatible with 3.50.0 or later
+#   * pulpcore < 3.82.1 is not compatible with 3.82.1 or later
 
 - name: Check for existing API deployment
   kubernetes.core.k8s_info:
@@ -79,7 +79,7 @@
             - _pulp_ansible_version_output.stdout | trim != ''
             - _pulp_ansible_version_output.stdout | trim is version('0.23.0', '<')
 
-        - name: Set scaling flag if pulpcore version is less than 3.50
+        - name: Set scaling flag if pulpcore version is less than 3.82.1
           ansible.builtin.set_fact:
             needs_scaling_down: true
           when:
@@ -87,7 +87,7 @@
             - _pulpcore_version_output.rc == 0
             - _pulpcore_version_output.stdout | trim != 'not_found'
             - _pulpcore_version_output.stdout | trim != ''
-            - _pulpcore_version_output.stdout | trim is version('3.50.0', '<')
+            - _pulpcore_version_output.stdout | trim is version('3.82.1', '<')
 
 - name: Scale down API, Worker, and Content deployments if needed
   when: needs_scaling_down | default(false)
