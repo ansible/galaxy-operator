@@ -200,6 +200,12 @@ spec:
             - name: GNUPGHOME
               value: "/var/lib/pulp/.gnupg"
 {% endif %}
+{% if object_storage_s3_secret is defined %}
+            - name: AWS_REQUEST_CHECKSUM_CALCULATION
+              value: "{{ s3_request_checksum_calculation | default('when_required') }}"
+            - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+              value: "{{ s3_response_checksum_validation | default('when_required') }}"
+{% endif %}
           envFrom:
             - configMapRef:
                 name: '{{ ansible_operator_meta.name }}-proxy-env'
