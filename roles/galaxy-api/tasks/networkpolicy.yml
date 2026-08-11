@@ -1,0 +1,19 @@
+---
+# Default deny applied first so the deny is in place before any workload pod starts.
+- name: Apply default deny NetworkPolicy for Hub operand pods
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    definition: "{{ lookup('template', 'default-deny.networkpolicy.yaml.j2') }}"
+
+- name: Apply Hub API NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    definition: "{{ lookup('template', 'galaxy-api.networkpolicy.yaml.j2') }}"
+
+- name: Apply db-management NetworkPolicy for backup and restore pods
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    definition: "{{ lookup('template', 'db-management.networkpolicy.yaml.j2') }}"

@@ -1,0 +1,6 @@
+---
+- name: Apply Hub content NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    definition: "{{ lookup('template', 'galaxy-content.networkpolicy.yaml.j2') }}"

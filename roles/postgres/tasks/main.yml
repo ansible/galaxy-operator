@@ -62,6 +62,12 @@
       when: filtered_old_postgres_pods | length
   when: _running_pods.resources | length
 
+# NetworkPolicy must be applied before the StatefulSet so deny is in place
+# before any database pod starts.
+- name: Apply PostgreSQL NetworkPolicy
+  import_tasks: networkpolicy.yml
+  when: managed_database
+
 - block:
     - operator_sdk.util.k8s_status:
         api_version: "{{ api_version }}"

@@ -134,7 +134,77 @@
     cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
     custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
 
-- name: Add assertions here
-  assert:
-    that: true
-    fail_msg: FIXME Add real assertions for your operator
+- name: Set Hub resource name from sample CR
+  ansible.builtin.set_fact:
+    galaxy_cr_name: "{{ lookup('template', '/'.join([samples_dir, 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'])) | from_yaml | json_query('metadata.name') }}"
+
+- name: Verify default-deny NetworkPolicy exists
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: NetworkPolicy
+    namespace: '{{ namespace }}'
+    name: '{{ galaxy_cr_name }}-default-deny'
+  register: np_default_deny
+  until: np_default_deny.resources | length > 0
+  retries: 10
+  delay: 5
+
+- name: Assert default-deny selects galaxy-operator managed pods and denies all traffic
+  ansible.builtin.assert:
+    that:
+      - np_default_deny.resources[0].spec.podSelector.matchExpressions | length == 1
+      - np_default_deny.resources[0].spec.podSelector.matchExpressions[0].key == 'app.kubernetes.io/managed-by'
+      - np_default_deny.resources[0].spec.podSelector.matchExpressions[0].operator == 'In'
+      - "'galaxy-operator' in np_default_deny.resources[0].spec.podSelector.matchExpressions[0].values"
+      - "'Ingress' in np_default_deny.resources[0].spec.policyTypes"
+      - "'Egress' in np_default_deny.resources[0].spec.policyTypes"
+      - np_default_deny.resources[0].spec.ingress is not defined or np_default_deny.resources[0].spec.ingress | length == 0
+      - np_default_deny.resources[0].spec.egress is not defined or np_default_deny.resources[0].spec.egress | length == 0
+    fail_msg: "default-deny NetworkPolicy does not match expected spec: {{ np_default_deny.resources }}"
+
+- name: Verify postgres NetworkPolicy exists
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: NetworkPolicy
+    namespace: '{{ namespace }}'
+    name: '{{ galaxy_cr_name }}-postgres-{{ supported_pg_version }}'
+  register: np_postgres
+  until: np_postgres.resources | length > 0
+  retries: 10
+  delay: 5
+
+- name: Assert postgres NetworkPolicy selects database pods and allows Hub operator-managed pod ingress
+  ansible.builtin.assert:
+    that:
+      - np_postgres.resources[0].spec.podSelector.matchLabels['app.kubernetes.io/component'] == 'database'
+      - np_postgres.resources[0].spec.podSelector.matchLabels['app.kubernetes.io/instance'] == 'postgres-' + galaxy_cr_name
+      - np_postgres.resources[0].spec.ingress | length > 0
+    fail_msg: "Postgres NetworkPolicy does not match expected spec: {{ np_postgres.resources }}"
+
+- name: Verify per-workload NetworkPolicies exist
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: NetworkPolicy
+    namespace: '{{ namespace }}'
+    name: '{{ galaxy_cr_name }}-{{ item }}'
+  register: np_workload
+  until: np_workload.resources | length > 0
+  retries: 10
+  delay: 5
+  loop:
+    - api
+    - web
+    - content
+    - worker
+    - redis
+    - db-management
+
+- name: Assert all per-workload NetworkPolicies have expected policyTypes
+  ansible.builtin.assert:
+    that:
+      - item.resources | length > 0
+      - item.resources[0].spec.policyTypes is defined
+    fail_msg: "NetworkPolicy missing or has no policyTypes: {{ item }}"
+  loop: "{{ np_workload.results }}"
+  loop_control:
+    label: "{{ item.resources[0].metadata.name | default('unknown') }}"

@@ -1,5 +1,8 @@
 ---
 
+- name: Apply NetworkPolicy for Hub web operand pod
+  include_tasks: networkpolicy.yml
+
 - name: Getting raw pulp_settings
   set_fact:
     raw_pulp_settings: "{{ raw_spec['pulp_settings'] | default({}) }}"

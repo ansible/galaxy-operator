@@ -1,4 +1,7 @@
 ---
+- name: Apply NetworkPolicy for Hub Redis operand pod
+  include_tasks: networkpolicy.yml
+
 - name: redis persistent volume claim
   k8s:
     state: "{{ deployment_state }}"

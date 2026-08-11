@@ -1,4 +1,7 @@
 ---
+- name: Apply NetworkPolicy for Hub worker operand pod
+  include_tasks: networkpolicy.yml
+
 - k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"
