@@ -27,7 +27,7 @@ spec:
               network.openshift.io/policy-group: ingress
       ports:
         - protocol: TCP
-          port: 24880
+          port: 8080
     # Allow traffic from the gateway (reverse proxy) and other Hub/AAP pods.
     # aap-operator is the managed-by label carried by the gateway pod in a
     # full AAP deployment (not aap-gateway-operator).
@@ -44,7 +44,7 @@ spec:
               control-plane: controller-manager
       ports:
         - protocol: TCP
-          port: 24880
+          port: 8080
   egress:
     # Allow DNS resolution via OpenShift DNS
     - to:
