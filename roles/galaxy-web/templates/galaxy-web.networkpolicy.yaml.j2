@@ -76,11 +76,3 @@ spec:
       ports:
         - protocol: TCP
           port: 24816
-    # Allow TCP responses back to the operator controller-manager pod.
-    # OCP 5 NetworkPolicy does not track return-path connections via conntrack,
-    # so an explicit egress rule is required for the operator's status check
-    # HTTP call into hub-web to receive a response.
-    - to:
-        - podSelector:
-            matchLabels:
-              control-plane: controller-manager

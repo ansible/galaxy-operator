@@ -14,15 +14,7 @@ spec:
       app.kubernetes.io/instance: '{{ deployment_type }}-worker-{{ ansible_operator_meta.name }}'
       app.kubernetes.io/component: worker
   policyTypes:
-    - Ingress
     - Egress
-  ingress:
-    # Allow traffic from Hub operator-managed pods (task dispatch from the
-    # API pod via Celery/postgres LISTEN/NOTIFY).
-    - from:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
   egress:
     # Allow DNS resolution via OpenShift DNS
     - to:
