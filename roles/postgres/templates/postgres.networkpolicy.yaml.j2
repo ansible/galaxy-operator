@@ -48,3 +48,14 @@ spec:
           port: 5353
         - protocol: UDP
           port: 5353
+    # Allow egress to other postgres pods for major-version upgrade streaming.
+    # The operator execs pg_dump in the old pod and pipes to pg_restore in the
+    # new pod over a direct TCP connection between pods.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: 'postgres'
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: {{ postgres_port | default('5432') }}

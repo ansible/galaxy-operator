@@ -20,12 +20,18 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow traffic from Hub operator-managed pods (api, content, worker all
-    # connect to Redis for Celery task queuing and result caching).
+    # Allow traffic from the Hub pods that use the Celery task queue and cache:
+    # api, content, and worker. Web, postgres, and backup-manager do not
+    # connect to Redis.
     - from:
         - podSelector:
-            matchLabels:
-              app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - api
+                  - content-server
+                  - worker
       ports:
         - protocol: TCP
           port: 6379
