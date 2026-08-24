@@ -30,7 +30,9 @@ spec:
           port: 8080
     # Allow traffic from the gateway (reverse proxy) and other Hub/AAP pods.
     # aap-operator is the managed-by label carried by the gateway pod in a
-    # full AAP deployment (not aap-gateway-operator).
+    # full AAP deployment (not aap-gateway-operator). namespaceSelector:
+    # {} + podSelector (same list item = AND) allows the operator pod to
+    # reach the Hub API when it runs in a separate namespace.
     - from:
         - podSelector:
             matchExpressions:
@@ -39,7 +41,8 @@ spec:
                 values:
                   - '{{ deployment_type }}-operator'
                   - 'aap-operator'
-        - podSelector:
+        - namespaceSelector: {}
+          podSelector:
             matchLabels:
               control-plane: controller-manager
       ports:
