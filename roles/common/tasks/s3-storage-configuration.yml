@@ -139,6 +139,22 @@
   when:
     - s3_endpoint_available
 
+- name: Store s3 request checksum calculation
+  set_fact:
+    s3_request_checksum_calculation: "{{ _custom_s3_configuration['resources'][0]['data']['s3-request-checksum-calculation'] | b64decode }}"
+  when:
+    - s3_secret_data_available
+    - _custom_s3_configuration.resources[0].data['s3-request-checksum-calculation'] is defined
+    - _custom_s3_configuration.resources[0].data['s3-request-checksum-calculation'] | length
+
+- name: Store s3 response checksum validation
+  set_fact:
+    s3_response_checksum_validation: "{{ _custom_s3_configuration['resources'][0]['data']['s3-response-checksum-validation'] | b64decode }}"
+  when:
+    - s3_secret_data_available
+    - _custom_s3_configuration.resources[0].data['s3-response-checksum-validation'] is defined
+    - _custom_s3_configuration.resources[0].data['s3-response-checksum-validation'] | length
+
 - name: Add s3 access key id to s3 settings
   set_fact:
     s3_access_key_id_dict:
