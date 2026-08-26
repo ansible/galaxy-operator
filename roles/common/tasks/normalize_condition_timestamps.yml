@@ -9,6 +9,9 @@
 # the date-time format constraint (e.g. AAP 2.6 -> 2.7).
 #
 # This task runs once per reconciliation to patch any such values in-place.
+# We use replace: true to bypass k8s_status's merge_status_conditions logic,
+# which ignores lastTransitionTime-only changes (has_condition_transitioned
+# explicitly skips that field).
 
 - name: Get current status conditions
   set_fact:
@@ -29,12 +32,17 @@
     _fixed_condition: "{{ _cond | combine({'lastTransitionTime': _fixed_timestamp}) if _cond.lastTransitionTime is defined else _cond }}"
   when: _has_malformed_timestamps | bool
 
-- name: Patch status conditions with normalized timestamps
+- name: Build full status with normalized conditions
+  set_fact:
+    _patched_status: "{{ this_galaxy['resources'][0]['status'] | combine({'conditions': _normalized_conditions}) }}"
+  when: _has_malformed_timestamps | bool
+
+- name: Replace status with normalized timestamps
   operator_sdk.util.k8s_status:
     api_version: "{{ api_version }}"
     kind: "{{ kind }}"
     name: "{{ ansible_operator_meta.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
-    status:
-      conditions: "{{ _normalized_conditions }}"
+    replace: true
+    status: "{{ _patched_status }}"
   when: _has_malformed_timestamps | bool
