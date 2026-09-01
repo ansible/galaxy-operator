@@ -218,12 +218,12 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/status/healthz"
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
               port: 8000
             failureThreshold: 10
             initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 5
+            timeoutSeconds: 10
 {% if combined_api.resource_requirements is defined %}
           resources: {{ combined_api.resource_requirements }}
 {% endif %}
