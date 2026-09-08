@@ -347,6 +347,9 @@ spec:
               db_fields_encryption_secret:
                 description: Secret where the Fernet symmetric encryption key is stored
                 type: string
+              secret_key_secret:
+                description: Secret where the Django SECRET_KEY is stored
+                type: string
               signing_secret:
                 description: Secret where the signing certificates are stored
                 type: string
@@ -2424,6 +2427,9 @@ spec:
                 type: string
               dbFieldsEncryptionSecret:
                 description: The name of the secret used for encrypting DB fields
+                type: string
+              secretKeySecret:
+                description: The name of the secret used for the Django SECRET_KEY setting
                 type: string
               containerTokenSecret:
                 description: The name of the secret used for container token authentication
