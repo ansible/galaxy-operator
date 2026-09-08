@@ -135,6 +135,13 @@
     - status['dbFieldsEncryptionSecret'] is defined
     - status['dbFieldsEncryptionSecret'] | length
 
+- name: Set secret key secret if found
+  set_fact:
+    secret_key_secret_name: "{{ status['secretKeySecret'] }}"
+  when:
+    - status['secretKeySecret'] is defined
+    - status['secretKeySecret'] | length
+
 - name: Set galaxy signing secret if found
   set_fact:
     signing_secret: "{{ status['signingSecret'] }}"
