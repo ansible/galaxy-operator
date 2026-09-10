@@ -213,8 +213,15 @@ spec:
               port: 8000
               scheme: HTTP
             failureThreshold: 5
-            initialDelaySeconds: 90
             periodSeconds: 15
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/status/healthz"
+              port: 8000
+              scheme: HTTP
+            failureThreshold: 30
+            periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             httpGet:

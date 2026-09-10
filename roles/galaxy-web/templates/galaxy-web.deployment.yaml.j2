@@ -125,7 +125,7 @@ spec:
             timeoutSeconds: 10
           readinessProbe:
             httpGet:
-              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/status/healthz"
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
 {% if ingress_type | lower == 'route' and route_tls_termination_mechanism | lower == 'passthrough' %}
               port: 8443
               scheme: HTTPS
