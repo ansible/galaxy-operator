@@ -7,6 +7,7 @@
     _admin_password_secret: "{{ status['adminPasswordSecret'] }}"
     _db_fields_encryption_secret: "{{ status['dbFieldsEncryptionSecret'] }}"
     _container_token_secret: "{{ status['containerTokenSecret'] }}"
+    _secret_key_secret: "{{ status['secretKeySecret'] | default('') }}"
 
 - name: Set names of backed up secrets in the CR spec
   set_fact:
@@ -16,6 +17,14 @@
     - {"key": "admin_password_secret", "value": "{{ _admin_password_secret }}"}
     - {"key": "postgres_configuration", "value": "{{ _db_secret_value }}" }
     - {"key": "container_token_secret", "value": "{{ _container_token_secret }}"}
+
+# secret_key_secret is only set when a Secret was actually generated for the
+# Django SECRET_KEY (i.e. not when pulp_settings.secret_key was provided as a
+# literal value), so it's combined separately to avoid pinning an empty name.
+- name: Set secret key secret name in the CR spec if generated
+  set_fact:
+    _galaxy: "{{ _galaxy | combine({'secret_key_secret': _secret_key_secret}) }}"
+  when: _secret_key_secret | length
 
 - name: "Set {{ deployment_type }} object"
   set_fact:

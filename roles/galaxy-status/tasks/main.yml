@@ -112,6 +112,16 @@
       dbFieldsEncryptionSecret: "{{ db_fields_encryption_secret }}"
   when: db_fields_encryption_secret is defined
 
+- name: Update secret key secret name status
+  operator_sdk.util.k8s_status:
+    api_version: '{{ api_version }}'
+    kind: '{{ kind }}'
+    name: '{{ ansible_operator_meta.name }}'
+    namespace: '{{ ansible_operator_meta.namespace }}'
+    status:
+      secretKeySecret: '{{ secret_key_secret_name }}'
+  when: secret_key_secret_name is defined
+
 - name: Update galaxy signing secret name status
   operator_sdk.util.k8s_status:
     api_version: '{{ api_version }}'

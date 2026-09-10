@@ -80,6 +80,14 @@
     - backup_name | length
     - this_backup['resources'][0]['status']['dbFieldsEncryptionSecret'] is defined
 
+- name: Set optional secret key backup fact
+  set_fact:
+    secret_key_secret_name: "{{ this_backup['resources'][0]['status']['secretKeySecret'] }}"
+  when:
+    - backup_name is defined
+    - backup_name | length
+    - this_backup['resources'][0]['status']['secretKeySecret'] is defined
+
 - name: Set optional galaxy signing backup fact
   set_fact:
     signing_secret: "{{ this_backup['resources'][0]['status']['signingSecret'] }}"

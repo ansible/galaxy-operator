@@ -102,6 +102,17 @@
       dbFieldsEncryptionSecret: "{{ db_fields_encryption_secret }}"
   when: db_fields_encryption_secret is defined
 
+# The backup secret key secret in this status can be referenced when restoring
+- name: Update secret key secret name status
+  operator_sdk.util.k8s_status:
+    api_version: '{{ api_version }}'
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    status:
+      secretKeySecret: "{{ secret_key_secret_name }}"
+  when: secret_key_secret_name is defined
+
 # The backup galaxy signing secret in this status can be referenced when restoring
 - name: Update galaxy signing secret name status
   operator_sdk.util.k8s_status:

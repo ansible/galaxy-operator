@@ -14,5 +14,8 @@
     - sso_secret is defined
     - sso_secret | length
 
+- name: Configure secret key
+  include_tasks: secret_key_configuration.yml
+
 - name: Configure Galaxy Server Secret
   include_tasks: galaxy_server_secret.yml
