@@ -66,3 +66,4 @@ Documentation: [galaxy-operator.readthedocs.io](https://galaxy-operator.readthed
 Forum: [forum.ansible.com](https://forum.ansible.com/)
 
 Issues: [github.com/ansible/galaxy-operator/issues](https://github.com/ansible/galaxy-operator/issues)
+
