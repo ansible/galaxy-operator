@@ -71,7 +71,9 @@ jobs:
         # now you can run kubectl to see the pods in the cluster
 
       - name: Try the cluster !
-        run: kubectl get pods -A
+        run: |
+          kubectl get pods -A
+          docker -v
 
       - name: Setup a minikube docker env
         run: minikube -p minikube docker-env | grep "export" | sed 's/export //' | sed 's/"//g' >> $GITHUB_ENV
