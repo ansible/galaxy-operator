@@ -13,13 +13,10 @@ elif [[ "$CI_TEST_STORAGE" == "s3" ]]; then
   export MINIO_SECRET_KEY=fqRvjWaPU5o0fCqQuUWbj9Fainj2pVZtBCiDiieS
   docker volume create minio
   docker run -d -p 0.0.0.0:9000:9000 --name galaxy_minio -e MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_SECRET_KEY -v minio:/data quay.io/minio/minio:latest server /data
-  wget https://dl.min.io/client/mc/release/linux-amd64/mc
-  sudo mv mc /usr/local/bin/
-  sudo chmod +x /usr/local/bin/mc
   while ! nc -z $(minikube ip) 9000; do echo 'Wait minio to startup...' && sleep 0.1; done;
   echo $(minikube ip)   galaxy_minio | sudo tee -a /etc/hosts
   sed -i "s/galaxy_minio/$(minikube ip)/g" config/samples/galaxy_v1beta1_galaxy_cr.galaxy.s3.ci.yaml
-  mc alias set s3 http://$(minikube ip):9000 AKIAIT2Z5TDYPX3ARJBA fqRvjWaPU5o0fCqQuUWbj9Fainj2pVZtBCiDiieS --api S3v4
-  mc alias remove local
-  mc mb s3/galaxy --region us-east-1
+  docker exec galaxy_minio mc alias set s3 http://$(minikube ip):9000 AKIAIT2Z5TDYPX3ARJBA fqRvjWaPU5o0fCqQuUWbj9Fainj2pVZtBCiDiieS --api S3v4
+  docker exec galaxy_minio mc alias remove local
+  docker exec galaxy_minio mc mb s3/galaxy --region us-east-1
 fi
