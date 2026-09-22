@@ -1,15 +1,20 @@
 ---
 
 - name: Set apiVersion and kind variables
-  set_fact:
+  ansible.builtin.set_fact:
     api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
     kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
 
-- name: Determine the timestamp
-  set_fact:
-    now: '{{ lookup("pipe", "date +%FT%TZ") }}'
-
 - name: Emit ocp event with error
-  k8s:
+  operator_sdk.util.k8s_event:
     state: present
-    definition: "{{ lookup('template', 'templates/event.yaml.j2') }}"
+    name: restore-error
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    reason: RestoreFailed
+    message: "{{ error_msg }}"
+    type: Warning
+    involvedObject:
+      apiVersion: "{{ api_version }}"
+      kind: "{{ kind }}"
+      name: "{{ ansible_operator_meta.name }}"
+      namespace: "{{ ansible_operator_meta.namespace }}"
