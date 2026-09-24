@@ -15,7 +15,7 @@
   set_fact:
     db_fields_encryption_secret: '{{ ansible_operator_meta.name }}-db-fields-encryption'
     cacheable: yes
-  when: db_fields_encryption_secret is undefined
+  when: not db_fields_encryption_secret | default('')
 
 - name: Check for specified DB fields encryption configuration
   k8s_info:
