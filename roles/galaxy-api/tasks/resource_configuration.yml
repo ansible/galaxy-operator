@@ -1,0 +1,46 @@
+---
+
+- name: Check for API Pod
+  k8s_info:
+    kind: Pod
+    api_version: v1
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/name={{ deployment_type }}-api"
+      - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
+      - "app.kubernetes.io/instance={{ deployment_type }}-api-{{ ansible_operator_meta.name }}"
+      - "app.kubernetes.io/component=api"
+    field_selectors:
+      - status.phase=Running
+  register: _api_pod
+  until:
+    - "_api_pod['resources'] | length"
+    - "_api_pod['resources'][0]['status']['phase'] == 'Running'"
+    - "_api_pod['resources'][0]['status']['containerStatuses'][0]['ready'] == true"
+  retries: 60
+  delay: 5
+
+- name: Set the resource pod name as a variable
+  set_fact:
+    _api_pod_name: "{{ _api_pod['resources'][0]['metadata']['name'] | default('') }}"
+
+- name: Ensure admin superuser exists with correct password.
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ _api_pod_name }}"
+    container: "api"
+    command: >-
+      bash -c "echo 'import base64;
+      from django.contrib.auth import get_user_model;
+      User = get_user_model();
+      user, created = User.objects.update_or_create(
+        username=\"admin\",
+        defaults={\"is_superuser\": True, \"is_staff\": True}
+      );
+      user.set_password(base64.b64decode(\"{{ admin_password | b64encode }}\").decode());
+      user.save();
+      print(\"created\" if created else \"updated\")'
+      | ANSIBLE_REVERSE_RESOURCE_SYNC=false pulpcore-manager shell"
+  register: result
+  changed_when: "'created' in result.stdout"
+  no_log: "{{ no_log }}"

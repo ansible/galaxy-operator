@@ -1,0 +1,463 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ ansible_operator_meta.name }}-api"
+  namespace: "{{ ansible_operator_meta.namespace }}"
+  annotations:
+    ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
+  labels:
+    {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=4) | trim }}
+    app.kubernetes.io/name: '{{ deployment_type }}-api'
+    app.kubernetes.io/instance: '{{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: '{{ deployment_type }}'
+    app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+spec:
+  replicas: {{ combined_api.replicas }}
+{% if combined_api.strategy is defined %}
+  strategy:
+    type: {{ combined_api.strategy.type }}
+{% if combined_api.strategy.type == "Recreate" %}
+    rollingUpdate: null
+{% elif combined_api.strategy.type == "RollingUpdate" %}
+    rollingUpdate:
+      maxSurge:  {{ combined_api.strategy.rollingUpdate.maxSurge | default("25%")}}
+      maxUnavailable: {{ combined_api.strategy.rollingUpdate.maxUnavailable | default("25%")}}
+{% endif %}
+{% endif %}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: '{{ deployment_type }}-api'
+      app.kubernetes.io/instance: '{{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: '{{ deployment_type }}'
+      app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+  template:
+    metadata:
+      labels:
+        {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=8) | trim }}
+        app.kubernetes.io/name: '{{ deployment_type }}-api'
+        app.kubernetes.io/instance: '{{ deployment_type }}-api-{{ ansible_operator_meta.name }}'
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: '{{ deployment_type }}'
+        app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+      annotations:
+        kubectl.kubernetes.io/default-container: api
+{% if public_base_url is defined %}
+{% for template in [
+    "redirect-page.configmap.html",
+  ] %}
+        checksum-{{ template | replace('/', '-') }}: "{{ lookup('template', template + '.j2') | sha1 }}"
+{% endfor %}
+{% endif %}
+{% for secret in [
+    "galaxy_server_secret_contents",
+    "postgres_configuration_secret_contents",
+    "db_fields_encryption_secret_contents",
+  ] %}
+        checksum-secret-{{ secret }}: "{{ lookup('ansible.builtin.vars', secret, default='')["resources"][0]["data"] | default('') | sha1 }}"
+{% endfor %}
+{% if http_proxy or https_proxy or no_proxy %}
+        checksum-proxy-env-configmap: "{{ lookup('template', '../common/templates/proxy-env.configmap.yaml.j2') | sha1 }}"
+{% endif %}
+    spec:
+{% if api_affinity is defined and api_affinity | length > 0 %}
+      affinity:
+        {{ api_affinity | to_nice_yaml | indent(width=8) }}
+{% elif _node_affinity is defined and _node_affinity | length > 0 %}
+      affinity:
+        nodeAffinity: {{ _node_affinity }}
+{% endif %}
+{% if node_selector %}
+      nodeSelector:
+        {{ node_selector | indent(width=8) }}
+{% endif %}
+{% if tolerations %}
+      tolerations:
+        {{ tolerations | indent(width=8) }}
+{% endif %}
+      volumes:
+{% if public_base_url is defined %}
+        - name: redirect-page
+          configMap:
+            name: '{{ ansible_operator_meta.name }}-redirect-page'
+            items:
+              - key: redirect-page.html
+                path: redirect-page.html
+{% endif %}
+        - name: {{ ansible_operator_meta.name }}-server
+          secret:
+            secretName: {{ ansible_operator_meta.name }}-server
+            items:
+              - path: settings.py
+                key: settings.py
+        - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+          secret:
+            secretName: {{ db_fields_encryption_secret }}
+            items:
+              - path: database_fields.symmetric.key
+                key: database_fields.symmetric.key
+{% if is_file_storage %}
+        - name: file-storage
+          persistentVolumeClaim:
+            claimName: {{ ansible_operator_meta.name }}-file-storage
+{% else %}
+        - name: tmp-file-storage
+          emptyDir: {}
+        - name: assets-file-storage
+          emptyDir: {}
+{% if signing_secret is defined %}
+        - name: gpg-file-storage
+          emptyDir: {}
+{% endif %}
+{% endif %}
+        - name: tmp-emptydir
+          emptyDir: {}
+{% if signing_secret is defined %}
+        - name: {{ signing_scripts_configmap }}
+          configMap:
+            name: {{ signing_scripts_configmap }}
+            defaultMode: 0755
+            items:
+              - path: collection_sign.sh
+                key: collection_sign.sh
+              - path: container_sign.sh
+                key: container_sign.sh
+        - name: {{ signing_secret }}
+          secret:
+            secretName: {{ signing_secret }}
+            items:
+              - path: signing_service.gpg
+                key: signing_service.gpg
+{% endif %}
+{% if bundle_ca_crt is defined %}
+        - name: "ca-trust-extracted"
+          emptyDir: {}
+        - name: "{{ ansible_operator_meta.name }}-bundle-cacert"
+          secret:
+            secretName: "{{ bundle_cacert_secret }}"
+            items:
+              - key: bundle-ca.crt
+                path: 'bundle-ca.crt'
+{% endif %}
+{% if container_token_secret is defined %}
+        - name: {{ ansible_operator_meta.name }}-container-auth-certs
+          secret:
+            secretName: {{ container_token_secret }}
+            items:
+              - path: container_auth_public_key.pem
+                key: {{ container_auth_public_key_name }}
+              - path: container_auth_private_key.pem
+                key: {{ container_auth_private_key_name }}
+{% endif %}
+      serviceAccountName: '{{ ansible_operator_meta.name }}'
+{% if topology_spread_constraints %}
+      topologySpreadConstraints:
+        {{ topology_spread_constraints | indent(width=8) }}
+{% endif %}
+      containers:
+        - name: api
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          # We set args, not command, so as to not override the entrypoint script
+          args:
+          - start-api
+          env:
+            - name: ENTRYPOINT
+              value: "{{ _entrypoint_dir }}/pulpcore-api"
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: port
+{% if pulp_combined_settings.cache_enabled %}
+            - name: REDIS_SERVICE_HOST
+              value: "{{ ansible_operator_meta.name }}-redis-svc"
+            - name: REDIS_SERVICE_PORT
+              value: "{{ pulp_combined_settings.redis_port }}"
+{% endif %}
+            - name: GUNICORN_TIMEOUT
+              value: "{{ gunicorn_timeout }}"
+            - name: GUNICORN_TIMEOUT_GRACE_PERIOD
+              value: "{{ gunicorn_timeout_grace_period }}"
+            - name: GUNICORN_WORKERS
+              value: "{{ gunicorn_api_workers }}"
+{% if signing_secret is defined %}
+            - name: PULP_SIGNING_KEY_FINGERPRINT
+              value: "{{ signing_key_fingerprint }}"
+            - name: COLLECTION_SIGNING_SERVICE
+              value: "{{ pulp_combined_settings.galaxy_collection_signing_service }}"
+            - name: CONTAINER_SIGNING_SERVICE
+              value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
+            - name: HOME
+              value: "/var/lib/pulp"
+            - name: GNUPGHOME
+              value: "/var/lib/pulp/.gnupg"
+{% endif %}
+          envFrom:
+            - configMapRef:
+                name: '{{ ansible_operator_meta.name }}-proxy-env'
+                optional: true
+          ports:
+            - protocol: TCP
+              containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
+              port: 8000
+              scheme: HTTP
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: "/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/"
+              port: 8000
+            failureThreshold: 10
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          volumeMounts:
+{% if public_base_url is defined %}
+            - name: redirect-page
+              mountPath: '{{ pulp_combined_settings.static_root }}/galaxy_ng/index.html'
+              subPath: redirect-page.html
+{% endif %}
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+            - name: tmp-emptydir
+              mountPath: "/tmp"
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% else %}
+            - name: tmp-file-storage
+              mountPath: "/var/lib/pulp/tmp"
+            - name: assets-file-storage
+              mountPath: "/var/lib/pulp/assets"
+{% if signing_secret is defined %}
+            - name: gpg-file-storage
+              mountPath: "/var/lib/pulp/.gnupg"
+{% endif %}
+{% endif %}
+{% if bundle_ca_crt is defined %}
+            - name: "ca-trust-extracted"
+              mountPath: "/etc/pki/ca-trust/extracted"
+            - name: "{{ ansible_operator_meta.name }}-bundle-cacert"
+              mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
+              subPath: bundle-ca.crt
+              readOnly: true
+{% endif %}
+{% if signing_secret is defined %}
+            - name: {{ signing_scripts_configmap }}
+              mountPath: /var/lib/pulp/scripts/collection_sign.sh
+              subPath: collection_sign.sh
+              readOnly: true
+            - name: {{ signing_scripts_configmap }}
+              mountPath: /var/lib/pulp/scripts/container_sign.sh
+              subPath: container_sign.sh
+              readOnly: true
+            - name: {{ signing_secret }}
+              mountPath: /etc/pulp/keys/signing_service.gpg
+              subPath: signing_service.gpg
+              readOnly: true
+{% endif %}
+{% if container_token_secret is defined %}
+            - name: {{ ansible_operator_meta.name }}-container-auth-certs
+              mountPath: "/etc/pulp/keys/container_auth_private_key.pem"
+              subPath: container_auth_private_key.pem
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-container-auth-certs
+              mountPath: "/etc/pulp/keys/container_auth_public_key.pem"
+              subPath: container_auth_public_key.pem
+              readOnly: true
+{% endif %}
+      initContainers:
+        - name: run-migrations
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              mkdir -p /var/lib/pulp/{tmp,media}
+              pulpcore-manager fix-squashed-migrations
+              pulpcore-manager migrate
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: port
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% endif %}
+{% if signing_secret is defined %}
+        - name: gpg-importer
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          workingDir: /var/lib/pulp
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cd /var/lib/pulp
+              gpg --batch --import /etc/pulp/keys/signing_service.gpg
+              echo "${PULP_SIGNING_KEY_FINGERPRINT}:6" | gpg --import-ownertrust
+              output_col=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${COLLECTION_SIGNING_SERVICE} /var/lib/pulp/scripts/collection_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} 2>&1)
+              echo "${output_col}" # Display the full output
+              echo "${output_col}" | grep "already exists" > /dev/null && export COL_RC=0 || export COL_RC=${PIPESTATUS[0]}
+
+              output_con=$(PULP_WORKING_DIRECTORY=/tmp pulpcore-manager add-signing-service ${CONTAINER_SIGNING_SERVICE} /var/lib/pulp/scripts/container_sign.sh ${PULP_SIGNING_KEY_FINGERPRINT} --class container:ManifestSigningService 2>&1)
+              echo "${output_con}" # Display the full output
+              echo "${output_con}" | grep "already exists" > /dev/null && export CON_RC=0 || export CON_RC=${PIPESTATUS[0]}
+
+              # Exit with the sum of return codes
+              exit $((COL_RC + CON_RC))
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          env:
+            - name: PULP_SIGNING_KEY_FINGERPRINT
+              value: "{{ signing_key_fingerprint }}"
+            - name: COLLECTION_SIGNING_SERVICE
+              value: "{{ pulp_combined_settings.galaxy_collection_signing_service }}"
+            - name: CONTAINER_SIGNING_SERVICE
+              value: "{{ pulp_combined_settings.galaxy_container_signing_service }}"
+            - name: HOME
+              value: "/var/lib/pulp"
+            - name: GNUPGHOME
+              value: "/var/lib/pulp/.gnupg"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% else %}
+            - name: gpg-file-storage
+              mountPath: "/var/lib/pulp/.gnupg"
+{% endif %}
+            - name: {{ signing_scripts_configmap }}
+              mountPath: /var/lib/pulp/scripts/collection_sign.sh
+              subPath: collection_sign.sh
+              readOnly: true
+            - name: {{ signing_scripts_configmap }}
+              mountPath: /var/lib/pulp/scripts/container_sign.sh
+              subPath: container_sign.sh
+              readOnly: true
+            - name: {{ signing_secret }}
+              mountPath: "/etc/pulp/keys/signing_service.gpg"
+              subPath: signing_service.gpg
+              readOnly: true
+{% endif %}
+{% if bundle_ca_crt is defined %}
+        - name: configure-bundle-ca-cert
+          image: "{{ _image }}"
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /etc/pki/ca-trust/extracted/{java,pem,openssl,edk2}
+              update-ca-trust extract --output /etc/pki/ca-trust/extracted
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          volumeMounts:
+            - name: "ca-trust-extracted"
+              mountPath: "/etc/pki/ca-trust/extracted"
+            - name: "{{ ansible_operator_meta.name }}-bundle-cacert"
+              mountPath: /etc/pki/ca-trust/source/anchors/bundle-ca.crt
+              subPath: bundle-ca.crt
+              readOnly: true
+{% endif %}
+        - name: resource-sync-job
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command:
+            - /bin/bash
+            - -c
+            - |
+              if dynaconf get RESOURCE_SERVER__URL >/dev/null 2>&1; then
+                  echo "Scheduling Resource Sync Task to execute every 15 minutes"
+                  django-admin task-scheduler --id dab_sync --interval 15 --path "galaxy_ng.app.tasks.resource_sync.run" || true
+              else
+                  echo "Resource Server is not enabled, skipping sync scheduling"
+              fi
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: port
+            - name: HOME
+              value: "/var/lib/pulp"
+          volumeMounts:
+            - name: {{ ansible_operator_meta.name }}-server
+              mountPath: "/etc/pulp/settings.py"
+              subPath: settings.py
+              readOnly: true
+            - name: {{ ansible_operator_meta.name }}-db-fields-encryption
+              mountPath: "/etc/pulp/keys/database_fields.symmetric.key"
+              subPath: database_fields.symmetric.key
+              readOnly: true
+{% if is_file_storage %}
+            - name: file-storage
+              readOnly: false
+              mountPath: "/var/lib/pulp"
+{% endif %}

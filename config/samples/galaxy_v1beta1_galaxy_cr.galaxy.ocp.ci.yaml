@@ -1,0 +1,52 @@
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
+metadata:
+  name: ocp-example
+spec:
+  image: quay.io/ansible/galaxy-ng
+  image_version: latest
+  image_web: quay.io/ansible/galaxy-ui
+  image_web_version: latest
+  no_log: false
+  admin_password_secret: "example-galaxy-admin-password"
+  storage_type: File
+  ingress_type: route
+  route_host: route_host_placeholder
+  route_tls_termination_mechanism: edge
+  # k3s local-path requires this
+  file_storage_access_mode: "ReadWriteOnce"
+  # We have a little over 10GB free on GHA VMs/instances
+  file_storage_size: "10Gi"
+  pulp_settings:
+    allowed_export_paths:
+      - /tmp
+    allowed_import_paths:
+      - /tmp
+    telemetry: false
+  content:
+    replicas: 1
+    resource_requirements:
+      requests:
+        cpu: 150m
+        memory: 256Mi
+      limits:
+        cpu: 800m
+        memory: 1Gi
+  worker:
+    replicas: 1
+    resource_requirements:
+      requests:
+        cpu: 150m
+        memory: 256Mi
+      limits:
+        cpu: 800m
+        memory: 1Gi
+  web:
+    replicas: 1
+    resource_requirements:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 800m
+        memory: 1Gi

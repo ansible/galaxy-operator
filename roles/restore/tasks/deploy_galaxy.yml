@@ -1,0 +1,24 @@
+---
+
+- name: Combine spec_overrides with spec
+  set_fact:
+    spec: "{{ spec | default({}) | combine(spec_overrides) }}"
+  no_log: "{{ no_log }}"
+
+- name: Deploy Galaxy
+  k8s:
+    state: "{{ state | default('present') }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    apply: yes
+    definition: "{{ lookup('template', 'galaxy_object.yaml.j2') }}"
+    wait: true
+
+- name: Remove ownerReferences to prevent garbage collection of new Galaxy CRO
+  k8s:
+    definition:
+      apiVersion: '{{ deployment_api_version }}'
+      kind: '{{ deployment_kind }}'
+      metadata:
+        name: '{{ deployment_name }}'
+        namespace: '{{ ansible_operator_meta.namespace }}'
+        ownerReferences: null

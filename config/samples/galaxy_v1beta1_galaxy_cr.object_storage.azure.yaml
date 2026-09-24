@@ -1,0 +1,29 @@
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
+metadata:
+  name: galaxy-azure
+spec:
+  ingress_type: Ingress
+  admin_password_secret: "example-galaxy-admin-password"
+  settings:
+    debug: "True"
+  storage_type: Azure
+  object_storage_azure_secret: example-galaxy-object-storage
+  content:
+    replicas: 1
+    resource_requirements:
+      requests:
+        cpu: 150m
+        memory: 256Mi
+  worker:
+    replicas: 1
+    resource_requirements:
+      requests:
+        cpu: 150m
+        memory: 256Mi
+  web:
+    replicas: 1
+    resource_requirements:
+      requests:
+        cpu: 100m
+        memory: 256Mi

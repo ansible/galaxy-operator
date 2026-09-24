@@ -1,0 +1,2 @@
+mkdocs-ansible
+mkdocs-git-revision-date-plugin

@@ -1,0 +1,137 @@
+---
+
+- name: Combine default variables for component deployments
+  ansible.builtin.set_fact:
+    combined_api: "{{ _api | combine(api, recursive=True) }}"
+    combined_content: "{{ _content | combine(content, recursive=True) }}"
+    combined_web: "{{ _web | combine(web, recursive=True) }}"
+    combined_worker: "{{ _worker | combine(worker, recursive=True) }}"
+    combined_redis: "{{ _redis | combine(redis, recursive=True) }}"
+
+- name: Set proxy vars from CR spec
+  # TODO: Investigate why these fields require explicit raw_spec extraction while
+  # bundle_cacert_secret (also a top-level string in defaults/main.yml) works via
+  # the operator framework's normal spec-merge without this task. Possible causes:
+  # CRD not applied before first test run, or a framework quirk with newly-added fields.
+  ansible.builtin.set_fact:
+    http_proxy: "{{ raw_spec.http_proxy | default(http_proxy) }}"
+    https_proxy: "{{ raw_spec.https_proxy | default(https_proxy) }}"
+    no_proxy: "{{ raw_spec.no_proxy | default(no_proxy) }}"
+
+- name: Set apiVersion and kind variables
+  ansible.builtin.set_fact:
+    api_version: '{{ hostvars["localhost"]["inventory_file"].split("/")[4:6] | join("/")  }}'
+    kind: '{{ hostvars["localhost"]["inventory_file"].split("/")[6]  }}'
+
+- name: Fail execution if image_pull_secret or image_pull_secrets are defined but as NoneType ('image_pull_secret[s]:')
+  fail:
+    msg: "If image_pull_secret or image_pull_secrets will not be used, their declarations should be removed."
+  when: image_pull_secret|type_debug == 'NoneType' or image_pull_secrets|type_debug == 'NoneType'
+
+- name: Get the imagePullSecrets from "{{ ansible_operator_meta.name }}"
+  k8s_info:
+    api_version: v1
+    kind: ServiceAccount
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+  register: _sa_output
+
+- name: Iterate over the imagePullSecrets to see if can find the dockercfg secret (for OCP environments)
+  set_fact:
+    __dockercfg_secret: "{{ item.name | regex_search( ansible_operator_meta.name + '-dockercfg-' + '[a-z0-9]{5}') }}"
+  when: _sa_output.resources[0].imagePullSecrets is defined and __dockercfg_secret | default() | length == 0
+  with_items: '{{ _sa_output.resources[0].imagePullSecrets }}'
+
+- name: Update service account with image pull secret
+  k8s:
+    apply: true
+    definition: "{{ lookup('template', 'service_account.yaml.j2') }}"
+
+- block:
+  - name: Get default ingress domain
+    k8s_info:
+      api_version: config.openshift.io/v1
+      kind: Ingress
+      name: cluster
+    register: _default_ingress_domain
+    when:
+    - ingress_type | lower == 'route'
+
+  - name: Ensure route host
+    set_fact:
+      route_host: "{{ ansible_operator_meta.name + '-' + ansible_operator_meta.namespace + '.' + _default_ingress_domain.resources[0].spec.domain | default('') }}"
+    when:
+      - route_host == ''
+      - ingress_type | lower == 'route'
+
+  - name: Define web URL
+    set_fact:
+      web_url: "https://{{ route_host }}"
+  when: ingress_type | lower == 'route'
+
+- name: Look up details for this deployment
+  k8s_info:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+  register: this_galaxy
+
+- name: set annotations based on this_galaxy
+  set_fact:
+    this_annotations: "{{ this_galaxy['resources'][0]['metadata']['annotations'] | default({}) }}"
+
+- name: set client_request_timeout based on annotation
+  set_fact:
+    client_request_timeout: "{{ (this_annotations['aap.ansible.io/client-request-timeout'][:-1]) | int }}"
+    client_request_timeout_overidden: true
+  when:
+    - "'aap.ansible.io/client-request-timeout' in this_annotations"
+    - this_annotations['aap.ansible.io/client-request-timeout'] is match('^\\d+s$')
+
+- name: client_request_timeout has been changed
+  debug:
+    msg: "client_request_timeout's default 30s value has been overriden by the annotation 'aap.ansible.io/client-request-timeout' to {{ client_request_timeout }}s"
+  when: client_request_timeout_overidden | default(false)
+
+- name: Configure Postgres Configuration Secret
+  include_tasks: postgres_configuration.yml
+
+- name: Idle {{ deployment_type }}
+  ansible.builtin.include_tasks: idle_deployment.yml
+  when: idle_deployment | bool
+
+- name: Set Bundle Certificate Authority
+  include_tasks: set_bundle_cacert.yml
+  when: bundle_cacert_secret | length
+
+- name: Check if k8s or Openshift
+  include_tasks: check_k8s_or_openshift.yml
+
+- name: Configure Admin Password from secret
+  include_tasks:
+    file: admin_password_configuration.yml
+
+- name: Configure DB fields encryption key from secret
+  include_tasks:
+    file: db_fields_encryption_configuration.yml
+
+- name: Configure Signing Service
+  include_tasks: signing_service.yml
+  when: signing_secret is defined
+
+- name: Configure Object Storage
+  include_tasks: object_storage_configuration.yml
+
+- name: Set application images
+  include_tasks: set_images.yml
+
+- name: Set gateway hostname for NO_PROXY exclusion
+  ansible.builtin.set_fact:
+    _gateway_hostname: "{{ raw_spec['pulp_settings']['ANSIBLE_BASE_JWT_KEY'] | default('') | urlsplit('hostname') }}"
+
+- name: Apply proxy environment ConfigMap
+  k8s:
+    apply: yes
+    definition: "{{ lookup('template', 'proxy-env.configmap.yaml.j2') }}"
+    state: "{{ 'present' if (http_proxy or https_proxy or no_proxy) else 'absent' }}"

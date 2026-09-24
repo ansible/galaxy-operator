@@ -1,0 +1,298 @@
+---
+
+# Upgrade Postgres (Managed Databases only)
+#  * If postgres version is not supported_pg_version, and not an external postgres instance (when managed_database is yes),
+#    then run this playbook with include_tasks from database_configuration.yml
+# * Data will be streamed via a pg_dump from the postgres 12/13 pod to the postgres supported_pg_version
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Scaling down Deployment for Postgres upgrade
+        reason: ScalingDownDeploymentForPostgresUpgrade
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Scale down Deployment for migration
+  include_tasks: scale_down_deployments.yml
+
+- name: Delete existing postgres configuration secret
+  k8s:
+    api_version: v1
+    kind: Secret
+    name: "{{ ansible_operator_meta.name }}-postgres-configuration"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    state: absent
+    wait: yes
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: "Creating the new database configuration for postgres-{{ supported_pg_version }}"
+        reason: "CreatingNewSecretForPostgres"
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Create Database configuration with new -postgres-{{ supported_pg_version }} hostname
+  k8s:
+    apply: true
+    definition: "{{ lookup('template', 'postgres_upgrade.secret.yaml.j2') }}"
+  no_log: "{{ no_log }}"
+
+- name: Set new database var to be used when configuring app credentials (resources_configuration.yml)
+  set_fact:
+    postgres_host: "{{ ansible_operator_meta.name }}-postgres-{{ supported_pg_version }}"
+  no_log: "{{ no_log }}"
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Recreating database StatefulSet resource after upgrading Postgres
+        reason: RecreatingStatefulSetUpgradeTask
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Create Database if no database is specified
+  k8s:
+    apply: true
+    definition: "{{ lookup('template', 'postgres.yaml.j2') }}"
+    wait: true
+  register: create_statefulset_result
+
+- name: Set postgres label if not defined by user
+  set_fact:
+    postgres_label_selector: "app.kubernetes.io/instance=postgres-{{ ansible_operator_meta.name }}"
+  when: postgres_label_selector is not defined
+
+- block:
+    - name: Get new postgres pod information
+      k8s_info:
+        kind: Pod
+        api_version: v1
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        label_selectors:
+          - "{{ postgres_label_selector }}"
+          - "app.kubernetes.io/version={{ supported_pg_version }}"
+        field_selectors:
+          - status.phase=Running
+      register: postgres_pod
+      until:
+        - "postgres_pod['resources'] | length"
+        - "postgres_pod['resources'][0]['status']['phase'] == 'Running'"
+        - "postgres_pod['resources'][0]['status']['containerStatuses'][0]['ready'] == true"
+      delay: 5
+      retries: 60
+  rescue:
+    - name: Set error message
+      set_fact:
+        error_msg: "A Postgres {{ supported_pg_version }} Pod with the {{ postgres_label_selector }} label \
+              is not available and in the Running state"
+
+    - k8s_status:
+        api_version: "{{ api_version }}"
+        kind: "{{ kind }}"
+        name: "{{ ansible_operator_meta.name }}"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        conditions:
+          - type: Database-Ready
+            message: "{{ error_msg }}"
+            reason: UpgradePostgresError
+            status: "False"
+            lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+    - name: Handle error
+      import_tasks: error_handling.yml
+
+    - name: Fail with message if Postgres Pod doesn't come up
+      fail:
+        msg: "{{ error_msg }}"
+
+- name: Set the resource pod name as a variable.
+  set_fact:
+    postgres_pod_name: "{{ postgres_pod['resources'][0]['metadata']['name'] }}"
+
+- name: Get the name of the service for the old postgres pod
+  k8s_info:
+    kind: Service
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/component=database"
+      - "app.kubernetes.io/instance={{ old_postgres_pod.metadata.labels['app.kubernetes.io/instance'] }}"
+      - "app.kubernetes.io/version={{ old_postgres_pod.metadata.labels['app.kubernetes.io/version'] }}"  # unique to the galaxy-operator
+      - "app.kubernetes.io/managed-by={{ deployment_type }}-operator"
+  register: old_postgres_svc
+
+- name: Set full resolvable host name for old postgres pod
+  set_fact:
+    resolvable_db_host: "{{ old_postgres_svc['resources'][0]['metadata']['name'] }}.{{ ansible_operator_meta.namespace }}.svc"  # yamllint disable-line rule:line-length
+  no_log: "{{ no_log }}"
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Dumping database for Postgres upgrade task
+        reason: DumpingDatabaseUpgradeTask
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Set pg_dump command
+  set_fact:
+    pgdump: >-
+      pg_dump
+      -h {{ resolvable_db_host }}
+      -U {{ postgres_user }}
+      -d {{ postgres_database }}
+      -p {{ postgres_port }}
+      -F custom
+  no_log: "{{ no_log }}"
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Restoring database for Postgres upgrade task
+        reason: RestoringDatabaseUpgradeTask
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Set pg_restore command
+  set_fact:
+    pg_restore: >-
+      pg_restore
+      -U {{ postgres_user }}
+      -d {{ postgres_database }}
+  no_log: "{{ no_log }}"
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Streaming backup from pg_dump to the new container (upgrade task)
+        reason: StreamingBackupToNewContainer
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Stream backup from pg_dump to the new postgresql container
+  k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ postgres_pod_name }}"
+    command: |
+      bash -c "
+      function end_keepalive {
+        rc=$?
+        rm -f \"$1\"
+        kill $(cat /proc/$2/task/$2/children 2>/dev/null) 2>/dev/null || true
+        wait $2 || true
+        exit $rc
+      }
+      keepalive_file=\"$(mktemp)\"
+      while [[ -f \"$keepalive_file\" ]]; do
+        echo 'Migrating data to new PostgreSQL {{ supported_pg_version }} Database...'
+        sleep 60
+      done &
+      keepalive_pid=$!
+      trap 'end_keepalive \"$keepalive_file\" \"$keepalive_pid\"' EXIT SIGINT SIGTERM
+      echo keepalive_pid: $keepalive_pid
+      set -e -o pipefail
+      psql -c 'GRANT postgres TO {{ postgres_user }}'
+      PGPASSWORD=\"$POSTGRES_PASSWORD\" {{ pgdump }} | PGPASSWORD=\"$POSTGRES_PASSWORD\" {{ pg_restore }}
+      psql -c 'REVOKE postgres FROM {{ postgres_user }}'
+      set +e +o pipefail
+      echo 'Successful'
+      "
+  no_log: "{{ no_log }}"
+  register: data_migration
+  failed_when: "'Successful' not in data_migration.stdout"
+
+- name: Set flag signifying that this instance has been migrated
+  set_fact:
+    upgraded_postgres_version: '{{ supported_pg_version }}'
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Removing old Postgres StatefulSet
+        reason: RemovingOldPostgresStatefulSet
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+# Cleanup old Postgres resources
+- name: Remove old Postgres StatefulSet
+  k8s:
+    kind: StatefulSet
+    api_version: apps/v1
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    name: "{{ item }}"
+    state: absent
+    wait: true
+  loop:
+    - "{{ ansible_operator_meta.name }}-postgres"
+    - "{{ ansible_operator_meta.name }}-postgres-13"
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: Removing old Postgres Service
+        reason: RemovingOldPostgresService
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Remove old Postgres Service
+  k8s:
+    kind: Service
+    api_version: v1
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ ansible_operator_meta.name }}-postgres"
+    - "{{ ansible_operator_meta.name }}-postgres-13"
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: Database-Ready
+        message: All Postgres upgrade tasks ran successfully
+        reason: DatabaseTasksFinished
+        status: "True"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: Update galaxy-server secret with new postgres host
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', '../galaxy-config/templates/galaxy-server.secret.yaml.j2') | from_yaml }}"
+  register: galaxy_server_secret
+  no_log: "{{ no_log }}"

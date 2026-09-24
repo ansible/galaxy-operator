@@ -1,0 +1,9 @@
+---
+apiVersion: galaxy.ansible.com/v1beta
+kind: GalaxyRestore
+metadata:
+  name: example-galaxy-restore
+spec:
+  backup_name: example-galaxy-backup
+  no_log: true
+  postgres_label_selector: ''

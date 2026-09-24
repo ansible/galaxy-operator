@@ -1,0 +1,28 @@
+# permissions for end users to edit galaxies.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: galaxy-editor-role
+rules:
+- apiGroups:
+  - galaxy.ansible.com
+  resources:
+  - galaxies
+  - galaxybackups
+  - galaxyrestores
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - galaxy.ansible.com
+  resources:
+  - galaxies/status
+  - galaxybackups/status
+  - galaxyrestores/status
+  verbs:
+  - get

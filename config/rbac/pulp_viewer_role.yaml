@@ -1,0 +1,24 @@
+# permissions for end users to view galaxies.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: galaxy-viewer-role
+rules:
+- apiGroups:
+  - galaxy.ansible.com
+  resources:
+  - galaxies
+  - galaxybackups
+  - galaxyrestores
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - galaxy.ansible.com
+  resources:
+  - galaxies/status
+  - galaxybackups/status
+  - galaxyrestores/status
+  verbs:
+  - get

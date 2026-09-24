@@ -1,0 +1,176 @@
+---
+image_pull_secret: ''
+image_pull_secrets: []
+operator_service_account_name: '{{ lookup("env","OPERATOR_SA_NAME") | default("galaxy-operator-sa",true) }}'
+bundle_cacert_secret: ''
+db_fields_encryption_secret: ''
+container_token_secret: ''
+
+# Proxy environment variables for Galaxy containers.
+# Values are inherited from the operator pod environment.
+http_proxy: "{{ lookup('env', 'http_proxy') or lookup('env', 'HTTP_PROXY') or '' }}"
+https_proxy: "{{ lookup('env', 'https_proxy') or lookup('env', 'HTTPS_PROXY') or '' }}"
+no_proxy: "{{ lookup('env', 'no_proxy') or lookup('env', 'NO_PROXY') or '' }}"
+
+is_k8s: false
+is_openshift: false
+
+deployment_type: galaxy
+
+# idle_deployment - Scale down replicas to put Galaxy into an idle mode
+idle_deployment: false
+
+api: {}
+_api:
+  replicas: 1
+  log_level: INFO
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+content: {}
+_content:
+  replicas: 2
+  log_level: INFO
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+web: {}
+_web:
+  replicas: 1
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+worker: {}
+_worker:
+  replicas: 2
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+redis: {}
+_redis:
+  replicas: 1
+  strategy:
+    type: Recreate
+  resource_requirements:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+
+# Secret to lookup that provide the admin password
+#
+admin_password_secret: ''
+
+admin_password_name: '{{ ansible_operator_meta.name }}-admin-password'
+
+# object_storage_configuration.yml
+is_file_storage: true
+
+object_storage_path: ''
+
+# s3-storage-configuration.yml
+s3_secret_data_available: false
+s3_bucket_name_available: false
+s3_region_available: false
+s3_endpoint_available: false
+
+default_s3_settings:
+  AWS_DEFAULT_ACL: "@none None"
+  S3_USE_SIGV4: true
+  AWS_S3_SIGNATURE_VERSION: "s3v4"
+  AWS_S3_ADDRESSING_STYLE: "path"
+  STORAGES:
+    default:
+      BACKEND: "storages.backends.s3boto3.S3Boto3Storage"
+    staticfiles:
+      BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
+  MEDIA_ROOT: ""
+
+# azure-storage-configuration.yml
+azure_secret_data_avaiable: false
+azure_account_name_available: false
+azure_account_key_available: false
+azure_container_available: false
+
+default_azure_settings:
+  AZURE_URL_EXPIRATION_SECS: 60
+  AZURE_OVERWRITE_FILES: "True"
+  STORAGES:
+    default:
+      BACKEND: "storages.backends.azure_storage.AzureStorage"
+    staticfiles:
+      BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
+
+# postgres_configuration.yml
+_postgres_image: quay.io/sclorg/postgresql-15-c9s
+_postgres_image_version: latest
+
+# Secret to lookup that provide the PostgreSQL configuration
+postgres_configuration_secret: '{{ ansible_operator_meta.name }}-postgres-configuration'
+
+# Secret to lookup that provide the PostgreSQL configuration for old database
+postgres_migrant_configuration_secret: ''
+
+# Enable PostgreSQL SCRAM-SHA-256 migration
+postgres_scram_migration_enabled: true
+
+# Add a topologySpreadConstraints for the Galaxy pods.
+# Specify as literal block. E.g.:
+# topology_spread_constraints: |
+#   - maxSkew: 100
+#     topologyKey: "topology.kubernetes.io/zone"
+#     whenUnsatisfiable: "ScheduleAnyway"
+#     labelSelector:
+#       matchLabels:
+#         app.kubernetes.io/name: "<resourcename>"
+topology_spread_constraints: ''
+
+# Add a nodeSelector for the Galaxy pods. It must match a node's labels for the pod
+# to be scheduled on that node. Specify as literal block. E.g.:
+# node_selector: |
+#   disktype: ssd
+#   kubernetes.io/arch: amd64
+#   kubernetes.io/os: linux
+node_selector: ''
+
+# Add node tolerations for the Galaxy pods. Specify as literal block. E.g.:
+# tolerations: |
+#   - key: "dedicated"
+#     operator: "Equal"
+#     value: "Galaxy"
+#     effect: "NoSchedule"
+tolerations: ''
+
+web_protocol: 'http'
+ingress_type: none
+
+# Host to create the root with.
+# If not specific will default to <instance-name>-<namespace>-<routerCanonicalHostname>
+#
+route_host: ''
+
+hostname: '{{ deployment_type }}.example.com'
+
+# TLS secret for the ingress. The secret either has to exist before hand with
+# the corresponding cert and key or just be an indicator for where an automated
+# process like cert-manager (enabled via annotations) will store the TLS
+# certificate and key.
+ingress_tls_secret: ''
+
+# Secret to lookup that provide the TLS specific
+# credentials to deploy
+#
+route_tls_secret: ''
+
+
+# Set content host
+content_host: '{{ ansible_operator_meta.name }}-content-svc'
+content_port: '24816'

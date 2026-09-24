@@ -1,0 +1,6 @@
+---
+- name: Apply Hub worker NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    definition: "{{ lookup('template', 'galaxy-worker.networkpolicy.yaml.j2') }}"

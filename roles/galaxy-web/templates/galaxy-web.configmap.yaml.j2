@@ -1,0 +1,259 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ ansible_operator_meta.name }}-{{ deployment_type }}-configmap'
+  namespace: '{{ ansible_operator_meta.namespace }}'
+  labels:
+    app.kubernetes.io/name: 'nginx'
+    app.kubernetes.io/instance: 'nginx-{{ ansible_operator_meta.name }}'
+    app.kubernetes.io/component: webserver
+    app.kubernetes.io/part-of: '{{ deployment_type }}'
+    app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+data:
+  nginx.conf: |
+    error_log /dev/stderr warn;
+    worker_processes 1;
+    events {
+        worker_connections 1024;  # increase if you have lots of clients
+        accept_mutex off;  # set to 'on' if nginx worker_processes > 1
+    }
+
+    http {
+        map $http_x_forwarded_proto $trusted_proto {
+            default $scheme;
+            https   https;
+            http    http;
+        }
+
+        map $http_x_trusted_proxy $trusted_proxy_present {
+            default "trusted-proxy";
+            ""      "-";
+        }
+
+        map $http_x_dab_jw_token $dab_jwt_present {
+            default "dab-jwt";
+            ""      "-";
+        }
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for" '
+                        '$trusted_proxy_present $dab_jwt_present';
+
+        access_log /dev/stdout main;
+        include mime.types;
+        # fallback in case we can't determine a type
+        default_type application/octet-stream;
+        sendfile on;
+
+        # If left at the default of 1024, nginx emits a warning about being unable
+        # to build optimal hash types.
+        types_hash_max_size 4096;
+
+        upstream pulp-content {
+            server {{ ansible_operator_meta.name }}-content-svc:24816;
+        }
+
+        upstream pulp-api {
+            server {{ ansible_operator_meta.name }}-api-svc:8000;
+        }
+
+        {% if route_tls_termination_mechanism | lower == 'passthrough' %}
+        server {
+            listen 8080 default_server;
+            listen [::]:8080 default_server;
+            server_name _;
+
+            proxy_read_timeout {{ nginx_proxy_read_timeout }};
+            proxy_connect_timeout {{ nginx_proxy_connect_timeout }};
+            proxy_send_timeout {{ nginx_proxy_send_timeout }};
+
+            client_max_body_size {{ nginx_client_max_body_size }};
+
+            # Redirect all HTTP links to the matching HTTPS page
+            return 301 https://$host$request_uri;
+        }
+        {% endif %}
+
+        server {
+        {% if route_tls_termination_mechanism | lower == 'passthrough' %}
+            listen 8443 default_server deferred ssl;
+            listen [::]:8443 default_server deferred ssl;
+
+            ssl_certificate /etc/nginx/pki/web.crt;
+            ssl_certificate_key /etc/nginx/pki/web.key;
+            ssl_session_cache shared:SSL:50m;
+            ssl_session_timeout 1d;
+            ssl_session_tickets off;
+
+            # intermediate configuration
+            ssl_protocols TLSv1.2;
+            ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256';
+            ssl_prefer_server_ciphers on;
+        {% else %}
+            # Gunicorn docs suggest the use of the "deferred" directive on Linux.
+            listen 8080 default_server deferred;
+            listen [::]:8080 default_server deferred;
+        {% endif %}
+
+            # If you have a domain name, this is where to add it
+            server_name $hostname;
+
+            proxy_read_timeout {{ nginx_proxy_read_timeout }};
+            proxy_connect_timeout {{ nginx_proxy_connect_timeout }};
+            proxy_send_timeout {{ nginx_proxy_send_timeout }};
+
+            # The default client_max_body_size is 1m. Clients uploading
+            # files larger than this will need to chunk said files.
+            client_max_body_size {{ nginx_client_max_body_size }};
+
+            # Gunicorn docs suggest this value.
+            keepalive_timeout 5;
+
+            # static files that can change dynamically, or are needed for TLS
+            # purposes are served through the webserver.
+            root {{ galaxy_webserver_static_dir }};
+
+            location {{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }} {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
+                proxy_set_header Host $http_host;
+                # we don't want nginx trying to do something clever with
+                # redirects, we set the Host: header above already.
+                proxy_redirect off;
+                proxy_pass http://pulp-content;
+                error_page 504 =503 /json_503;  # Return 503 Service Unavailable with JSON response if gunicorn fails to respond
+                error_page 502 =503 /json_503;  # Optional, in case gunicorn is completely down
+            }
+
+
+            location = /json_503 {
+                # Custom JSON response for 503 Service Unavailable
+                internal;
+                add_header Content-Type application/json;
+
+                # Check if X-Request-ID is set and include it in the response
+                if ($http_x_request_id) {
+                    return 503 '{"status": "error", "message": "Service Unavailable", "code": 503, "request_id": "$http_x_request_id"}';
+                }
+
+                # If X-Request-ID is not set, just return the basic JSON response
+                return 503 '{"status": "error", "message": "Service Unavailable", "code": 503}';
+            }
+
+            location /{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/ {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
+                proxy_set_header Host $http_host;
+                # we don't want nginx trying to do something clever with
+                # redirects, we set the Host: header above already.
+                proxy_redirect off;
+                proxy_pass http://pulp-api;
+                error_page 504 =503 /json_503;  # Return 503 Service Unavailable with JSON response if gunicorn fails to respond
+                error_page 502 =503 /json_503;  # Optional, in case gunicorn is completely down
+            }
+
+            location /auth/login/ {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
+                proxy_set_header Host $http_host;
+                # we don't want nginx trying to do something clever with
+                # redirects, we set the Host: header above already.
+                proxy_redirect off;
+                proxy_pass http://pulp-api;
+            }
+
+            include {{ galaxy_nginx_conf_dir }}/*.conf;
+
+            location / {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $trusted_proto;
+                proxy_set_header Host $http_host;
+                # we don't want nginx trying to do something clever with
+                # redirects, we set the Host: header above already.
+                proxy_redirect off;
+                proxy_pass http://pulp-api;
+                # static files are served through whitenoise - http://whitenoise.evans.io/en/stable/
+            }
+        }
+    }
+
+  # https://github.com/ansible/galaxy_ng/blob/master/galaxy_ng/app/webserver_snippets/nginx.conf
+  galaxy_ng.conf: |
+    location /ui/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        rewrite /ui* /static/galaxy_ng/index.html break;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api/static/galaxy_ng/index.html;
+    }
+
+    location /api/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+        client_max_body_size 0;
+    }
+
+  # https://github.com/pulp/pulp_ansible/blob/main/pulp_ansible/app/webserver_snippets/nginx.conf
+  pulp_ansible.conf: |
+    location /pulp_ansible/galaxy/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+    }
+
+  # https://github.com/pulp/pulp_container/blob/main/pulp_container/app/webserver_snippets/nginx.conf
+  pulp_container.conf: |
+    location /v2/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+        client_max_body_size 0;
+    }
+
+    location /extensions/v2/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+    }
+
+    location /pulp/container/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-content;
+    }
+
+    location /token/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $trusted_proto;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://pulp-api;
+    }

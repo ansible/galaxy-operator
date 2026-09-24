@@ -1,0 +1,17 @@
+---
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
+metadata:
+  name: galaxy
+  namespace: galaxy
+spec:
+  hostname: galaxy.local
+  ingress_type: ingress
+  storage_type: File
+  file_storage_access_mode: ReadWriteOnce
+  file_storage_size: 8Gi
+  no_log: false
+  image_pull_policy: IfNotPresent
+  pulp_settings:
+    GALAXY_ENABLE_UNAUTHENTICATED_COLLECTION_ACCESS: true
+    GALAXY_ENABLE_UNAUTHENTICATED_COLLECTION_DOWNLOAD: true

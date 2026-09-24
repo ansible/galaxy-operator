@@ -1,0 +1,205 @@
+name: Galaxy-Operator CI
+on:
+  # push:
+  #   branches:
+  #     - '*'
+  #   tags:
+  #     - '*'
+  workflow_dispatch:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # runs at 3:00 UTC daily
+    - cron: '00 3 * * *'
+env:
+  COLORTERM: 'yes'
+  TERM: 'xterm-256color'
+jobs:
+  galaxy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - STORAGE: filesystem
+            IMAGE: minimal
+            DATABASE: internal
+          - STORAGE: filesystem
+            IMAGE: minimal
+            DATABASE: external
+          - STORAGE: filesystem
+            IMAGE: s6
+            DATABASE: internal
+          - STORAGE: azure
+            IMAGE: minimal
+            DATABASE: internal
+          - STORAGE: s3
+            IMAGE: minimal
+            DATABASE: internal
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # by default, it uses a depth of 1
+          # this fetches all history so that we can read each commit
+          fetch-depth: 0
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install httpie
+        run: |
+          echo ::group::HTTPIE
+          sudo apt-get update -yq
+          sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
+          echo ::endgroup::
+          echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
+          echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
+          echo "CI_TEST=true" >> $GITHUB_ENV
+          echo "CI_TEST_STORAGE=${{ matrix.STORAGE }}" >> $GITHUB_ENV
+          echo "CI_TEST_IMAGE=${{ matrix.IMAGE }}" >> $GITHUB_ENV
+          echo "CI_TEST_DATABASE=${{ matrix.DATABASE }}" >> $GITHUB_ENV
+          echo "API_ROOT=/api/galaxy/pulp/" >> $GITHUB_ENV
+        shell: bash
+      - name: Start minikube
+        run: |
+          minikube start --memory=max --cpus=max --vm-driver=docker --extra-config=apiserver.service-node-port-range=80-32000 --kubernetes-version=v1.28.3
+          minikube addons enable metrics-server
+
+        # now you can run kubectl to see the pods in the cluster
+      - name: Try the cluster !
+        run: kubectl get pods -A
+
+      - name: Setup a minikube docker env
+        run: minikube -p minikube docker-env | grep "export" | sed 's/export //' | sed 's/"//g' >> $GITHUB_ENV
+
+      - name: Uninstalling GHA kustomize
+        run: |
+          # hack for uninstalling kustomize from GHA
+          mv /usr/local/bin/kustomize /usr/local/bin/ghakustomize
+          make kustomize
+          mv ./bin/kustomize /usr/local/bin/kustomize
+          kustomize version
+        shell: bash
+
+      - name: Build Operator
+        run: |
+          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
+          sudo -E docker images
+        shell: bash
+
+      - name: Prepare External Database and Object Storage
+        run: |
+          .ci/scripts/prepare-external-database.sh
+          .ci/scripts/prepare-object-storage.sh
+        shell: bash
+
+      - name: Set deploy variables
+        run: |
+          CI_CONFIGS=".ci/assets/kubernetes/galaxy-admin-password.secret.yaml .ci/assets/kubernetes/galaxy_sign.secret.yaml .ci/assets/kubernetes/signing_scripts.configmap.yaml"
+          if [[ "${{ matrix.IMAGE }}" == "s6" ]]; then
+            echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.s6.ci.yaml" >> $GITHUB_ENV
+          elif [[ "${{ matrix.DATABASE }}" == "external" ]]; then
+            echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.externaldb.ci.yaml" >> $GITHUB_ENV
+            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-external-database.secret.yaml"
+          elif [[ "${{ matrix.STORAGE }}" == "azure" ]]; then
+            echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.azure.ci.yaml" >> $GITHUB_ENV
+            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-object-storage.azure.secret.yaml .ci/assets/kubernetes/galaxy-container-auth.secret.yaml"
+          elif [[ "${{ matrix.STORAGE }}" == "s3" ]]; then
+            echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.s3.ci.yaml" >> $GITHUB_ENV
+            CI_CONFIGS="$CI_CONFIGS .ci/assets/kubernetes/galaxy-object-storage.aws.secret.yaml .ci/assets/kubernetes/galaxy-container-auth.secret.yaml"
+          else
+            echo "DEV_CR=config/samples/galaxy_v1beta1_galaxy_cr.galaxy.ci.yaml" >> $GITHUB_ENV
+          fi
+          echo "DEV_CUSTOM_CONFIG=$CI_CONFIGS" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Deploy galaxy-operator to K8s
+        run: make up
+        env:
+          BUILD_IMAGE: "false"
+          CREATE_PULL_SECRET: "false"
+          CREATE_SECRETS: "false"
+          QUAY_USER: ansible
+          REGISTRIES: ""
+          IMAGE_PULL_POLICY: IfNotPresent
+          DEV_TAG: ${{ github.sha }}
+          CONTAINER_TOOL: docker
+
+      - name: Set kubectl namespace context
+        run: kubectl config set-context --current --namespace=galaxy
+
+      - name: Check and wait galaxy-operator deploy
+        run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
+        shell: bash
+
+      - name: Popeye
+        run: |
+          echo ::group::POPEYE
+          sudo wget https://github.com/derailed/popeye/releases/download/v0.10.0/popeye_Linux_x86_64.tar.gz
+          sudo tar -xvzf popeye_Linux_x86_64.tar.gz
+          sudo mv popeye /usr/local/bin/
+          sudo chmod +x /usr/local/bin/popeye
+          echo ::endgroup::
+          sudo popeye --kubeconfig ~/.kube/config || true
+
+      - name: Check signing metadata
+        run: |
+          # ignoring the tests for now because of some galaxy container image issues
+          #.ci/scripts/signing_metadata.sh
+        shell: bash
+
+      - name: Test
+        run: CI_TEST=galaxy .ci/scripts/galaxy_ng-tests.sh -m
+        shell: bash
+
+      - name: Backup & Restore
+        run: CI_TEST=galaxy .ci/scripts/backup_and_restore.sh -m
+        shell: bash
+        env:
+          PY_COLORS: '1'
+
+      - name: Logs
+        if: always()
+        run: .github/workflows/scripts/show_logs.sh
+
+#       - name: Send Build details to Slack
+#         id: slack
+#         uses: slackapi/slack-github-action@v1.18.0
+#         if: failure() && github.event_name == 'schedule'
+#         with:
+#           payload: |
+#             {
+#               "text": "Galaxy-Operator CI ${{ job.status }}\nhttps://github.com/ansible/galaxy-operator/actions/runs/${{ github.run_id }}",
+#               "blocks": [
+#                 {
+#                   "type": "section",
+#                   "text": {
+#                     "type": "mrkdwn",
+#                     "text": "Galaxy-Operator CI ${{ job.status }}\nhttps://github.com/ansible/galaxy-operator/actions/runs/${{ github.run_id }}"
+#                   }
+#                 }
+#               ]
+#             }
+# #         TODO - Add slack token for galaxy
+# #        env:
+# #          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PULP_CHANNEL }}
+
+  validate-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+
+      # TODO: remove this step once the operator-sdk is available via the make operator-sdk target
+      - name: Install Operator SDK
+        run: |
+          VERSION=$(curl --silent "https://api.github.com/repos/operator-framework/operator-sdk/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+          curl -o operator-sdk -L https://github.com/operator-framework/operator-sdk/releases/download/${VERSION}/operator-sdk_linux_amd64
+          chmod +x operator-sdk
+          sudo mv operator-sdk /usr/local/bin/
+
+      - name: Validate OLM Bundle
+        run: VERSION=0.0.0 make bundle
+        shell: bash

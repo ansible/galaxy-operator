@@ -1,0 +1,40 @@
+---
+
+- name: Obtain custom resource information
+  set_fact:
+    custom_resource: "{{ hostvars[inventory_hostname][custom_resource_key] }}"
+    custom_resource_status: "{{ hostvars[inventory_hostname][custom_resource_key]['status'] | default({}) }}"
+
+- block:
+    - include_tasks: ../../common/tasks/check_k8s_or_openshift.yml
+
+    - include_tasks: init.yml
+
+    - include_tasks: set_database_config.yml
+
+    - include_tasks: postgres.yml
+      when: not postgres_skip_data | bool or postgres_type == 'managed'
+
+    - include_tasks: custom_resource.yml
+
+    - include_tasks: secrets.yml
+
+    - include_tasks: remove_management_pod.yml
+
+    - name: Apply kubernetes job to backup /var/lib/pulp content
+      k8s:
+        state: present
+        definition: "{{ lookup('template', 'backup-content-k8s-job.yaml.j2') }}"
+      when: storage_type | lower == 'file'
+
+    - name: Set flag signifying this backup was successful
+      set_fact:
+        backup_complete: "{{ _backup_dir }}"
+
+    - include_tasks: cleanup.yml
+
+  when:
+    - custom_resource_status['backupDirectory'] is not defined
+
+- name: Update status variables
+  include_tasks: update_status.yml

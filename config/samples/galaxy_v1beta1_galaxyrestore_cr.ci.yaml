@@ -1,0 +1,9 @@
+---
+apiVersion: galaxy.ansible.com/v1beta1
+kind: GalaxyRestore
+metadata:
+  name: ci-galaxyrestore
+spec:
+  deployment_name: example-galaxy
+  backup_name: ci-galaxybackup
+  no_log: false

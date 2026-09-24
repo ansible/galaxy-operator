@@ -1,0 +1,17 @@
+apiVersion: galaxy.ansible.com/v1beta1
+kind: Galaxy
+metadata:
+  name: example-galaxy
+spec:
+  storage_type: File
+  # This doesn't really matter for minikube. Single node by design,
+  # but the storage provisioner allows for ReadWriteMany. So let's
+  # stick to our default.
+  file_storage_access_mode: "ReadWriteMany"
+  # The minikube VM won't go any larger.
+  file_storage_size: "375Gi"
+  # Default images:
+  image: quay.io/ansible/galaxy-ng
+  image_version: latest
+  image_web: quay.io/ansible/galaxy-ui
+  image_web_version: latest

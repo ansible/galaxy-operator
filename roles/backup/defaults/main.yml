@@ -1,0 +1,40 @@
+---
+# Required: specify name of galaxy deployment to backup from
+# deployment_name: ''
+
+# Specify a pre-created PVC (name) to backup to
+backup_pvc: ''
+
+# Automatically create backup PVC if it doesn't exist
+create_backup_pvc: true
+backup_pvc_namespace: "{{ ansible_operator_meta.namespace }}" # deprecated
+
+# Size of backup PVC if created dynamically
+backup_storage_requirements: ''
+
+# Specify storage class to determine how to dynamically create PVC's with
+backup_storage_class: ''
+
+custom_resource_key: '_galaxy_ansible_com_galaxybackup'
+
+database_type: 'unmanaged'
+
+azure_container_path: ''
+
+# Allow additional parameters to be added to the pg_dump backup command
+pg_dump_suffix: ''
+
+# Enable compression for database dumps (pg_dump -F custom built-in compression)
+use_db_compression: true
+
+# Skip PostgreSQL database dump
+postgres_skip_data: false
+
+# Default resource requirements
+backup_resource_requirements:
+  limits:
+    cpu: "1000m"
+    memory: "4096Mi"
+  requests:
+    cpu: "25m"
+    memory: "32Mi"

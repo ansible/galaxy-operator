@@ -1,0 +1,112 @@
+---
+
+- name: Apply NetworkPolicies for Hub API operand pods
+  include_tasks: networkpolicy.yml
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-API-Ready"
+        message: "Creating {{ ansible_operator_meta.name }}-api-svc Service resource"
+        reason: CreatingService
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: galaxy-api service
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'templates/' + item + '.service.yaml.j2') | from_yaml }}"
+  with_items:
+    - galaxy-api
+
+- name: Apply Redirect Page Configmap
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'redirect-page.configmap.html.j2') }}"
+  when: public_base_url is defined
+
+- name: Set node affinity
+  set_fact:
+    _node_affinity: "{{ raw_spec['affinity']['node_affinity'] | default({}) }}"
+  when: affinity is defined and affinity.node_affinity is defined
+
+- name: Set deployment-specific affinity
+  set_fact:
+    api_affinity: "{{ raw_spec['api']['affinity'] | default({}) }}"
+  when: raw_spec['api']['affinity'] is defined and raw_spec['api']['affinity'] | length > 0
+
+- name: Get container token configuration
+  k8s_info:
+    kind: Secret
+    namespace: '{{ ansible_operator_meta.namespace }}'
+    name: '{{ container_token_secret }}'
+  register: _container_token_configuration
+  no_log: "{{ no_log }}"
+
+- name: Fail early if a specified container token secret does not exist
+  ansible.builtin.fail:
+    msg: >-
+      Secret '{{ container_token_secret }}' referenced by
+      'container_token_secret' was not found in namespace
+      '{{ ansible_operator_meta.namespace }}'. When this field is set (for
+      example to adopt a Vault/VSO-managed secret), the secret must exist before
+      the CR is created. The operator will not auto-generate keys for a named
+      secret, to avoid overwriting Vault-managed keys.
+  when:
+    - _container_token_secret_provided | default(false) | bool
+    - (_container_token_configuration is not defined) or not (_container_token_configuration['resources'] | length)
+
+- include_tasks:
+    file: container_auth_configuration.yml
+  when:
+    - not _container_token_secret_provided | default(false) | bool
+    - (_container_token_configuration is not defined) or not (_container_token_configuration['resources'] | length)
+
+- name: Get container token keys
+  set_fact:
+    container_auth_private_key_name: "tls.key"
+    container_auth_public_key_name: "tls.crt"
+  no_log: "{{ no_log }}"
+  when:
+    - _container_token_configuration is defined
+    - _container_token_configuration['resources'][0]['data']['tls.crt'] is defined
+    - _container_token_configuration['resources'][0]['data']['tls.crt'] | length
+    - _container_token_configuration['resources'][0]['data']['tls.key'] is defined
+    - _container_token_configuration['resources'][0]['data']['tls.key'] | length
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-API-Ready"
+        message: "Creating {{ ansible_operator_meta.name }}-api Deployment resource"
+        reason: CreatingDeployment
+        status: "False"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+
+- name: galaxy-api deployment
+  k8s:
+    state: "{{ deployment_state }}"
+    definition: "{{ lookup('template', 'templates/' + item + '.deployment.yaml.j2') | from_yaml }}"
+  with_items:
+    - galaxy-api
+
+- include_tasks:
+    file: resource_configuration.yml
+
+- k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    conditions:
+      - type: "{{ deployment_type|capitalize }}-API-Ready"
+        message: All API tasks ran successfully
+        reason: ApiTasksFinished
+        status: "True"
+        lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"

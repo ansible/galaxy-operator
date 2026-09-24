@@ -1,0 +1,169 @@
+---
+- name: Default label selector to custom resource generated postgres
+  set_fact:
+    postgres_label_selector: "app.kubernetes.io/instance=postgres-{{ deployment_name }}"
+  when: postgres_label_selector is not defined
+
+- block:
+    - name: Get the postgres pod information
+      kubernetes.core.k8s_info:
+        kind: Pod
+        api_version: v1
+        namespace: '{{ ansible_operator_meta.namespace }}'
+        label_selectors:
+          - "{{ postgres_label_selector }}"
+          - "app.kubernetes.io/version={{ supported_pg_version }}"
+      register: postgres_pod
+      until:
+        - "postgres_pod['resources'] | length"
+        - "postgres_pod['resources'][0]['status']['phase'] == 'Running'"
+      delay: 5
+      retries: 60
+
+    - name: Set the resource pod name as a variable.
+      set_fact:
+        postgres_pod_name: "{{ postgres_pod['resources'][0]['metadata']['name'] }}"
+  when: postgres_type == 'managed'
+
+- block:
+    - name: Set the resource pod name as a variable.
+      set_fact:
+        storage_claim: "{{ deployment_name }}-file-storage"
+
+    - name: Wait for PVC to be created if file-storage is used
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: PersistentVolumeClaim
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        name: "{{ storage_claim }}"
+      register: pvc_status
+      until: pvc_status.resources | length > 0
+      retries: 60
+      delay: 10
+      ignore_errors: true
+
+    - name: Fail with custom message if PVC not found
+      fail:
+        msg: "PVC '{{ storage_claim }}' not found in namespace '{{ ansible_operator_meta.namespace }}' after 10 minutes."
+      when: pvc_status.resources | length == 0
+  when: storage_type | lower == 'file'
+
+- name: Scale down deployments for migration
+  include_tasks: scale_down_deployments.yml
+
+- name: Set _cluster_name with preceeding dot if it exists
+  set_fact:
+    _cluster_name: "{{ cluster_name | default('') | ternary('.' + cluster_name, '') }}"
+  no_log: "{{ no_log }}"
+
+- name: Set full resolvable host name for postgresql server
+  set_fact:
+    resolvable_db_host: '{{ (postgres_type == "managed") | ternary(postgres_host + "." + ansible_operator_meta.namespace + ".svc" + _cluster_name, postgres_host) }}'  # yamllint disable-line rule:line-length
+  no_log: "{{ no_log }}"
+
+- name: Set pg_isready command
+  ansible.builtin.set_fact:
+    pg_isready: >-
+      pg_isready 
+      -h {{ resolvable_db_host }} 
+      -p {{ postgres_port }}
+  no_log: "{{ no_log }}"
+
+- name: Set pg_restore command
+  set_fact:
+    pg_restore: >-
+      pg_restore {{ force_drop_db | bool | ternary('', '--clean --if-exists') }} --no-owner --no-acl
+      -h {{ resolvable_db_host }}
+      -U {{ postgres_user }}
+      -d {{ postgres_database }}
+      -p {{ postgres_port }}
+  no_log: "{{ no_log }}"
+
+- name: Grant CREATEDB privilege to database user for force_drop_db
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ postgres_pod_name }}"
+    container: postgres
+    command: >-
+      psql -c "ALTER USER {{ postgres_user }} CREATEDB;"
+  when:
+    - force_drop_db | bool
+    - postgres_type == 'managed'
+
+- name: Force drop and create database if force_drop_db is true
+  block:
+    - name: Set drop db command
+      set_fact:
+        pg_drop_db: >-
+          echo 'DROP DATABASE {{ postgres_database }} WITH (FORCE);' | PGPASSWORD='{{ postgres_pass }}' psql
+          -U {{ postgres_user }}
+          -h {{ resolvable_db_host }}
+          -d postgres
+          -p {{ postgres_port }} ;
+      no_log: "{{ no_log }}"
+
+    - name: Set create db command
+      set_fact:
+        pg_create_db: >-
+          echo 'CREATE DATABASE {{ postgres_database }} WITH OWNER = {{ postgres_user }};' | PGPASSWORD='{{ postgres_pass }}' psql
+          -U {{ postgres_user }}
+          -h {{ resolvable_db_host }}
+          -d postgres
+          -p {{ postgres_port }} ;
+      no_log: "{{ no_log }}"
+
+    - name: Set complete pg restore command
+      set_fact:
+        pg_drop_create: >-
+          {{ pg_drop_db }}
+          {{ pg_create_db }}
+  when: force_drop_db
+
+- name: Restore Postgres database
+  kubernetes.core.k8s_exec:
+    namespace: "{{ backup_pvc_namespace }}"
+    pod: "{{ ansible_operator_meta.name }}-db-management"
+    command: |
+      bash -c "
+      function end_keepalive {
+        rc=$?
+        rm -f \"$1\"
+        kill $(cat /proc/$2/task/$2/children 2>/dev/null) 2>/dev/null || true
+        wait $2 || true
+        exit $rc
+      }
+      keepalive_file=\"$(mktemp)\"
+      until {{ pg_isready }} &> /dev/null
+      do
+          echo \"Waiting until Postgres is accepting connections...\"
+          sleep 2
+      done
+      while [[ -f \"$keepalive_file\" ]]; do
+        echo 'Migrating data from old database...'
+        sleep 60
+      done &
+      keepalive_pid=$!
+      trap 'end_keepalive \"$keepalive_file\" \"$keepalive_pid\"' EXIT SIGINT SIGTERM
+      echo keepalive_pid: $keepalive_pid
+      set -e -o pipefail
+      {{ pg_drop_create }}
+      set +H  # Disable history expansion
+      cat {{ backup_dir }}/pulp.db | PGPASSWORD='{{ postgres_pass }}' {{ pg_restore }}
+      set -H  # Re-enable history expansion
+      PG_RC=$?
+      set +e +o pipefail
+      exit $PG_RC
+      "
+  register: data_migration
+  no_log: "{{ no_log }}"
+
+- name: Revoke CREATEDB privilege from database user
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    pod: "{{ postgres_pod_name }}"
+    container: postgres
+    command: >-
+      psql -c "ALTER USER {{ postgres_user }} NOCREATEDB;"
+  when:
+    - force_drop_db | bool
+    - postgres_type == 'managed'

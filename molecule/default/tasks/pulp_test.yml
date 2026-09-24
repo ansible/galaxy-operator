@@ -1,0 +1,210 @@
+---
+- name: Create the pulp.pulpproject.org/v1beta1.Pulp
+  k8s:
+    state: present
+    namespace: '{{ namespace }}'
+    definition: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+
+- name: Create role to allow patch/get on "{{ operator_service_account_name }}" serviceaccount
+  k8s:
+    state: present
+    namespace: '{{ namespace }}'
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: "{{ operator_service_account_name }}-role"
+      rules:
+      - apiGroups:
+        - ""
+        resourceNames:
+        - "{{ operator_service_account_name }}"
+        resources:
+        - serviceaccounts
+        verbs:
+        - patch
+        - get
+
+- name: Bind "{{ operator_service_account_name }}-role" to "{{ operator_service_account_name }}" serviceaccount
+  k8s:
+    state: present
+    namespace: '{{ namespace }}'
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: "{{ operator_service_account_name }}-rolebinding"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: "{{ operator_service_account_name }}-role"
+      subjects:
+      - kind: ServiceAccount
+        name: "{{ operator_service_account_name }}"
+
+- name: Wait 5m for database reconciliation to run
+  k8s_info:
+    api_version: '{{ custom_resource.apiVersion }}'
+    kind: '{{ custom_resource.kind }}'
+    namespace: '{{ namespace }}'
+    name: '{{ custom_resource.metadata.name }}'
+  register: cr
+  until:
+    - "'DatabaseTasksFinished' in (cr | json_query('resources[].status.conditions[].reason'))"
+  delay: 6
+  retries: 50
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+    custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+
+- name: Wait 5m for web reconciliation to run
+  k8s_info:
+    api_version: '{{ custom_resource.apiVersion }}'
+    kind: '{{ custom_resource.kind }}'
+    namespace: '{{ namespace }}'
+    name: '{{ custom_resource.metadata.name }}'
+  register: cr
+  until:
+    - "'WebTasksFinished' in (cr | json_query('resources[].status.conditions[].reason'))"
+  delay: 6
+  retries: 50
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+    custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+
+- name: Wait 5m for api reconciliation to run
+  k8s_info:
+    api_version: '{{ custom_resource.apiVersion }}'
+    kind: '{{ custom_resource.kind }}'
+    namespace: '{{ namespace }}'
+    name: '{{ custom_resource.metadata.name }}'
+  register: cr
+  until:
+    - "'ApiTasksFinished' in (cr | json_query('resources[].status.conditions[].reason'))"
+  delay: 6
+  retries: 50
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+    custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+
+- name: Wait 5m for content reconciliation to run
+  k8s_info:
+    api_version: '{{ custom_resource.apiVersion }}'
+    kind: '{{ custom_resource.kind }}'
+    namespace: '{{ namespace }}'
+    name: '{{ custom_resource.metadata.name }}'
+  register: cr
+  until:
+    - "'ContentTasksFinished' in (cr | json_query('resources[].status.conditions[].reason'))"
+  delay: 6
+  retries: 50
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+    custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+
+- name: Wait 5m for worker reconciliation to run
+  k8s_info:
+    api_version: '{{ custom_resource.apiVersion }}'
+    kind: '{{ custom_resource.kind }}'
+    namespace: '{{ namespace }}'
+    name: '{{ custom_resource.metadata.name }}'
+  register: cr
+  until:
+    - "'WorkerTasksFinished' in (cr | json_query('resources[].status.conditions[].reason'))"
+  delay: 6
+  retries: 50
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+    custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+
+- name: Wait 10m for last checks to run
+  k8s_info:
+    api_version: '{{ custom_resource.apiVersion }}'
+    kind: '{{ custom_resource.kind }}'
+    namespace: '{{ namespace }}'
+    name: '{{ custom_resource.metadata.name }}'
+  register: cr
+  until:
+    - "'OperatorFinishedExecution' in (cr | json_query('resources[].status.conditions[].reason'))"
+  delay: 6
+  retries: 100
+  vars:
+    cr_file: 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'
+    custom_resource: "{{ lookup('template', '/'.join([samples_dir, cr_file])) | from_yaml }}"
+
+- name: Set Hub resource name from sample CR
+  ansible.builtin.set_fact:
+    galaxy_cr_name: "{{ lookup('template', '/'.join([samples_dir, 'pulpproject_v1beta1_pulp_cr.molecule.ci.yaml'])) | from_yaml | json_query('metadata.name') }}"
+
+- name: Verify default-deny NetworkPolicy exists
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: NetworkPolicy
+    namespace: '{{ namespace }}'
+    name: '{{ galaxy_cr_name }}-default-deny'
+  register: np_default_deny
+  until: np_default_deny.resources | length > 0
+  retries: 10
+  delay: 5
+
+- name: Assert default-deny selects galaxy-operator managed pods and denies all traffic
+  ansible.builtin.assert:
+    that:
+      - np_default_deny.resources[0].spec.podSelector.matchExpressions | length == 1
+      - np_default_deny.resources[0].spec.podSelector.matchExpressions[0].key == 'app.kubernetes.io/managed-by'
+      - np_default_deny.resources[0].spec.podSelector.matchExpressions[0].operator == 'In'
+      - "'galaxy-operator' in np_default_deny.resources[0].spec.podSelector.matchExpressions[0].values"
+      - "'Ingress' in np_default_deny.resources[0].spec.policyTypes"
+      - "'Egress' in np_default_deny.resources[0].spec.policyTypes"
+      - np_default_deny.resources[0].spec.ingress is not defined or np_default_deny.resources[0].spec.ingress | length == 0
+      - np_default_deny.resources[0].spec.egress is not defined or np_default_deny.resources[0].spec.egress | length == 0
+    fail_msg: "default-deny NetworkPolicy does not match expected spec: {{ np_default_deny.resources }}"
+
+- name: Verify postgres NetworkPolicy exists
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: NetworkPolicy
+    namespace: '{{ namespace }}'
+    name: '{{ galaxy_cr_name }}-postgres-{{ supported_pg_version }}'
+  register: np_postgres
+  until: np_postgres.resources | length > 0
+  retries: 10
+  delay: 5
+
+- name: Assert postgres NetworkPolicy selects database pods and allows Hub operator-managed pod ingress
+  ansible.builtin.assert:
+    that:
+      - np_postgres.resources[0].spec.podSelector.matchLabels['app.kubernetes.io/component'] == 'database'
+      - np_postgres.resources[0].spec.podSelector.matchLabels['app.kubernetes.io/instance'] == 'postgres-' + galaxy_cr_name
+      - np_postgres.resources[0].spec.ingress | length > 0
+    fail_msg: "Postgres NetworkPolicy does not match expected spec: {{ np_postgres.resources }}"
+
+- name: Verify per-workload NetworkPolicies exist
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: NetworkPolicy
+    namespace: '{{ namespace }}'
+    name: '{{ galaxy_cr_name }}-{{ item }}'
+  register: np_workload
+  until: np_workload.resources | length > 0
+  retries: 10
+  delay: 5
+  loop:
+    - api
+    - web
+    - content
+    - worker
+    - redis
+    - db-management
+
+- name: Assert all per-workload NetworkPolicies have expected policyTypes
+  ansible.builtin.assert:
+    that:
+      - item.resources | length > 0
+      - item.resources[0].spec.policyTypes is defined
+    fail_msg: "NetworkPolicy missing or has no policyTypes: {{ item }}"
+  loop: "{{ np_workload.results }}"
+  loop_control:
+    label: "{{ item.resources[0].metadata.name | default('unknown') }}"

@@ -1,0 +1,47 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: '{{ ansible_operator_meta.name }}-content'
+  namespace: '{{ ansible_operator_meta.namespace }}'
+  labels:
+    {{ lookup("template", "../common/templates/labels/common.yaml.j2") | indent(4) | trim }}
+    app.kubernetes.io/component: content-server
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: '{{ deployment_type }}-content'
+      app.kubernetes.io/instance: '{{ deployment_type }}-content-{{ ansible_operator_meta.name }}'
+      app.kubernetes.io/component: content-server
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from Hub operator-managed pods (web nginx proxies content
+    # download requests to the content pod) and the operator controller-manager.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
+        - podSelector:
+            matchLabels:
+              control-plane: controller-manager
+      ports:
+        - protocol: TCP
+          port: 24816
+  egress:
+    # Allow DNS resolution via OpenShift DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-dns
+      ports:
+        - protocol: TCP
+          port: 5353
+        - protocol: UDP
+          port: 5353
+    # Unrestricted egress required: the content pod syncs collections from
+    # user-configured remote registries (galaxy.ansible.com, automation hub,
+    # private registries) whose destinations cannot be enumerated at policy
+    # creation time.
+    - {}

@@ -1,0 +1,101 @@
+site_name: Galaxy-Operator
+site_description: Galaxy-Operator
+site_author: Galaxy-Operator Team
+site_url: https://galaxy-operator.readthedocs.io
+repo_name: ansible/galaxy-operator
+repo_url: https://github.com/ansible/galaxy-operator
+docs_dir: docs
+
+theme:
+  name: "ansible"
+  features:
+    - content.code.copy
+    - content.action.edit
+    - navigation.expand
+    - navigation.sections
+    - navigation.instant
+    - navigation.indexes
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      primary: teal
+      accent: blue
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Documentation:
+      - Getting Started:
+        - Quickstart: quickstart.md
+        - Build: build.md
+      - User Guide:
+        - Database Configuration: user-guide/database-configuration.md
+        - Content Signing: user-guide/content-signing.md
+        - Storage: storage.md
+  - Containers: container.md
+  - Custom Resources:
+      - Galaxy:
+        - API: roles/galaxy-api.md
+        - Common: roles/galaxy-common.md
+        - Content: roles/galaxy-content.md
+        - Route: roles/galaxy-route.md
+        - Worker: roles/galaxy-worker.md
+        - Web: roles/galaxy-web.md
+        - Status: roles/galaxy-status.md
+        - Postgres: roles/postgres.md
+        - Redis: roles/redis.md
+      - Backup:
+        - GalaxyBackup: roles/galaxybackup.md
+      - Restore:
+        - GalaxyRestore: roles/galaxyrestore.md
+  - Contributing: contributing.md
+  - Maintainers: maintainers/release.md
+
+extra:
+  version:
+    provider: mike
+    default: latest
+
+plugins:
+  - autorefs
+  - markdown-exec
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            # Sphinx is for historical reasons, but we could consider switching if needed
+            # https://mkdocstrings.github.io/griffe/docstrings/
+            docstring_style: sphinx
+            merge_init_into_class: yes
+            show_submodules: yes
+          import:
+            - url: https://docs.ansible.com/ansible/latest/objects.inv
+              domains: [py, std]
+  - git-revision-date
+  - material/search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      toc_depth: 3
+      permalink: true

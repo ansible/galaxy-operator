@@ -1,0 +1,18 @@
+---
+# Use the 'create api' subcommand to add watches to this file.
+- version: v1beta1
+  group: galaxy.ansible.com
+  kind: Galaxy
+  playbook: playbooks/galaxy.yaml
+
+- version: v1beta1
+  group: galaxy.ansible.com
+  kind: GalaxyBackup
+  role: backup
+
+- version: v1beta1
+  group: galaxy.ansible.com
+  kind: GalaxyRestore
+  role: restore
+
+# +kubebuilder:scaffold:watch
