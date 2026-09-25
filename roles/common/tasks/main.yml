@@ -94,6 +94,81 @@
     msg: "client_request_timeout's default 30s value has been overriden by the annotation 'aap.ansible.io/client-request-timeout' to {{ client_request_timeout }}s"
   when: client_request_timeout_overidden | default(false)
 
+# because the defauls for gunicorn and nginx are set, we need to
+# override the default if there is a value passed in the annotation.
+# this is not the case for the other components because they don't 
+# set these defaults the same way as Hub.
+- name: set gunicorn_timeout based on annotation
+  set_fact:
+    gunicorn_timeout: "{{ (this_annotations['aap.ansible.io/gunicorn_timeout'][:-1]) | int }}"
+    gunicorn_timeout_overidden: true
+  when:
+    - "'aap.ansible.io/gunicorn_timeout' in this_annotations"
+    - this_annotations['aap.ansible.io/gunicorn_timeout'] is match('^\\d+s$')
+
+- name: gunicorn_timeout has been changed
+  debug:
+    msg: "gunicorn_timeout's default value has been overriden by the annotation 'aap.ansible.io/gunicorn_timeout' to {{ gunicorn_timeout }}s"
+  when: gunicorn_timeout_overidden | default(false)
+
+# TODO: haproxy
+- name: set haproxy_timeout based on annotation
+  set_fact:
+    haproxy_timeout: "{{ (this_annotations['aap.ansible.io/haproxy_timeout'][:-1]) | int }}"
+    haproxy_timeout_overidden: true
+  when:
+    - "'aap.ansible.io/haproxy_timeout' in this_annotations"
+    - this_annotations['aap.ansible.io/haproxy_timeout'] is match('^\\d+s$')
+
+- name: haproxy_timeout has been changed
+  debug:
+    msg: "haproxy_timeout's default value has been overriden by the annotation 'aap.ansible.io/haproxy_timeout' to {{ haproxy_timeout }}s"
+  when: haproxy_timeout_overidden | default(false)
+
+# TODO: nginx_proxy_read_timeout
+- name: set nginx_proxy_read_timeout based on annotation
+  set_fact:
+    nginx_proxy_read_timeout: "{{ (this_annotations['aap.ansible.io/nginx_proxy_read_timeout'][:-1]) | int }}"
+    nginx_proxy_read_timeout_overidden: true
+  when:
+    - "'aap.ansible.io/nginx_proxy_read_timeout' in this_annotations"
+    - this_annotations['aap.ansible.io/nginx_proxy_read_timeout'] is match('^\\d+s$')
+
+- name: nginx_proxy_read_timeout has been changed
+  debug:
+    msg: "nginx_proxy_read_timeout's default value has been overriden by the annotation 'aap.ansible.io/nginx_proxy_read_timeout' to {{ nginx_proxy_read_timeout }}s"
+  when: nginx_proxy_read_timeout | default(false)
+
+# TODO: nginx_proxy_connect_timeout
+- name: set nginx_proxy_connect_timeout based on annotation
+  set_fact:
+    nginx_proxy_connect_timeout: "{{ (this_annotations['aap.ansible.io/nginx_proxy_connect_timeout'][:-1]) | int }}"
+    nginx_proxy_connect_timeout_overidden: true
+  when:
+    - "'aap.ansible.io/nginx_proxy_connect_timeout' in this_annotations"
+    - this_annotations['aap.ansible.io/nginx_proxy_connect_timeout'] is match('^\\d+s$')
+
+- name: nginx_proxy_connect_timeout has been changed
+  debug:
+    msg: "nginx_proxy_connect_timeout's default value has been overriden by the annotation 'aap.ansible.io/nginx_proxy_connect_timeout' to {{ nginx_proxy_connect_timeout }}s"
+  when: nginx_proxy_connect_timeout_overidden | default(false)
+
+# TODO: nginx_proxy_send_timeout
+- name: set nginx_proxy_send_timeout based on annotation
+  set_fact:
+    nginx_proxy_send_timeout: "{{ (this_annotations['aap.ansible.io/nginx_proxy_send_timeout'][:-1]) | int }}"
+    nginx_proxy_send_timeout_overidden: true
+  when:
+    - "'aap.ansible.io/nginx_proxy_send_timeout' in this_annotations"
+    - this_annotations['aap.ansible.io/nginx_proxy_send_timeout'] is match('^\\d+s$')
+
+- name: nginx_proxy_send_timeout has been changed
+  debug:
+    msg: "nginx_proxy_send_timeout's default value has been overriden by the annotation 'aap.ansible.io/nginx_proxy_send_timeout' to {{ nginx_proxy_send_timeout }}s"
+  when: nginx_proxy_send_timeout_overidden | default(false)
+
+
+
 - name: Configure Postgres Configuration Secret
   include_tasks: postgres_configuration.yml
 
