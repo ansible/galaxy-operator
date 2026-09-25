@@ -93,6 +93,9 @@ spec:
                         type: boolean
                     type: object
                 type: object
+              ldap_bind_password_secret:
+                description: Secret where the bind password of the ldap configuration is stored
+                type: string
               bundle_cacert_secret:
                 description: Secret where the trusted Certificate Authority Bundle is stored
                 type: string
