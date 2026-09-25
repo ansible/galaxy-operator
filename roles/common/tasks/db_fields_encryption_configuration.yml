@@ -44,7 +44,7 @@
         with open("/tmp/fernet", "wb") as key_file:
             key_file.write(Fernet.generate_key())
       args:
-        executable: /usr/local/bin/python3
+        executable: "{{ ansible_playbook_python }}"
       no_log: "{{ no_log }}"
 
     - name: Store DB fields encryption key
