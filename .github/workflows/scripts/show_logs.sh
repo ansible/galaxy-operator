@@ -46,14 +46,20 @@ echo ::endgroup::
 
 echo ::group::GALAXY_API_LOGS
 sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-api --tail=10000 || true
+echo "--- previous (crashed) container logs ---"
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-api --previous --tail=2000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_CONTENT_LOGS
 sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-content --tail=10000 || true
+echo "--- previous (crashed) container logs ---"
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-content --previous --tail=2000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_WORKER_LOGS
 sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-worker --tail=10000 || true
+echo "--- previous (crashed) container logs ---"
+sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-worker --previous --tail=2000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_WEB_LOGS
