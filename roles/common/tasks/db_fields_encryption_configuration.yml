@@ -11,11 +11,15 @@
         status: "False"
         lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
 
+- name: Record whether a DB fields encryption secret name was explicitly provided
+  set_fact:
+    _db_fields_encryption_secret_provided: '{{ (db_fields_encryption_secret | default("")) | length > 0 }}'
+
 - name: Set default DB fields encryption secret name
   set_fact:
     db_fields_encryption_secret: '{{ ansible_operator_meta.name }}-db-fields-encryption'
     cacheable: yes
-  when: db_fields_encryption_secret is undefined
+  when: not db_fields_encryption_secret | default('')
 
 - name: Check for specified DB fields encryption configuration
   k8s_info:
@@ -24,6 +28,58 @@
     name: '{{ db_fields_encryption_secret }}'
   register: _db_fields_encryption_secret
   no_log: "{{ no_log }}"
+
+- name: Fail early if a named DB fields encryption secret is missing or has no key
+  when: _db_fields_encryption_secret_provided | bool
+  block:
+    - name: Record that the named DB fields encryption secret is absent
+      ansible.builtin.set_fact:
+        _db_fields_encryption_secret_ready: false
+      when: _db_fields_encryption_secret.resources | default([]) | length == 0
+
+    - name: Record whether the named DB fields encryption secret contains a key
+      ansible.builtin.set_fact:
+        _db_fields_encryption_secret_ready: >-
+          {{
+            (
+              _db_fields_encryption_secret.resources[0].data is defined
+            ) and (
+              _db_fields_encryption_secret.resources[0].data['database_fields.symmetric.key'] is defined
+            ) and (
+              _db_fields_encryption_secret.resources[0].data['database_fields.symmetric.key'] | length > 0
+            )
+          }}
+      no_log: "{{ no_log }}"
+      when: _db_fields_encryption_secret.resources | default([]) | length > 0
+
+    - name: Record the DB fields encryption secret failure on the CR
+      k8s_status:
+        api_version: "{{ api_version }}"
+        kind: "{{ kind }}"
+        name: "{{ ansible_operator_meta.name }}"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        conditions:
+          - type: "{{ deployment_type|capitalize }}-API-Ready"
+            status: "False"
+            reason: DBFieldsEncryptionSecretNotReady
+            message: >-
+              Secret '{{ db_fields_encryption_secret }}' must already exist in
+              namespace '{{ ansible_operator_meta.namespace }}' and contain a
+              non-empty database_fields.symmetric.key. For VSO, create that
+              secret in Vault and sync it before relying on this field. The
+              operator will not generate a key for a named secret.
+            lastTransitionTime: "{{ lookup('pipe', 'date --iso-8601=seconds') }}"
+      when: not _db_fields_encryption_secret_ready | bool
+
+    - name: Fail if the named DB fields encryption secret is not ready
+      ansible.builtin.fail:
+        msg: >-
+          Secret '{{ db_fields_encryption_secret }}' must already exist in
+          namespace '{{ ansible_operator_meta.namespace }}' and contain a
+          non-empty database_fields.symmetric.key. For VSO, create that
+          secret in Vault and sync it before relying on this field. The
+          operator will not generate a key for a named secret.
+      when: not _db_fields_encryption_secret_ready | bool
 
 - block:
     - k8s_status:
@@ -69,7 +125,9 @@
             ownerReferences: null
       no_log: "{{ no_log }}"
 
-  when: not _db_fields_encryption_secret['resources'] | default([]) | length
+  when:
+    - not _db_fields_encryption_secret_provided | bool
+    - not _db_fields_encryption_secret['resources'] | default([]) | length
 
 - name: Retrieve db_fields_encryption_key Secret
   k8s_info:

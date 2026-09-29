@@ -116,6 +116,11 @@
   include_tasks:
     file: db_fields_encryption_configuration.yml
 
+- name: Require a named container token secret to already exist
+  include_tasks:
+    file: container_token_secret.yml
+  when: (container_token_secret | default('')) | length > 0
+
 - name: Configure Signing Service
   include_tasks: signing_service.yml
   when: signing_secret is defined
