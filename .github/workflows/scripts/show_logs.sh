@@ -72,7 +72,7 @@ echo ::group::STORAGE
 if [[ "$CI_TEST_STORAGE" == "azure" ]]; then
   docker logs galaxy-azurite --tail 10000 || true
 elif [[ "$CI_TEST_STORAGE" == "s3" ]]; then
-  docker logs galaxy_minio --tail 10000 || true
+  docker logs galaxy_s3 --tail 10000 || true
 fi
 echo ::endgroup::
 

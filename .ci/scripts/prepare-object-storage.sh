@@ -9,14 +9,33 @@ if [[ "$CI_TEST_STORAGE" == "azure" ]]; then
   echo $(minikube ip)   galaxy-azurite | sudo tee -a /etc/hosts
   az storage container create --name galaxy-test --connection-string $AZURE_CONNECTION_STRING
 elif [[ "$CI_TEST_STORAGE" == "s3" ]]; then
-  export MINIO_ACCESS_KEY=AKIAIT2Z5TDYPX3ARJBA
-  export MINIO_SECRET_KEY=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
-  docker volume create minio
-  docker run -d -p 0.0.0.0:9000:9000 --name galaxy_minio -e MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY -e MINIO_SECRET_KEY=$MINIO_SECRET_KEY -v minio:/data quay.io/minio/minio:latest server /data
-  while ! nc -z $(minikube ip) 9000; do echo 'Wait minio to startup...' && sleep 0.1; done;
-  echo $(minikube ip)   galaxy_minio | sudo tee -a /etc/hosts
-  sed -i "s/galaxy_minio/$(minikube ip)/g" config/samples/galaxy_v1beta1_galaxy_cr.galaxy.s3.ci.yaml
-  docker exec galaxy_minio mc alias set s3 http://$(minikube ip):9000 AKIAIT2Z5TDYPX3ARJBA fqRvjWaPU5o0fCqQuUWbj9Fainj2pVZtBCiDiieS --api S3v4
-  docker exec galaxy_minio mc alias remove local
-  docker exec galaxy_minio mc mb s3/galaxy --region us-east-1
+  export S3_ACCESS_KEY=AKIAIT2Z5TDYPX3ARJBA
+  export S3_SECRET_KEY=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
+  export S3_HOST=$(minikube ip)
+  export S3_CONTAINER=galaxy_s3
+  export SEAWEEDFS_IMAGE=chrislusf/seaweedfs:4.47@sha256:ce9e796f1fe6f06968f4c04bdaf8f678dad9c8acdfef3d244133d71bfa6bf882
+
+  docker volume create seaweedfs
+  docker run -d \
+    -p 0.0.0.0:9000:8333 \
+    --name "$S3_CONTAINER" \
+    -e AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY" \
+    -e AWS_SECRET_ACCESS_KEY="$S3_SECRET_KEY" \
+    -e S3_BUCKET=galaxy \
+    -v seaweedfs:/data \
+    "$SEAWEEDFS_IMAGE"
+
+  while ! nc -z "$S3_HOST" 9000; do
+    echo 'Wait SeaweedFS S3 endpoint to startup...' && sleep 0.1
+  done
+  while true; do
+    S3_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" "http://$S3_HOST:9000/" || true)
+    if [[ "$S3_STATUS" == "200" || "$S3_STATUS" == "403" ]]; then
+      break
+    fi
+    echo "Wait SeaweedFS S3 API to become ready (HTTP $S3_STATUS)..." && sleep 0.5
+  done
+
+  echo "$S3_HOST $S3_CONTAINER" | sudo tee -a /etc/hosts
+  sed -i "s/$S3_CONTAINER/$S3_HOST/g" config/samples/galaxy_v1beta1_galaxy_cr.galaxy.s3.ci.yaml
 fi
