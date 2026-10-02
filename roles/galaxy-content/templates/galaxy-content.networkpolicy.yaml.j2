@@ -19,11 +19,15 @@ spec:
   ingress:
     # Allow traffic from Hub operator-managed pods (web nginx proxies content
     # download requests to the content pod) and the operator controller-manager.
+    # namespaceSelector: {} + podSelector (same list item = AND) allows the
+    # operator pod to reach the content server when it runs in a separate
+    # namespace.
     - from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/managed-by: '{{ deployment_type }}-operator'
-        - podSelector:
+        - namespaceSelector: {}
+          podSelector:
             matchLabels:
               control-plane: controller-manager
       ports:
