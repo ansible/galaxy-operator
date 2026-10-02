@@ -103,7 +103,15 @@ stringData:
   s3-bucket-name: "galaxy-storage"
   s3-region: "us-west-2"
   s3-endpoint: "https://s3.amazonaws.com"  # Optional, defaults to AWS
+  s3-request-checksum-calculation: "when_required"  # Optional, defaults to "when_required"
+  s3-response-checksum-validation: "when_required"  # Optional, defaults to "when_required"
 ```
+
+#### S3 Checksum Configuration
+
+The `s3-request-checksum-calculation` and `s3-response-checksum-validation` keys control botocore's automatic checksum behavior. Starting with botocore 1.36.0, the SDK computes CRC32 checksums on S3 write operations by default. This can cause `SignatureDoesNotMatch` errors with non-AWS S3-compatible backends (MinIO, Ceph, Google Cloud Storage, etc.) that do not support the `x-amz-sdk-checksum-algorithm` header.
+
+Both keys default to `when_required`, which restores pre-1.36.0 behavior and is compatible with all S3 backends including AWS S3. Set to `when_supported` if you need to enforce checksum calculation on every request (only supported by AWS S3).
 
 2. Reference the secret in your Galaxy CR:
 
