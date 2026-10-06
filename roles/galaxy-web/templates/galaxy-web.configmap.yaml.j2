@@ -181,6 +181,10 @@ data:
 
   # https://github.com/ansible/galaxy_ng/blob/master/galaxy_ng/app/webserver_snippets/nginx.conf
   galaxy_ng.conf: |
+    location = /ui {
+        return 301 $trusted_proto://$http_host/ui/;
+    }
+
     location /ui/ {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $trusted_proto;
