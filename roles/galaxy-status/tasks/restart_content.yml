@@ -1,0 +1,20 @@
+---
+- name: Get content Pods for heartbeat recovery
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/name={{ deployment_type }}-content"
+      - "app.kubernetes.io/instance={{ deployment_type }}-content-{{ ansible_operator_meta.name }}"
+  register: content_pods
+
+- name: Restart content Pods after missed heartbeat
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Pod
+    name: "{{ item.metadata.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    state: absent
+    force: true
+  loop: "{{ content_pods.resources }}"
