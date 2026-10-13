@@ -1,0 +1,16 @@
+---
+- name: Query Galaxy status endpoint
+  ansible.builtin.uri:
+    url: "{{ status_url }}"
+    validate_certs: "{{ status_validate_certs | default(true) }}"
+  register: status_check_result
+  until: >
+    status_check_result.json is defined and
+    (status_check_result.json.versions | default([], true) | length) > 0 and
+    (status_check_result.json.online_content_apps | default([], true) | length) >= (expected_content_apps | int) and
+    (status_check_result.json.database_connection | default({})).connected | default(false) | bool and
+    ((status_check_result.json.redis_connection | default({})).connected | default(false) | bool or
+    not pulp_combined_settings.cache_enabled) and
+    status_check_result.json.online_workers | map(attribute='name') | select('match', '^[0-9]+@.*$') | list | count > 0
+  delay: 5
+  retries: 60

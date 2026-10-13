@@ -11,8 +11,44 @@
   ansible.builtin.assert:
     that:
       - content_deployment.resources | length > 0
-      - content_deployment.resources[0].status.availableReplicas | default(0) | int == content_deployment.resources[0].spec.replicas | int
+    fail_msg: "Content Deployment was not found; delaying heartbeat recovery."
+
+- name: Set content recovery state
+  ansible.builtin.set_fact:
+    content_deployment_resource: "{{ content_deployment.resources[0] }}"
+    content_recovery_time: "{{ lookup('pipe', 'date +%s') | int }}"
+    content_last_recovery_time: >-
+      {{ content_deployment_resource.metadata.annotations['galaxy.ansible.com/content-heartbeat-recovery-at'] | default('0') | int }}
+
+- name: Require an available content Deployment before restarting Pods
+  ansible.builtin.assert:
+    that:
+      - content_deployment_resource.status.availableReplicas | default(0) | int == content_deployment_resource.spec.replicas | int
     fail_msg: "Content Deployment is still starting; delaying heartbeat recovery."
+
+- name: Enforce content recovery cooldown
+  ansible.builtin.assert:
+    that:
+      - content_recovery_time | int - content_last_recovery_time | int >= content_heartbeat_recovery_cooldown_seconds | int
+    fail_msg: "Content heartbeat recovery is still in cooldown."
+
+- name: Mark content heartbeat recovery
+  kubernetes.core.k8s:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ ansible_operator_meta.name }}-content"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    state: present
+    merge_type:
+      - merge
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ ansible_operator_meta.name }}-content"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+        annotations:
+          galaxy.ansible.com/content-heartbeat-recovery-at: "{{ content_recovery_time }}"
 
 - name: Get content Pods for heartbeat recovery
   kubernetes.core.k8s_info:
@@ -29,18 +65,3 @@
   loop: "{{ content_pods.resources }}"
   loop_control:
     loop_var: content_pod
-
-- name: Wait for content heartbeats after recovery
-  ansible.builtin.uri:
-    url: "{{ status_url }}"
-    validate_certs: "{{ status_validate_certs | default(true) }}"
-  register: recovered_status
-  until: >
-    recovered_status.json is defined and
-    recovered_status.json.versions | length and
-    (recovered_status.json.online_content_apps | default([], true) | length) >= (expected_content_apps | int) and
-    recovered_status.json.database_connection.connected and
-    (recovered_status.json.redis_connection.connected or not pulp_combined_settings.cache_enabled) and
-    recovered_status.json.online_workers | map(attribute='name') | select('match', '^[0-9]+@.*$') | list | count > 0
-  delay: 5
-  retries: 60

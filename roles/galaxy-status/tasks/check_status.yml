@@ -1,30 +1,28 @@
 ---
 - name: Check application status
   block:
-    - name: Query Galaxy status endpoint
-      ansible.builtin.uri:
-        url: "{{ status_url }}"
-        validate_certs: "{{ status_validate_certs | default(true) }}"
-      register: status_check_result
-      until: >
-        status_check_result.json is defined and
-        status_check_result.json.versions | length and
-        (status_check_result.json.online_content_apps | default([], true) | length) >= (expected_content_apps | int) and
-        status_check_result.json.database_connection.connected and
-        (status_check_result.json.redis_connection.connected or not pulp_combined_settings.cache_enabled) and
-        status_check_result.json.online_workers | map(attribute='name') | select('match', '^[0-9]+@.*$') | list | count > 0
-      delay: 5
-      retries: 60
+    - name: Wait for application status
+      ansible.builtin.include_tasks: wait_for_status.yml
   rescue:
-    - name: Restart content Pods when the database is healthy but content is offline
-      ansible.builtin.include_tasks: restart_content.yml
-      when:
-        - status_check_result.json is defined
-        - (status_check_result.json.database_connection | default({})).connected | default(false) | bool
-        - (status_check_result.json.online_content_apps | default([], true) | length) < (expected_content_apps | int)
-    - name: Use recovered application status
+    - name: Determine whether content heartbeat recovery is applicable
       ansible.builtin.set_fact:
-        status_check_result: "{{ recovered_status }}"
+        content_recovery_required: >-
+          {{
+            status_check_result is defined and
+            status_check_result.json is defined and
+            (status_check_result.json.database_connection | default({})).connected | default(false) | bool and
+            (status_check_result.json.online_content_apps | default([], true) | length) < (expected_content_apps | int)
+          }}
+
+    - name: Restart content Pods when content heartbeats are missing
+      ansible.builtin.include_tasks: restart_content.yml
+      when: content_recovery_required | bool
+
+    - name: Recheck application status after content recovery
+      ansible.builtin.include_tasks: wait_for_status.yml
+      when: content_recovery_required | bool
+
     - name: Report failed application status check
       ansible.builtin.fail:
-        msg: "Galaxy status check failed; content recovery was attempted when applicable."
+        msg: "Galaxy status check failed and content heartbeat recovery was not applicable."
+      when: not content_recovery_required | bool

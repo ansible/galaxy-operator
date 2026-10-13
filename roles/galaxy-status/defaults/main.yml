@@ -10,3 +10,5 @@ route_tls_termination_mechanism: edge
 
 status_protocol: 'http'
 status_port: '24880'
+
+content_heartbeat_recovery_cooldown_seconds: 300
