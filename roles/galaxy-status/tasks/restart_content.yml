@@ -9,6 +9,14 @@
       - "app.kubernetes.io/instance={{ deployment_type }}-content-{{ ansible_operator_meta.name }}"
   register: content_pods
 
+- name: Get content Deployment for heartbeat recovery
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ ansible_operator_meta.name }}-content"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+  register: content_deployment
+
 - name: Restart content Pods after missed heartbeat
   kubernetes.core.k8s:
     api_version: v1
@@ -16,5 +24,9 @@
     name: "{{ item.metadata.name }}"
     namespace: "{{ ansible_operator_meta.namespace }}"
     state: absent
-    force: true
+    delete_options:
+      gracePeriodSeconds: 0
   loop: "{{ content_pods.resources }}"
+  when:
+    - content_deployment.resources | length > 0
+    - content_deployment.resources[0].status.availableReplicas | default(0) | int == content_deployment.resources[0].spec.replicas | int

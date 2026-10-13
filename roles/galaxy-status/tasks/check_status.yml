@@ -1,0 +1,28 @@
+---
+- name: Check application status
+  block:
+    - name: Query Galaxy status endpoint
+      ansible.builtin.uri:
+        url: "{{ status_url }}"
+        validate_certs: "{{ status_validate_certs | default(true) }}"
+      register: status_result
+      until: >
+        status_result.json is defined and
+        status_result.json.versions | length and
+        status_result.json.online_content_apps | length and
+        status_result.json.database_connection.connected and
+        (status_result.json.redis_connection.connected or not pulp_combined_settings.cache_enabled) and
+        status_result.json.online_workers | map(attribute='name') | select('match', '^[0-9]+@.*$') | list | count > 0
+      delay: 5
+      retries: 60
+  rescue:
+    - name: Restart content Pods when the database is healthy but content is offline
+      ansible.builtin.include_tasks: restart_content.yml
+      when:
+        - status_result.json is defined
+        - (status_result.json.database_connection | default({})).connected | default(false) | bool
+        - status_result.json.online_content_apps is defined
+        - status_result.json.online_content_apps | length == 0
+    - name: Report failed application status check
+      ansible.builtin.fail:
+        msg: "Galaxy status check failed; content recovery was attempted when applicable."
