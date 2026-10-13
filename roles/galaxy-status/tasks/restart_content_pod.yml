@@ -1,0 +1,24 @@
+---
+- name: Restart content Pod after missed heartbeat
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Pod
+    name: "{{ content_pod.metadata.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    state: absent
+    delete_options:
+      gracePeriodSeconds: 0
+
+- name: Wait for the replacement content Pod
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ ansible_operator_meta.name }}-content"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+  register: replacement_content_deployment
+  until: >
+    replacement_content_deployment.resources | length > 0 and
+    replacement_content_deployment.resources[0].status.availableReplicas | default(0) | int ==
+    replacement_content_deployment.resources[0].spec.replicas | int
+  delay: 5
+  retries: 60

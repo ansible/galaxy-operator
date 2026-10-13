@@ -10,7 +10,9 @@
 - name: Check through galaxy-web
   ansible.builtin.include_tasks: check_status.yml
   vars:
-    status_url: '{{ status_protocol }}://{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local:{{ status_port }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
+    status_service_host: "{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local"
+    status_url: '{{ status_protocol }}://{{ status_service_host }}:{{ status_port }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
+    expected_content_apps: "{{ (combined_content.replicas | int) * (gunicorn_content_workers | int) }}"
   when:
     - ingress_type | lower != 'route'
 
@@ -19,12 +21,13 @@
   vars:
     status_url: 'https://{{ route_host }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
     status_validate_certs: false
+    expected_content_apps: "{{ (combined_content.replicas | int) * (gunicorn_content_workers | int) }}"
   when:
     - ingress_type | lower == 'route'
 
 - name: Set application status result
   ansible.builtin.set_fact:
-    result: '{{ status_result }}'
+    result: '{{ status_check_result }}'
 
 - name: Get installed plugins
   ansible.builtin.set_fact:
