@@ -49,6 +49,7 @@
 - include_tasks:
     file: container_auth_configuration.yml
   when:
+    - not _container_token_secret_provided | default(false) | bool
     - (_container_token_configuration is not defined) or not (_container_token_configuration['resources'] | length)
 
 - name: Get container token keys
