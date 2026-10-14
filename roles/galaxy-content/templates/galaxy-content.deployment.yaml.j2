@@ -224,20 +224,20 @@ spec:
             - configMapRef:
                 name: '{{ ansible_operator_meta.name }}-proxy-env'
                 optional: true
-           ports:
-             - protocol: TCP
-               containerPort: 24816
-           livenessProbe:
-             httpGet:
-               path: "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}"
-               port: 24816
-             failureThreshold: 1
-             initialDelaySeconds: 30
-             periodSeconds: 10
-             timeoutSeconds: 5
-           readinessProbe:
-             httpGet:
-               path: "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}"
+          ports:
+            - protocol: TCP
+              containerPort: 24816
+          livenessProbe:
+            httpGet:
+              path: "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}"
+              port: 24816
+            failureThreshold: 1
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}"
               port: 24816
             failureThreshold: 10
             initialDelaySeconds: 30
