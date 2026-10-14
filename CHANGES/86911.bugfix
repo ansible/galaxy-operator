@@ -1,0 +1,1 @@
+Fixed inconsistent lastTransitionTime formatting in status conditions that caused CRD validation failures during supported 2.6 to 2.7 upgrades. The operator now normalizes any space-separated timestamps to RFC3339 format on each reconciliation.

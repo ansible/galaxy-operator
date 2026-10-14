@@ -1,0 +1,48 @@
+---
+# Normalize lastTransitionTime values in status conditions to RFC3339 format.
+#
+# The k8s_status module in older operator_sdk.util versions occasionally wrote
+# timestamps via Python's str(datetime) which produces "YYYY-MM-DD HH:MM:SS+00:00"
+# (space-separated) rather than the RFC3339-mandated "YYYY-MM-DDTHH:MM:SS+00:00"
+# (T-separated). Conditions whose status never flips retain the malformed value
+# indefinitely, causing CRD validation failures on operator upgrades that tighten
+# the date-time format constraint (e.g. AAP 2.6 -> 2.7).
+#
+# This task runs once per reconciliation to patch any such values in-place.
+# We use replace: true to bypass k8s_status's merge_status_conditions logic,
+# which ignores lastTransitionTime-only changes (has_condition_transitioned
+# explicitly skips that field).
+
+- name: Get current status conditions
+  set_fact:
+    _current_conditions: "{{ this_galaxy['resources'][0]['status']['conditions'] | default([]) }}"
+
+- name: Check for malformed lastTransitionTime values (space instead of T)
+  set_fact:
+    _has_malformed_timestamps: "{{ _current_conditions | selectattr('lastTransitionTime', 'defined') | selectattr('lastTransitionTime', 'match', '^\\d{4}-\\d{2}-\\d{2} ') | list | length > 0 }}"
+
+- name: Build normalized conditions with RFC3339 timestamps
+  set_fact:
+    _normalized_conditions: "{{ _normalized_conditions | default([]) + [_fixed_condition] }}"
+  loop: "{{ _current_conditions }}"
+  loop_control:
+    loop_var: _cond
+  vars:
+    _fixed_timestamp: "{{ _cond.lastTransitionTime | default('') | regex_replace('^(\\d{4}-\\d{2}-\\d{2}) ', '\\1T') }}"
+    _fixed_condition: "{{ _cond | combine({'lastTransitionTime': _fixed_timestamp}) if _cond.lastTransitionTime is defined else _cond }}"
+  when: _has_malformed_timestamps | bool
+
+- name: Build full status with normalized conditions
+  set_fact:
+    _patched_status: "{{ this_galaxy['resources'][0]['status'] | combine({'conditions': _normalized_conditions}) }}"
+  when: _has_malformed_timestamps | bool
+
+- name: Replace status with normalized timestamps
+  operator_sdk.util.k8s_status:
+    api_version: "{{ api_version }}"
+    kind: "{{ kind }}"
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+    replace: true
+    status: "{{ _patched_status }}"
+  when: _has_malformed_timestamps | bool
