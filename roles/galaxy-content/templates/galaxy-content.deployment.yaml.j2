@@ -5,7 +5,6 @@ metadata:
   name: "{{ ansible_operator_meta.name }}-content"
   namespace: "{{ ansible_operator_meta.namespace }}"
   annotations:
-    ignore-check.kube-linter.io/no-liveness-probe: "Temporarily disabled"
     ignore-check.kube-linter.io/no-node-affinity: "Do not check node affinity"
   labels:
     {{ lookup("template", "../common/templates/labels/version.yaml.j2") | indent(width=4) | trim }}
@@ -236,6 +235,38 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: "{{ pulp_combined_settings.content_path_prefix | default('/pulp/content/') }}"
+              port: 24816
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            # The content app can lose its Pulp-tracked heartbeat registration after a
+            # transient database outage without the process itself crashing, leaving
+            # online_content_apps empty forever even though this Pod stays Ready. Restart
+            # the Pod whenever the database is reachable but this Pod isn't registered.
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  status=$(curl -s --max-time 5 -o /tmp/pulp-content-liveness-status.json -w "%{http_code}" "http://{{ ansible_operator_meta.name }}-api-svc:8000/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/") || exit 0
+                  [ "$status" = "200" ] || exit 0
+                  python3 -c "
+                  import json, os, sys
+                  with open(\"/tmp/pulp-content-liveness-status.json\") as f:
+                      data = json.load(f)
+                  if not data.get(\"database_connection\", {}).get(\"connected\"):
+                      sys.exit(0)
+                  host = os.environ[\"HOSTNAME\"]
+                  registered = any(app[\"name\"].endswith(\"@\" + host) for app in data.get(\"online_content_apps\", []))
+                  sys.exit(0 if registered else 1)
+                  "
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
           volumeMounts:
             - name: {{ ansible_operator_meta.name }}-server
               mountPath: "/etc/pulp/settings.py"
