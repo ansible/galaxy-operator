@@ -53,7 +53,7 @@ jobs:
         run: |
           echo ::group::HTTPIE
           sudo apt-get update -yq
-          sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install httpie
           echo ::endgroup::
           echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
           echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
@@ -87,8 +87,8 @@ jobs:
 
       - name: Build Operator
         run: |
-          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
-          sudo -E docker images
+          make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
+          docker images
         shell: bash
         env:
           ENGINE: docker
@@ -139,7 +139,7 @@ jobs:
         run: kubectl -n galaxy get galaxy example-galaxy -o yaml
 
       - name: Check and wait galaxy-operator deploy
-        run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
+        run: time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
         shell: bash
 
       - name: KubeLinter
