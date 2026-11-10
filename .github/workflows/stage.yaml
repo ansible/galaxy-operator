@@ -19,9 +19,7 @@ on:
 
 jobs:
   stage:
-    # ubuntu-latest is 26.04, which has no Python 3.9 builds
-    # (last 3.9 builds are for 22.04/24.04)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: write
@@ -47,10 +45,10 @@ jobs:
           repository: ${{ github.repository_owner }}/galaxy-operator
           path: galaxy-operator
 
-      - name: Set up Python 3.9
+      - name: Set up Python 3.11
         uses: actions/setup-python@v7
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: python3 -m pip install requests

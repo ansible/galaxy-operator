@@ -6,9 +6,7 @@ env:
   TERM: 'xterm-256color'
 jobs:
   galaxy:
-    # ubuntu-latest is 26.04, which has no Python 3.9 builds
-    # (last 3.9 builds are for 22.04/24.04)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -46,10 +44,10 @@ jobs:
           # repository: ${{ steps.head_repo_name.outputs.repo }}
           # ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set up Python 3.9
+      - name: Set up Python 3.11
         uses: actions/setup-python@v7
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install httpie
         run: |
