@@ -7,7 +7,10 @@ env:
 jobs:
   galaxy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # deploy (~7min) + bounded 20min galaxy wait + room for the
+    # always() log collection step; an infinite wait would hit the
+    # job timeout and cancel log collection, leaving no diagnostics
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -139,7 +142,7 @@ jobs:
         run: kubectl -n galaxy get galaxy example-galaxy -o yaml
 
       - name: Check and wait galaxy-operator deploy
-        run: time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
+        run: time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=1200s
         shell: bash
 
       - name: KubeLinter
