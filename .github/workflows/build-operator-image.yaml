@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Push main image
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       - name: Log into registry ghcr.io
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0

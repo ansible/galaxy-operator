@@ -35,7 +35,7 @@ jobs:
           echo "PR head repo: $HEAD_REPO_NAME"
           echo "::set-output name=repo::$HEAD_REPO_NAME"
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           # by default, it uses a depth of 1
           # this fetches all history so that we can read each commit
@@ -45,7 +45,7 @@ jobs:
           # ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v7
         with:
           python-version: '3.9'
 
@@ -223,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # TODO: remove this step once the operator-sdk is available via the make operator-sdk target
       - name: Install Operator SDK
