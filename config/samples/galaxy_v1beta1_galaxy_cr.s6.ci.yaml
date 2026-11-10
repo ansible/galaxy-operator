@@ -4,7 +4,7 @@ metadata:
   name: example-galaxy
 spec:
   image: quay.io/ansible/galaxy-ng
-  image_version: 38da3321
+  image_version: latest
   image_web: quay.io/ansible/galaxy-ui
   image_web_version: latest
   no_log: false
