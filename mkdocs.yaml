@@ -46,6 +46,7 @@ nav:
         - Database Configuration: user-guide/database-configuration.md
         - Content Signing: user-guide/content-signing.md
         - Storage: storage.md
+        - Extra Volumes: extra_volumes.md
   - Containers: container.md
   - Custom Resources:
       - Galaxy:
