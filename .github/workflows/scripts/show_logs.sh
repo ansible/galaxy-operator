@@ -1,15 +1,15 @@
 #!/bin/bash -e
 #!/usr/bin/env bash
 
-sudo -E docker images
+docker images
 
 KUBE="minikube"
 if [[ "$1" == "--kind" ]] || [[ "$1" == "-k" ]]; then
   KUBE="kind"
   echo "Running $KUBE"
   kind export kubeconfig --name osdk-test
-  sudo -E kubectl config set-context --current --namespace=osdk-test
-  sudo -E kubectl port-forward service/example-galaxy-web-svc 24880:24880 &
+  kubectl config set-context --current --namespace=osdk-test
+  kubectl port-forward service/example-galaxy-web-svc 24880:24880 &
   echo ::group::KIND_LOGS
   mkdir -p logs
   kind export logs --name osdk-test ./logs
@@ -26,14 +26,14 @@ if [[ "$1" == "--kind" ]] || [[ "$1" == "-k" ]]; then
   echo ::endgroup::
 fi
 
-sudo -E kubectl get pods -o wide
-sudo -E kubectl get pods -o go-template='{{range .items}} {{.metadata.name}} {{range .status.containerStatuses}} {{.lastState.terminated.exitCode}} {{end}}{{"\n"}} {{end}}'
-sudo -E kubectl get deployments
+kubectl get pods -o wide
+kubectl get pods -o go-template='{{range .items}} {{.metadata.name}} {{range .status.containerStatuses}} {{.lastState.terminated.exitCode}} {{end}}{{"\n"}} {{end}}'
+kubectl get deployments
 
 if [[ "$KUBE" == "minikube" ]]; then
   echo ::group::METRICS
-  sudo -E kubectl top pods || true
-  sudo -E kubectl describe node minikube || true
+  kubectl top pods || true
+  kubectl describe node minikube || true
   echo ::endgroup::
   echo ::group::MINIKUBE_LOGS
   minikube logs -n 10000
@@ -41,30 +41,30 @@ if [[ "$KUBE" == "minikube" ]]; then
 fi
 
 echo ::group::OPERATOR_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
+kubectl logs -l app.kubernetes.io/name=galaxy-operator -c galaxy-operator --tail=10000
 echo ::endgroup::
 
 echo ::group::GALAXY_API_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-api --tail=10000 || true
+kubectl logs -l app.kubernetes.io/name=galaxy-api --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_CONTENT_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-content --tail=10000 || true
+kubectl logs -l app.kubernetes.io/name=galaxy-content --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_WORKER_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=galaxy-worker --tail=10000 || true
+kubectl logs -l app.kubernetes.io/name=galaxy-worker --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::GALAXY_WEB_LOGS
-sudo -E kubectl logs -l app.kubernetes.io/name=nginx --tail=10000 || true
+kubectl logs -l app.kubernetes.io/name=nginx --tail=10000 || true
 echo ::endgroup::
 
 echo ::group::POSTGRES
 if [[ "$CI_TEST_DATABASE" == "external" ]]; then
   docker logs postgresql --tail 10000 || true
 else
-  sudo -E kubectl logs -l app.kubernetes.io/name=postgres --tail=10000 || true
+  kubectl logs -l app.kubernetes.io/name=postgres --tail=10000 || true
 fi
 echo ::endgroup::
 
@@ -77,11 +77,11 @@ fi
 echo ::endgroup::
 
 echo ::group::EVENTS
-sudo -E kubectl get events --sort-by='.metadata.creationTimestamp' || true
+kubectl get events --sort-by='.metadata.creationTimestamp' || true
 echo ::endgroup::
 
 echo ::group::OBJECTS
-sudo -E kubectl get galaxy,galaxybackup,galaxyrestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml
+kubectl get galaxy,galaxybackup,galaxyrestore,pvc,configmap,serviceaccount,secret,networkpolicy,ingress,service,deployment,statefulset,hpa,job,cronjob -o yaml
 echo ::endgroup::
 
 echo "Content endpoint"

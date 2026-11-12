@@ -16,7 +16,10 @@ env:
 jobs:
   galaxy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # deploy (~7min) + bounded 20min galaxy wait + room for the
+    # always() log collection step; an infinite wait would hit the
+    # job timeout and cancel log collection, leaving no diagnostics
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -37,22 +40,22 @@ jobs:
             IMAGE: minimal
             DATABASE: internal
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
         with:
           # by default, it uses a depth of 1
           # this fetches all history so that we can read each commit
           fetch-depth: 0
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install httpie
         run: |
           echo ::group::HTTPIE
           sudo apt-get update -yq
-          sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install httpie
           echo ::endgroup::
           echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
           echo "IMG=quay.io/ansible/galaxy-operator:main" >> $GITHUB_ENV
@@ -85,8 +88,8 @@ jobs:
 
       - name: Build Operator
         run: |
-          sudo -E make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
-          sudo -E docker images
+          make docker-build IMG=quay.io/ansible/galaxy-operator:${{ github.sha }}
+          docker images
         shell: bash
         env:
           DOCKER_BUILDKIT: "0"
@@ -133,7 +136,7 @@ jobs:
         run: kubectl config set-context --current --namespace=galaxy
 
       - name: Check and wait galaxy-operator deploy
-        run: sudo -E time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=-1s
+        run: time kubectl wait --for condition=Galaxy-Operator-Finished-Execution galaxy/example-galaxy --timeout=1200s
         shell: bash
 
       - name: Popeye
@@ -192,7 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # TODO: remove this step once the operator-sdk is available via the make operator-sdk target
       - name: Install Operator SDK

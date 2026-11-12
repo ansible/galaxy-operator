@@ -31,7 +31,7 @@ jobs:
           echo "TAG_NAME=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
           echo "QUAY_REGISTRY=quay.io/ansible" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           ref: 'main'
           depth: 0
