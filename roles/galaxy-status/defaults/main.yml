@@ -10,3 +10,15 @@ route_tls_termination_mechanism: edge
 
 status_protocol: 'http'
 status_port: '24880'
+
+# Admin credentials used to authenticate the status API request.
+#
+# galaxy_ng restricts anonymous access to the /pulp/api/v3/status/
+# endpoint (AAP-81713); only an authenticated call returns the
+# versions, online_content_apps, and online_workers fields that the
+# readiness check in tasks/version.yml relies on.
+#
+# galaxy_admin_password falls back to the admin_password fact, which
+# the common role sets from the deployment's admin password secret.
+galaxy_admin_user: admin
+galaxy_admin_password: "{{ admin_password }}"
