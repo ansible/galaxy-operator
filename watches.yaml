@@ -4,15 +4,18 @@
   group: galaxy.ansible.com
   kind: Galaxy
   playbook: playbooks/galaxy.yaml
+  markUnsafe: true
 
 - version: v1beta1
   group: galaxy.ansible.com
   kind: GalaxyBackup
   role: backup
+  markUnsafe: true
 
 - version: v1beta1
   group: galaxy.ansible.com
   kind: GalaxyRestore
   role: restore
+  markUnsafe: true
 
 # +kubebuilder:scaffold:watch
