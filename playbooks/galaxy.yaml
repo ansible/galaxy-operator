@@ -54,6 +54,13 @@
     raw_spec: "{{ vars['_galaxy_ansible_com_galaxy']['spec'] }}"
     no_log: true
   pre_tasks:
+    # AAP-93431: remediate Secrets created by an earlier operator version with
+    # client-side apply, which leaked cleartext values into the
+    # kubectl.kubernetes.io/last-applied-configuration annotation. Runs first so
+    # it still executes if a later reconcile step fails.
+    - name: Remove leaked last-applied-configuration annotations from Secrets
+      ansible.builtin.include_tasks: clean_secret_annotations.yml
+
     - name: Verify imagePullSecrets
       k8s_info:
         kind: Secret
