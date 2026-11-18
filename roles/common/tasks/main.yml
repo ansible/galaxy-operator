@@ -77,6 +77,10 @@
     namespace: "{{ ansible_operator_meta.namespace }}"
   register: this_galaxy
 
+- name: Normalize condition timestamps to RFC3339 format
+  include_tasks: normalize_condition_timestamps.yml
+  when: this_galaxy['resources'][0]['status']['conditions'] is defined
+
 - name: set annotations based on this_galaxy
   set_fact:
     this_annotations: "{{ this_galaxy['resources'][0]['metadata']['annotations'] | default({}) }}"
