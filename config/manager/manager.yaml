@@ -55,6 +55,8 @@ spec:
               value: explicit
             - name: ANSIBLE_DEBUG_LOGS
               value: 'false'
+            - name: OPERATOR_VERSION
+              value: ""
             - name: RELATED_IMAGE_GALAXY
               value: quay.io/ansible/galaxy-ng:latest
             - name: RELATED_IMAGE_GALAXY_WEB
