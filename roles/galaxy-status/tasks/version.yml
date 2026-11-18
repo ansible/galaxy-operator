@@ -8,8 +8,16 @@
     - route_tls_termination_mechanism | lower == 'passthrough'
 
 - name: Check, through galaxy-web, if the app is ready to serve requests
+  # galaxy_ng returns 200 to anonymous callers but strips the
+  # versions, online_content_apps, and online_workers fields
+  # (AAP-81713), so the readiness check must authenticate. The
+  # admin_password fact is set by the common role from the
+  # deployment's admin password secret.
   uri:
     url: '{{ status_protocol }}://{{ ansible_operator_meta.name }}-web-svc.{{ ansible_operator_meta.namespace }}.svc.cluster.local:{{ status_port }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
+    url_username: admin
+    url_password: '{{ admin_password }}'
+    force_basic_auth: true
   register: result_not_route
   until: >
     result_not_route.json is defined and
@@ -26,6 +34,9 @@
 - name: Check, through galaxy-route, if the app is ready to serve requests
   uri:
     url: 'https://{{ route_host }}/{{ pulp_combined_settings.galaxy_api_path_prefix }}/pulp/api/v3/status/'
+    url_username: admin
+    url_password: '{{ admin_password }}'
+    force_basic_auth: true
     validate_certs: no
   register: result_route
   until: >
