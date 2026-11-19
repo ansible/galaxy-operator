@@ -297,6 +297,28 @@ spec:
               readOnly: true
 {% endif %}
       initContainers:
+        - name: wait-for-postgres
+          image: {{ _image }}
+          imagePullPolicy: '{{ image_pull_policy }}'
+          command:
+            - /bin/bash
+            - -c
+            - |
+              wait-for-tcp "${POSTGRES_SERVICE_HOST}" "${POSTGRES_SERVICE_PORT}"
+{% if combined_api.resource_requirements is defined %}
+          resources: {{ combined_api.resource_requirements }}
+{% endif %}
+          env:
+            - name: POSTGRES_SERVICE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: host
+            - name: POSTGRES_SERVICE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ postgres_configuration_secret_name }}
+                  key: port
         - name: run-migrations
           image: {{ _image }}
           imagePullPolicy: '{{ image_pull_policy }}'
