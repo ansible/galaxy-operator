@@ -28,11 +28,16 @@
   no_log: "{{ no_log }}"
   when: pulp_settings is defined
 
+- name: Record whether a container token secret name was explicitly provided
+  set_fact:
+    _container_token_secret_provided: '{{ (container_token_secret | default("")) | length > 0 }}'
+    cacheable: yes
+
 - name: Set default token authentication secret name if not set by user
   set_fact:
     container_token_secret: '{{ ansible_operator_meta.name }}-container-auth'
     cacheable: yes
-  when: container_token_secret is not defined
+  when: not container_token_secret | default('')
 
 - include_tasks:
     file: get_node_ip.yml
