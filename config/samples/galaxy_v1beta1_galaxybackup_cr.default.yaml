@@ -9,3 +9,4 @@ spec:
   backup_pvc: ''
   backup_storage_requirements: ''
   backup_storage_class: ''
+  clean_backup_on_delete: false

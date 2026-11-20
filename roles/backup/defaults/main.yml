@@ -30,6 +30,12 @@ use_db_compression: true
 # Skip PostgreSQL database dump
 postgres_skip_data: false
 
+# Delete the backup directory when the GalaxyBackup CR is deleted
+clean_backup_on_delete: false
+
+# Internal flag used by the operator finalizer
+finalizer_run: false
+
 # Default resource requirements
 backup_resource_requirements:
   limits:

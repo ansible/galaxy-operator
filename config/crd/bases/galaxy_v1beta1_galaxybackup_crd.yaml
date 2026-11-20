@@ -98,6 +98,10 @@ spec:
                   description: Enable compression for database dumps using pg_dump built-in compression.
                   type: boolean
                   default: true
+                clean_backup_on_delete:
+                  description: Delete backup data from the PVC when the GalaxyBackup object is deleted
+                  type: boolean
+                  default: false
               required:
                 - deployment_name
             status:

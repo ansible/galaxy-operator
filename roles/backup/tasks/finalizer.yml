@@ -1,0 +1,67 @@
+---
+- name: Look up details for this backup object
+  kubernetes.core.k8s_info:
+    api_version: galaxy.ansible.com/v1beta1
+    kind: GalaxyBackup
+    name: "{{ ansible_operator_meta.name }}"
+    namespace: "{{ ansible_operator_meta.namespace }}"
+  register: this_backup
+
+- name: Clean up backup data
+  when:
+    - clean_backup_on_delete | bool
+    - this_backup['resources'] | length > 0
+    - this_backup['resources'][0]['status']['backupDirectory'] | default('') | length > 0
+  block:
+    - name: Set backup cleanup facts
+      ansible.builtin.set_fact:
+        backup_pvc: "{{ this_backup['resources'][0]['status']['backupClaim'] | default(deployment_name ~ '-backup-claim') }}"
+        backup_pvc_namespace: "{{ this_backup['resources'][0]['status']['backupNamespace'] | default(ansible_operator_meta.namespace) }}"
+        _backup_dir: "{{ this_backup['resources'][0]['status']['backupDirectory'] }}"
+
+    - name: Delete any existing management pod
+      kubernetes.core.k8s:
+        name: "{{ ansible_operator_meta.name }}-db-management"
+        kind: Pod
+        api_version: v1
+        namespace: "{{ backup_pvc_namespace }}"
+        state: absent
+        force: true
+        wait: true
+
+    - name: Create management pod
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'management-pod.yaml.j2') | from_yaml }}"
+        wait: true
+
+    - name: Wait for backup management pod to be running
+      kubernetes.core.k8s_info:
+        kind: Pod
+        api_version: v1
+        namespace: "{{ backup_pvc_namespace }}"
+        label_selectors:
+          - "app.kubernetes.io/component=backup-manager"
+          - "app.kubernetes.io/instance={{ deployment_type }}-backup-manager-{{ ansible_operator_meta.name }}"
+      register: backup_pod_info
+      until:
+        - backup_pod_info['resources'] | length
+        - backup_pod_info['resources'][0]['status']['phase'] == 'Running'
+      retries: 120
+      delay: 10
+
+    - name: Remove backup directory from PVC
+      kubernetes.core.k8s_exec:
+        namespace: "{{ backup_pvc_namespace }}"
+        pod: "{{ ansible_operator_meta.name }}-db-management"
+        command: >-
+          bash -c 'rm -rf {{ _backup_dir }}'
+
+    - name: Delete management pod
+      kubernetes.core.k8s:
+        name: "{{ ansible_operator_meta.name }}-db-management"
+        kind: Pod
+        api_version: v1
+        namespace: "{{ backup_pvc_namespace }}"
+        state: absent
+        force: true
