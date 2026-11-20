@@ -13,6 +13,7 @@ Role Variables
 * `backup_storage_requirements`: The size of storage for the PVC created by operator if one is not supplied
 * `backup_resource_requirements`: The size of storage for the PVC created by operator if one is not supplied
 * `backup_storage_class`: The storage class to be used for the backup PVC
+* `clean_backup_on_delete`: Delete the backup directory from the PVC when the `GalaxyBackup` object is deleted
 
 
 Defining resources limits and request for backup CR
