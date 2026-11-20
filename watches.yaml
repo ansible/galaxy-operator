@@ -11,6 +11,11 @@
   kind: GalaxyBackup
   role: backup
   markUnsafe: true
+  finalizer:
+    name: galaxy.ansible.com/finalizer
+    role: backup
+    vars:
+      finalizer_run: true
 
 - version: v1beta1
   group: galaxy.ansible.com
