@@ -3,6 +3,8 @@ image_pull_secret: ''
 image_pull_secrets: []
 operator_service_account_name: '{{ lookup("env","OPERATOR_SA_NAME") | default("galaxy-operator-sa",true) }}'
 bundle_cacert_secret: ''
+db_fields_encryption_secret: ''
+container_token_secret: ''
 
 # Proxy environment variables for Galaxy containers.
 # Values are inherited from the operator pod environment.
