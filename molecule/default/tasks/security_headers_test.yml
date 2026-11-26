@@ -1,0 +1,41 @@
+---
+- name: Get the galaxy-web nginx ConfigMap
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: ConfigMap
+    namespace: '{{ namespace }}'
+    label_selector: app.kubernetes.io/component=webserver,app.kubernetes.io/managed-by=galaxy-operator
+  register: nginx_configmap
+  until: nginx_configmap.resources | length == 1
+  retries: 30
+  delay: 10
+
+- name: Assert the galaxy-web nginx ConfigMap exists
+  ansible.builtin.assert:
+    that:
+      - nginx_configmap.resources | length == 1
+    fail_msg: galaxy-web nginx ConfigMap was not created
+
+- name: Set the rendered nginx.conf from the ConfigMap
+  ansible.builtin.set_fact:
+    nginx_conf: '{{ nginx_configmap.resources[0].data["nginx.conf"] }}'
+
+- name: Verify security headers are set at the server level
+  ansible.builtin.assert:
+    that:
+      - nginx_conf.split('location ')[0] is search('add_header Strict-Transport-Security max-age=15768000 always;')
+      - nginx_conf.split('location ')[0] is search('add_header X-Frame-Options "DENY" always;')
+      - nginx_conf.split('location ')[0] is search('add_header X-Content-Type-Options nosniff always;')
+    fail_msg: galaxy-web nginx must set all three security headers with always at the server level.
+
+- name: Verify security headers are repeated in every location that declares add_header directives
+  ansible.builtin.assert:
+    that:
+      - item is search('add_header Strict-Transport-Security max-age=15768000 always;')
+      - item is search('add_header X-Frame-Options "DENY" always;')
+      - item is search('add_header X-Content-Type-Options nosniff always;')
+    fail_msg: >-
+      Every location with a local add_header directive must repeat all three security headers,
+      because nginx does not inherit add_header directives from parent contexts.
+  loop: '{{ nginx_conf.split("location ") }}'
+  when: item is search('(?m)^\\s*add_header ')
